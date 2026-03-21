@@ -14,6 +14,7 @@ class AppColors {
   static const Color warning = Color(0xFFF57F17);       // Amber - moderate risk
   static const Color danger = Color(0xFFC62828);        // Red - high risk
   static const Color info = Color(0xFF1565C0);          // Blue - informational
+  static const Color caution = Color(0xFFF57F17);       // Amber - caution
 
   // ─── Background Colors ─────────────────────────────────────────────────────
   static const Color background = Color(0xFFF5F7F5);

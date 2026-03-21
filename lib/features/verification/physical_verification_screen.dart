@@ -57,7 +57,7 @@ class _PhysicalVerificationScreenState
       carry: 'Bhoomi RTC printout, mutation number',
       canPartiallyCheck: true,
       digitalNote: 'Mutation history fetched from Bhoomi — physical stamp needed',
-      icon: Icons.stamp,
+      icon: Icons.approval,
     ),
     _VerificationItem(
       title: 'Physical Boundary Verification',

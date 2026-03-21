@@ -347,7 +347,7 @@ class BhoomiService {
       village: village,
       khataNumber: '${surveyNumber.replaceAll('/', '')}-KHT',
       khataType: KhataType.aKhata,
-      owners: const [
+      owners: [
         LandOwner(
           name: 'Demo Owner (Portal Unavailable)',
           fatherName: 'Demo Father',
