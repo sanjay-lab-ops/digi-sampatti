@@ -11,6 +11,8 @@ import 'package:digi_sampatti/features/records/land_records_screen.dart';
 import 'package:digi_sampatti/features/analysis/ai_analysis_screen.dart';
 import 'package:digi_sampatti/features/report/legal_report_screen.dart';
 import 'package:digi_sampatti/features/map/map_view_screen.dart';
+import 'package:digi_sampatti/features/verification/physical_verification_screen.dart';
+import 'package:digi_sampatti/features/partners/partners_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -71,6 +73,22 @@ final _router = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
         return MapViewScreen(locationData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/verification',
+      name: 'physical-verification',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return PhysicalVerificationScreen(reportData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/partners',
+      name: 'partners',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return PartnersScreen(reportData: extra);
       },
     ),
   ],
