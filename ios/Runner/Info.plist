@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identity -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>PropertyLegal</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>property_legal_app</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+
+    <!-- ─── Permission Descriptions (REQUIRED by Apple) ─────────────── -->
+
+    <!-- Camera: for property photo capture -->
+    <key>NSCameraUsageDescription</key>
+    <string>PropertyLegal needs camera access to take photos of the property for legal verification and GPS tagging.</string>
+
+    <!-- Location: for GPS coordinates -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>PropertyLegal needs your location to capture GPS coordinates of the property for Bhoomi land record lookup and legal verification.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>PropertyLegal uses your location to provide accurate property GPS coordinates for land record verification.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>PropertyLegal needs location access to capture property GPS coordinates for Karnataka land record verification.</string>
+
+    <!-- Photo Library -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>PropertyLegal needs access to your photo library to select property photos for verification.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>PropertyLegal saves property photos to your library for documentation purposes.</string>
+
+    <!-- ─── App Transport Security ────────────────────────────────────── -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <!-- Allow HTTP for government portals that don't support HTTPS -->
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>bhoomi.karnataka.gov.in</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+            <key>rera.karnataka.gov.in</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+
+    <!-- ─── UI Settings ───────────────────────────────────────────────── -->
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <!-- Portrait only -->
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+
+    <!-- Google Maps -->
+    <key>GMSApiKey</key>
+    <string>$(GOOGLE_MAPS_API_KEY)</string>
+
+    <!-- Flutter -->
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+</dict>
+</plist>
