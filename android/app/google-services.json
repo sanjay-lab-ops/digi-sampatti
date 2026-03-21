@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1053859311629",
+    "project_id": "digisampatti",
+    "storage_bucket": "digisampatti.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053859311629:android:b2e09e121abeb4bbf92544",
+        "android_client_info": {
+          "package_name": "com.digisampatti.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtDZUNII9C5LavCN-PH68PPfJ0NJGf1fA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

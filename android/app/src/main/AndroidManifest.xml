@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.propertylegal.karnataka">
+    package="com.digisampatti.app">
 
     <!-- ─── Permissions ──────────────────────────────────────────────────── -->
 
@@ -29,7 +29,7 @@
     <uses-feature android:name="android.hardware.location.gps" android:required="true"/>
 
     <application
-        android:label="PropertyLegal"
+        android:label="DigiSampatti"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
@@ -59,7 +59,7 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${GOOGLE_MAPS_API_KEY}"/>
+            android:value="AIzaSyAtDZUNII9C5LavCN-PH68PPfJ0NJGf1fA"/>
 
         <!-- Firebase (auto-configured by FlutterFire) -->
         <meta-data
