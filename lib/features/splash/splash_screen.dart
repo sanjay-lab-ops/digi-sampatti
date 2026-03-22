@@ -117,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Karnataka Land Records & Legal Verification',
+                  'India\'s Property Verification Platform',
                   style: TextStyle(
                     color: Colors.white60,
                     fontSize: 12,
