@@ -129,13 +129,13 @@ class ProfileScreen extends ConsumerWidget {
                     child: const Icon(Icons.language, color: AppColors.info, size: 18),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l.language,
-                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        Text('English / ಕನ್ನಡ',
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        const Text('English / ಕನ್ನಡ',
                           style: TextStyle(fontSize: 11, color: AppColors.textLight)),
                       ],
                     ),
