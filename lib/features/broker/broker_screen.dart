@@ -51,6 +51,8 @@ class BrokerScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _buildFreeTrialBanner(),
             const SizedBox(height: 20),
+            _buildReferralCard(context),
+            const SizedBox(height: 20),
             _buildBenefits(),
             const SizedBox(height: 20),
           ],
@@ -205,6 +207,63 @@ class BrokerScreen extends StatelessWidget {
           ),
         )),
       ],
+    );
+  }
+
+  Widget _buildReferralCard(BuildContext context) {
+    const referralCode = 'BROKER001';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.card_giftcard, color: Colors.white70, size: 18),
+            SizedBox(width: 8),
+            Text('Your Referral Code', style: TextStyle(color: Colors.white70, fontSize: 12)),
+          ]),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Text(referralCode, style: TextStyle(
+                color: Colors.white, fontSize: 26,
+                fontWeight: FontWeight.bold, letterSpacing: 4,
+              )),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(const ClipboardData(text: referralCode));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Referral code copied!'), duration: Duration(seconds: 1)));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.copy, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text('Copy', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('Share this code — earn ₹50 when someone pays for a report',
+            style: TextStyle(color: Colors.white70, fontSize: 11)),
+        ],
+      ),
     );
   }
 
