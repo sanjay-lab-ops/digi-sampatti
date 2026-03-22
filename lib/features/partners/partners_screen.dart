@@ -100,6 +100,64 @@ class PartnersScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+            _buildSectionTitle('Verified Developers'),
+            const SizedBox(height: 4),
+            const Text('DigiSampatti verified projects — legally checked before listing',
+              style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+            const SizedBox(height: 12),
+            _buildDeveloperCard(
+              context,
+              name: 'Brigade Group',
+              tagline: 'RERA registered · 35+ years · Bengaluru',
+              projects: ['Brigade Orchards', 'Brigade Utopia', 'Brigade Omega'],
+              color: const Color(0xFF1A237E),
+              badge: 'MOU Partner',
+            ),
+            const SizedBox(height: 10),
+            _buildDeveloperCard(
+              context,
+              name: 'Century Real Estate',
+              tagline: 'Premium plots & villas · Bengaluru',
+              projects: ['Century Indus', 'Century Ethos', 'Century Horizon'],
+              color: const Color(0xFF4A148C),
+              badge: 'Verified',
+            ),
+            const SizedBox(height: 10),
+            _buildDeveloperCard(
+              context,
+              name: 'Prestige Group',
+              tagline: 'RERA · Apartments, villas, commercial',
+              projects: ['Prestige Lakeside', 'Prestige Primrose Hills'],
+              color: const Color(0xFF1B5E20),
+              badge: 'Verified',
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.business, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Are you a Developer or Builder?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary)),
+                        SizedBox(height: 2),
+                        Text('List your project — reach verified, serious buyers', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.primary),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             _buildDisclaimerCard(),
             const SizedBox(height: 20),
           ],
@@ -290,6 +348,87 @@ class PartnersScreen extends StatelessWidget {
                       ),
                       const Icon(Icons.arrow_forward_ios,
                           size: 14, color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeveloperCard(BuildContext context, {
+    required String name, required String tagline,
+    required List<String> projects, required Color color, required String badge,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  child: Center(child: Text(name[0], style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20))),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          child: Text(badge, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.bold)),
+                        ),
+                      ]),
+                      const SizedBox(height: 3),
+                      Text(tagline, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6, runSpacing: 4,
+                        children: projects.map((p) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.borderColor)),
+                          child: Text(p, style: const TextStyle(fontSize: 10, color: AppColors.textMedium)),
+                        )).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderColor))),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showContactDialog(context,
+                  title: 'Enquire about $name',
+                  message: 'Our team will share verified project details and connect you with $name sales team. DigiSampatti verified buyers get priority response.',
+                  phone: '+91-XXXXXXXXXX'),
+                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(14), bottomRight: Radius.circular(14)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Enquire about projects', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+                      Icon(Icons.arrow_forward_ios, size: 13, color: color),
                     ],
                   ),
                 ),
