@@ -162,6 +162,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   _ToolRow(Icons.people_outline, l.expertHelp, 'Lawyer · Bank · Developers', AppColors.warning, () => context.push('/partners')),
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.gavel, l.courtCaseCheck, 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.assignment_turned_in, l.applyAndTrack, 'EC · RTC · Mutation · RERA · Registration', const Color(0xFF004D40), () => context.push('/gov-services')),
                 ],
               ),
             )),

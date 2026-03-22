@@ -37,6 +37,7 @@ import 'package:digi_sampatti/features/ecourts/ecourts_screen.dart';
 import 'package:digi_sampatti/features/legal/privacy_terms_screen.dart';
 import 'package:digi_sampatti/features/subscription/subscription_screen.dart';
 import 'package:digi_sampatti/features/profile/profile_screen.dart';
+import 'package:digi_sampatti/features/gov_services/gov_services_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -234,6 +235,14 @@ final _router = GoRouter(
       path: '/terms',
       name: 'terms',
       builder: (context, state) => const PrivacyTermsScreen(showTerms: true),
+    ),
+    GoRoute(
+      path: '/gov-services',
+      name: 'gov-services',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return GovServicesScreen(prefillData: extra);
+      },
     ),
     GoRoute(
       path: '/ecourts',

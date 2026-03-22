@@ -520,6 +520,51 @@ _Verified by DigiSampatti — Property Verification Platform_
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+
+            // ── Apply & Track
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF81C784)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.assignment_turned_in, size: 16, color: Color(0xFF2E7D32)),
+                      SizedBox(width: 6),
+                      Text('Government Services — Apply Online',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2E7D32))),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Apply for EC, RTC, Mutation & more — directly on official portals',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF388E3C)),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/gov-services', extra: {
+                        'surveyNumber': report.scan.surveyNumber,
+                        'district': report.scan.district,
+                      }),
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Apply & Track Applications'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E7D32),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
           ],
         ),
