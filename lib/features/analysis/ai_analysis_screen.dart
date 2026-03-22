@@ -124,7 +124,7 @@ class _LoadingAnalysisViewState extends State<_LoadingAnalysisView>
             ),
             const SizedBox(height: 8),
             const Text(
-              'Claude AI is analyzing all land records\nfor Karnataka legal compliance',
+              'We\'re carefully checking everything for you.\nThis takes about 10 seconds.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textMedium),
             ),
@@ -238,8 +238,8 @@ class _AnalysisResultView extends StatelessWidget {
 
           // ── Legal Flags
           _AnalysisCard(
-            title: 'Legal Flags',
-            icon: Icons.flag,
+            title: 'What We Found',
+            icon: Icons.find_in_page_outlined,
             child: Column(
               children: assessment.flags.map((f) => _FlagTile(flag: f)).toList(),
             ),
@@ -249,7 +249,7 @@ class _AnalysisResultView extends StatelessWidget {
           // ── Positives
           if (assessment.positives.isNotEmpty) ...[
             _AnalysisCard(
-              title: 'Positives',
+              title: 'Good Signs',
               icon: Icons.thumb_up_outlined,
               child: Column(
                 children: assessment.positives.map((p) => _BulletItem(
@@ -263,8 +263,8 @@ class _AnalysisResultView extends StatelessWidget {
           // ── Concerns
           if (assessment.concerns.isNotEmpty) ...[
             _AnalysisCard(
-              title: 'Concerns',
-              icon: Icons.warning_amber,
+              title: 'Points to Verify Before Buying',
+              icon: Icons.checklist_rtl_outlined,
               child: Column(
                 children: assessment.concerns.map((c) => _BulletItem(
                   text: c, color: AppColors.warning, icon: Icons.warning_amber,
@@ -276,7 +276,7 @@ class _AnalysisResultView extends StatelessWidget {
 
           // ── Action Items
           _AnalysisCard(
-            title: 'Action Items Before Buying',
+            title: 'Your Next Steps',
             icon: Icons.checklist,
             child: Column(
               children: assessment.actionItems.asMap().entries.map((e) =>
@@ -364,9 +364,8 @@ class _FlagTile extends StatelessWidget {
           Row(
             children: [
               Icon(
-                flag.status == FlagStatus.clear ? Icons.check_circle
-                    : flag.status == FlagStatus.warning ? Icons.warning_amber
-                    : Icons.cancel,
+                flag.status == FlagStatus.clear ? Icons.check_circle_outline
+                    : Icons.info_outline,
                 color: color, size: 18,
               ),
               const SizedBox(width: 6),

@@ -222,7 +222,7 @@ _Verified by DigiSampatti — Karnataka's #1 Property Verification App_
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('RISK SCORE', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                          const Text('SAFETY SCORE', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
                           Text('$score/100', style: TextStyle(
                             fontSize: 40, fontWeight: FontWeight.bold, color: color,
                           )),
@@ -302,33 +302,48 @@ _Verified by DigiSampatti — Karnataka's #1 Property Verification App_
 
             // ── All Flags
             _ReportSection(
-              title: 'Legal Flags (${assessment.flags.length})',
-              icon: Icons.gavel,
+              title: 'What We Found',
+              icon: Icons.find_in_page_outlined,
               child: Column(
                 children: assessment.flags.map((f) {
                   final fc = f.status == FlagStatus.clear ? AppColors.safe
                       : f.status == FlagStatus.warning ? AppColors.warning
                       : f.status == FlagStatus.danger ? AppColors.danger
                       : AppColors.textMedium;
+                  final icon = f.status == FlagStatus.clear ? Icons.check_circle_outline
+                      : f.status == FlagStatus.warning ? Icons.info_outline
+                      : Icons.info_outline;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: fc.withOpacity(0.1),
+                      color: fc.withOpacity(0.07),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: fc.withOpacity(0.3)),
+                      border: Border.all(color: fc.withOpacity(0.25)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('[${f.category}] ${f.title}',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: fc, fontSize: 13)),
+                        Row(
+                          children: [
+                            Icon(icon, color: fc, size: 16),
+                            const SizedBox(width: 6),
+                            Expanded(child: Text(f.title,
+                                style: TextStyle(fontWeight: FontWeight.bold, color: fc, fontSize: 13))),
+                          ],
+                        ),
                         const SizedBox(height: 4),
                         Text(f.details, style: const TextStyle(fontSize: 12, height: 1.4)),
                         if (f.actionRequired != null) ...[
-                          const SizedBox(height: 4),
-                          Text('→ ${f.actionRequired}',
-                              style: const TextStyle(color: AppColors.info, fontSize: 12, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.arrow_forward, size: 12, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Expanded(child: Text(f.actionRequired!,
+                                  style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600))),
+                            ],
+                          ),
                         ],
                       ],
                     ),
@@ -340,7 +355,7 @@ _Verified by DigiSampatti — Karnataka's #1 Property Verification App_
 
             // ── Action Items
             _ReportSection(
-              title: 'Before You Buy — Action Items',
+              title: 'Your Next Steps',
               icon: Icons.checklist,
               child: Column(
                 children: assessment.actionItems.asMap().entries.map((e) =>

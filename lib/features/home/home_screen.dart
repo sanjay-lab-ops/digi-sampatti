@@ -18,6 +18,13 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAskSheet(context),
+        icon: const Icon(Icons.chat_bubble_outline),
+        label: const Text('Ask a Question'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       appBar: AppBar(
         title: const Text('DigiSampatti'),
         actions: [
@@ -162,6 +169,15 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAskSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _AskSheet(),
     );
   }
 
@@ -439,4 +455,216 @@ class _RecentReportCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Ask Sheet ─────────────────────────────────────────────────────────────────
+class _AskSheet extends StatefulWidget {
+  const _AskSheet();
+
+  @override
+  State<_AskSheet> createState() => _AskSheetState();
+}
+
+class _AskSheetState extends State<_AskSheet> {
+  final _controller = TextEditingController();
+  String _search = '';
+
+  static const _qa = [
+    _QA('Is B Khata safe to buy?',
+      'B Khata means the property has legal irregularities — unapproved layout or construction. Banks will NOT give home loans on B Khata. Very risky. Always insist on A Khata before paying any advance.',
+      Icons.home_work),
+    _QA('What is RTC and why does it matter?',
+      'RTC (Record of Rights, Tenancy and Crops) is Karnataka\'s official land ownership document from Bhoomi portal. It shows owner name, land type, area, and khata number. Most important document before buying any land.',
+      Icons.article_outlined),
+    _QA('What is DC Conversion?',
+      'DC Conversion is the government order changing agricultural land to residential or commercial use. Without DC conversion, building is illegal and BBMP will not give building plan approval.',
+      Icons.swap_horiz),
+    _QA('What is stamp duty in Karnataka?',
+      'Tax paid when buying property. Men: 5%–5.6%. Women: 3%–5% (concession). Plus 1% registration charge. Use our Stamp Duty Calculator for exact amount.',
+      Icons.receipt),
+    _QA('Can I get a home loan on agricultural land?',
+      'No. Banks do not give home loans on agricultural land. The land must have DC conversion and BBMP/BDA approved layout with A Khata before banks will consider a loan.',
+      Icons.account_balance),
+    _QA('What is EC and do I need it?',
+      'EC (Encumbrance Certificate) lists all transactions on a property — loans, mortgages, sale deeds. Get EC for last 30 years before buying. If EC shows a mortgage, the bank\'s claim is still active.',
+      Icons.find_in_page),
+    _QA('What is RERA?',
+      'Karnataka\'s real estate regulator. All new residential projects above 500 sq m must be RERA registered. Check rera.karnataka.gov.in before booking any flat. No RERA = no legal protection.',
+      Icons.business),
+    _QA('What is OC and why do I need it?',
+      'Occupancy Certificate issued by BBMP/BDA after verifying building is complete and safe. Without OC, the building is technically illegal. Banks need OC for home loans on resale flats.',
+      Icons.verified),
+    _QA('What is a revenue site?',
+      'A plot on agricultural land without DC conversion or layout approval. Banks won\'t give loans, BBMP can demolish structures. Avoid unless DC conversion and BBMP/BDA layout approval exists.',
+      Icons.warning_amber),
+    _QA('What is Raja Kaluve?',
+      'Karnataka\'s storm drain network. A 50-metre buffer zone around Raja Kaluve is a no-construction zone. If a property falls inside this buffer, construction is illegal and can be demolished.',
+      Icons.water),
+    _QA('What is mutation?',
+      'Updating government records (RTC and Khata) in your name after purchase. Do Bhoomi mutation first, then Khata transfer. Must be done within 3 months of registration.',
+      Icons.edit_document),
+    _QA('How much home loan can I get?',
+      'Banks give max 80% of property value. Your EMI cannot exceed 50% of your net salary. Use our Loan Eligibility Calculator for your exact eligibility.',
+      Icons.currency_rupee),
+    _QA('What is UDS in an apartment?',
+      'Undivided Share of Land — your share of the total land in an apartment complex. Higher UDS = more land value and better resale. Always ask the builder for UDS before booking.',
+      Icons.pie_chart),
+    _QA('How do I check court cases on a property?',
+      'Use Court Case Check in More Tools. Enter owner name and district. Also check directly on services.ecourts.gov.in. Always check for disputes or injunctions before paying any advance.',
+      Icons.gavel),
+    _QA('Which authority approves layouts in Bengaluru?',
+      'BBMP: Bengaluru city. BDA: planned layouts. BMRDA: within 40km of Bengaluru. BIAAPA: airport corridor. CMC/TMC: smaller towns. Gram Panchayat (GP): village areas — highest risk.',
+      Icons.account_tree),
+  ];
+
+  List<_QA> get _filtered {
+    if (_search.isEmpty) return _qa;
+    final q = _search.toLowerCase();
+    return _qa.where((item) =>
+      item.question.toLowerCase().contains(q) ||
+      item.answer.toLowerCase().contains(q)
+    ).toList();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _filtered;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (ctx, scrollController) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Ask About Property',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text('Free answers — no charge',
+                    style: TextStyle(fontSize: 12, color: AppColors.safe)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    onChanged: (v) => setState(() => _search = v),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Is B Khata safe? What is stamp duty?',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _search.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () { _controller.clear(); setState(() => _search = ''); },
+                          )
+                        : null,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: filtered.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off, size: 40, color: AppColors.textLight),
+                        SizedBox(height: 8),
+                        Text('No matches', style: TextStyle(color: AppColors.textLight)),
+                        SizedBox(height: 4),
+                        Text('Try: khata, loan, stamp duty, RERA',
+                          style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (_, i) => _QAItem(qa: filtered[i]),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QAItem extends StatefulWidget {
+  final _QA qa;
+  const _QAItem({required this.qa});
+
+  @override
+  State<_QAItem> createState() => _QAItemState();
+}
+
+class _QAItemState extends State<_QAItem> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => setState(() => _open = !_open),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(widget.qa.icon, size: 18, color: AppColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(widget.qa.question,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14,
+                      color: _open ? AppColors.primary : AppColors.textDark,
+                    )),
+                ),
+                Icon(_open ? Icons.expand_less : Icons.expand_more,
+                  size: 18, color: AppColors.textLight),
+              ],
+            ),
+            if (_open) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.only(left: 28),
+                child: Text(widget.qa.answer,
+                  style: const TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.6)),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QA {
+  final String question, answer;
+  final IconData icon;
+  const _QA(this.question, this.answer, this.icon);
 }
