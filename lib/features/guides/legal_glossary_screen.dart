@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 class LegalGlossaryScreen extends StatefulWidget {
@@ -131,37 +130,6 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(t.description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
-                        if (t.portal != null) ...[
-                          const SizedBox(height: 10),
-                          GestureDetector(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: 'https://${t.portal}'));
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('${t.portal} copied — open in browser'),
-                                duration: const Duration(seconds: 2),
-                              ));
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: color.withOpacity(0.3)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.open_in_new, size: 13, color: color),
-                                  const SizedBox(width: 6),
-                                  Text(t.portalLabel ?? t.portal!,
-                                    style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
-                                  const SizedBox(width: 6),
-                                  Icon(Icons.copy, size: 11, color: color.withOpacity(0.6)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
