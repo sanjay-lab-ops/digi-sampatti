@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:camera/camera.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
@@ -69,18 +71,40 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
       if (mounted) {
-        // If GPS captured address, try to auto-detect survey details
-        context.push('/scan/manual', extra: {
-          'fromCamera': true,
-          'latitude': location?.latitude,
-          'longitude': location?.longitude,
-          'address': location?.address,
-          'photoPath': photoPath,
-        });
+        // Show GPS-stamped preview with Dishank option
+        await _showPhotoPreview(context, photoPath, location, scan);
       }
     } finally {
       if (mounted) setState(() { _isCapturing = false; });
     }
+  }
+
+  Future<void> _showPhotoPreview(
+      BuildContext context, String photoPath, GpsLocation? location, PropertyScan scan) async {
+    final now = DateTime.now();
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}  ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _PhotoPreviewSheet(
+        photoPath: photoPath,
+        location: location,
+        dateStr: dateStr,
+        onContinue: () {
+          Navigator.pop(context);
+          context.push('/scan/manual', extra: {
+            'fromCamera': true,
+            'latitude': location?.latitude,
+            'longitude': location?.longitude,
+            'address': location?.address,
+            'photoPath': photoPath,
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -246,6 +270,156 @@ class _CaptureControls extends StatelessWidget {
               ),
               const SizedBox(width: 48),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Photo Preview Sheet ───────────────────────────────────────────────────────
+class _PhotoPreviewSheet extends StatelessWidget {
+  final String photoPath;
+  final GpsLocation? location;
+  final String dateStr;
+  final VoidCallback onContinue;
+
+  const _PhotoPreviewSheet({
+    required this.photoPath, required this.location,
+    required this.dateStr, required this.onContinue,
+  });
+
+  Future<void> _openDishank() async {
+    // Try Dishank app first, fall back to Play Store
+    final appUri = Uri.parse('intent://open#Intent;package=in.ksrsac.dishank;scheme=dishank;end');
+    final playUri = Uri.parse('https://play.google.com/store/apps/details?id=in.ksrsac.dishank');
+    if (!await launchUrl(appUri, mode: LaunchMode.externalApplication)) {
+      await launchUrl(playUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 10),
+            width: 40, height: 4,
+            decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(height: 8),
+
+          // GPS-stamped photo
+          Expanded(
+            child: Stack(
+              children: [
+                // Photo
+                SizedBox.expand(
+                  child: Image.file(File(photoPath), fit: BoxFit.cover),
+                ),
+
+                // GPS stamp overlay — bottom left (like GPS Map Camera)
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    color: Colors.black.withOpacity(0.65),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // DigiSampatti brand
+                        Row(children: [
+                          const Icon(Icons.verified_user, color: Color(0xFF4CAF50), size: 14),
+                          const SizedBox(width: 4),
+                          const Text('DigiSampatti',
+                              style: TextStyle(color: Color(0xFF4CAF50), fontSize: 12, fontWeight: FontWeight.bold)),
+                          const Spacer(),
+                          Text(dateStr,
+                              style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                        ]),
+                        const SizedBox(height: 4),
+                        if (location != null) ...[
+                          Text(
+                            'Lat ${location!.latitude.toStringAsFixed(6)}°  Long ${location!.longitude.toStringAsFixed(6)}°',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                          ),
+                          if (location!.address != null && location!.address!.isNotEmpty)
+                            Text(
+                              location!.address!,
+                              style: const TextStyle(color: Colors.white70, fontSize: 10, height: 1.4),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ] else
+                          const Text('GPS not available',
+                              style: TextStyle(color: Colors.orange, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Action buttons
+          Container(
+            color: Colors.black,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Column(
+              children: [
+                // Dishank tip
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A237E).withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.map, color: Colors.white70, size: 16),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Don\'t know the survey number? Open Dishank — tap your plot on the map to get it.',
+                          style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _openDishank,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.lightBlueAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: const Text('Open\nDishank', textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onContinue,
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('Continue — Enter Survey No.'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
