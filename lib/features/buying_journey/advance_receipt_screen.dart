@@ -1,0 +1,490 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
+import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/providers/language_provider.dart';
+
+class AdvanceReceiptScreen extends ConsumerStatefulWidget {
+  const AdvanceReceiptScreen({super.key});
+
+  @override
+  ConsumerState<AdvanceReceiptScreen> createState() => _AdvanceReceiptScreenState();
+}
+
+class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Buyer
+  final _buyerName = TextEditingController();
+  final _buyerPhone = TextEditingController();
+  final _buyerAadhaar = TextEditingController();
+
+  // Seller
+  final _sellerName = TextEditingController();
+  final _sellerPhone = TextEditingController();
+
+  // Property
+  final _surveyNo = TextEditingController();
+  final _village = TextEditingController();
+  final _taluk = TextEditingController();
+  final _district = TextEditingController();
+  final _extent = TextEditingController();
+
+  // Transaction
+  final _totalPrice = TextEditingController();
+  final _advanceAmount = TextEditingController();
+  final _paymentMode = TextEditingController(text: 'Cheque / RTGS');
+  final _chequeNo = TextEditingController();
+  final _balanceDueDate = TextEditingController();
+  final _registrationDeadline = TextEditingController();
+  final _notes = TextEditingController();
+
+  bool _generating = false;
+  String? _pdfPath;
+
+  @override
+  void dispose() {
+    for (final c in [
+      _buyerName, _buyerPhone, _buyerAadhaar, _sellerName, _sellerPhone,
+      _surveyNo, _village, _taluk, _district, _extent,
+      _totalPrice, _advanceAmount, _paymentMode, _chequeNo,
+      _balanceDueDate, _registrationDeadline, _notes,
+    ]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _generatePdf(bool isKn) async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() { _generating = true; _pdfPath = null; });
+
+    try {
+      final pdf = pw.Document();
+      final dateStr = DateFormat('dd MMM yyyy').format(DateTime.now());
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (ctx) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Container(
+                width: double.infinity,
+                padding: const pw.EdgeInsets.all(16),
+                decoration: const pw.BoxDecoration(
+                  color: PdfColor.fromInt(0xFF1B5E20),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text('DigiSampatti',
+                        style: pw.TextStyle(
+                            color: PdfColors.white, fontSize: 20,
+                            fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Property Verification Platform',
+                        style: const pw.TextStyle(color: PdfColors.white70, fontSize: 10)),
+                    pw.SizedBox(height: 8),
+                    pw.Text('ADVANCE PAYMENT RECEIPT',
+                        style: pw.TextStyle(
+                            color: PdfColors.white, fontSize: 16,
+                            fontWeight: pw.FontWeight.bold)),
+                    pw.Text('ಮುಂಗಡ ಹಣ ರಸೀದಿ',
+                        style: const pw.TextStyle(color: PdfColors.white70, fontSize: 11)),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 16),
+
+              // Date & receipt note
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Date: $dateStr',
+                      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('This receipt is legally binding',
+                      style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                ],
+              ),
+              pw.SizedBox(height: 12),
+              pw.Divider(),
+              pw.SizedBox(height: 10),
+
+              // Property
+              _pdfSection('PROPERTY DETAILS / ಆಸ್ತಿ ವಿವರ', [
+                _pdfRow('Survey No.', _surveyNo.text),
+                _pdfRow('Village / ಗ್ರಾಮ', _village.text),
+                _pdfRow('Taluk / ತಾಲ್ಲೂಕು', _taluk.text),
+                _pdfRow('District / ಜಿಲ್ಲೆ', _district.text),
+                if (_extent.text.isNotEmpty) _pdfRow('Extent / ವಿಸ್ತೀರ್ಣ', _extent.text),
+              ]),
+              pw.SizedBox(height: 10),
+
+              // Transaction
+              _pdfSection('TRANSACTION DETAILS / ವ್ಯವಹಾರ ವಿವರ', [
+                _pdfRow('Total Sale Price / ಒಟ್ಟು ಮಾರಾಟ ಬೆಲೆ', '₹${_totalPrice.text}'),
+                _pdfRow('Advance Amount Paid / ಮುಂಗಡ ಮೊತ್ತ', '₹${_advanceAmount.text}'),
+                _pdfRow('Balance Amount / ಬಾಕಿ ಮೊತ್ತ',
+                    '₹${_balanceAmount()}'),
+                _pdfRow('Payment Mode / ಪಾವತಿ ವಿಧಾನ', _paymentMode.text),
+                if (_chequeNo.text.isNotEmpty)
+                  _pdfRow('Cheque / RTGS No.', _chequeNo.text),
+                if (_balanceDueDate.text.isNotEmpty)
+                  _pdfRow('Balance Due Date / ಬಾಕಿ ದಿನಾಂಕ', _balanceDueDate.text),
+                if (_registrationDeadline.text.isNotEmpty)
+                  _pdfRow('Registration Deadline / ನೋಂದಣಿ ದಿನಾಂಕ', _registrationDeadline.text),
+              ]),
+              pw.SizedBox(height: 10),
+
+              // Buyer
+              _pdfSection('BUYER / ಖರೀದಿದಾರ', [
+                _pdfRow('Name / ಹೆಸರು', _buyerName.text),
+                _pdfRow('Phone / ಫೋನ್', _buyerPhone.text),
+                if (_buyerAadhaar.text.isNotEmpty)
+                  _pdfRow('Aadhaar (last 4)', 'XXXX-XXXX-${_buyerAadhaar.text}'),
+              ]),
+              pw.SizedBox(height: 10),
+
+              // Seller
+              _pdfSection('SELLER / ಮಾರಾಟಗಾರ', [
+                _pdfRow('Name / ಹೆಸರು', _sellerName.text),
+                _pdfRow('Phone / ಫೋನ್', _sellerPhone.text),
+              ]),
+
+              if (_notes.text.isNotEmpty) ...[
+                pw.SizedBox(height: 10),
+                _pdfSection('ADDITIONAL TERMS / ಹೆಚ್ಚುವರಿ ಷರತ್ತುಗಳು', [
+                  pw.Text(_notes.text, style: const pw.TextStyle(fontSize: 9)),
+                ]),
+              ],
+
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.SizedBox(height: 16),
+
+              // Signatures
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(width: 150, height: 40,
+                          decoration: const pw.BoxDecoration(
+                              border: pw.Border(bottom: pw.BorderSide()))),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Buyer Signature / ಖರೀದಿದಾರ ಸಹಿ',
+                          style: const pw.TextStyle(fontSize: 9)),
+                      pw.Text(_buyerName.text, style: const pw.TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(width: 150, height: 40,
+                          decoration: const pw.BoxDecoration(
+                              border: pw.Border(bottom: pw.BorderSide()))),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Seller Signature / ಮಾರಾಟಗಾರ ಸಹಿ',
+                          style: const pw.TextStyle(fontSize: 9)),
+                      pw.Text(_sellerName.text, style: const pw.TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+
+              // Disclaimer
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                ),
+                child: pw.Text(
+                  'IMPORTANT: This advance receipt is a legally binding document. Both parties agree that the balance amount shall be paid by the date mentioned above, failing which the terms of forfeiture/refund as mutually agreed shall apply. This receipt does not substitute a registered Agreement for Sale. DigiSampatti is a verification platform and not a party to this transaction.',
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text('Generated by DigiSampatti · digisampatti.com',
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+            ],
+          ),
+        ),
+      );
+
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/advance_receipt_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final file = File(path);
+      await file.writeAsBytes(await pdf.save());
+      if (mounted) setState(() => _pdfPath = path);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error generating PDF: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _generating = false);
+    }
+  }
+
+  String _balanceAmount() {
+    final total = double.tryParse(_totalPrice.text.replaceAll(',', '')) ?? 0;
+    final advance = double.tryParse(_advanceAmount.text.replaceAll(',', '')) ?? 0;
+    final balance = total - advance;
+    return balance <= 0 ? '—' : NumberFormat('#,##,###').format(balance);
+  }
+
+  pw.Widget _pdfSection(String title, List<pw.Widget> children) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          color: const PdfColor.fromInt(0xFFE8F5E9),
+          child: pw.Text(title,
+              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold,
+                  color: const PdfColor.fromInt(0xFF1B5E20))),
+        ),
+        pw.Container(
+          padding: const pw.EdgeInsets.all(8),
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(color: PdfColors.grey300),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _pdfRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        children: [
+          pw.SizedBox(width: 150,
+              child: pw.Text(label, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700))),
+          pw.Expanded(
+              child: pw.Text(value, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = ref.watch(languageProvider);
+    final isKn = lang == 'kn';
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: Text(isKn ? 'ಮುಂಗಡ ರಸೀದಿ' : 'Advance Receipt')),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Banner
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF81C784)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long, color: Color(0xFF2E7D32), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        isKn
+                            ? 'ಎಲ್ಲ ವಿವರ ಭರ್ತಿ ಮಾಡಿ. PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ ಎರಡೂ ಕಡೆ ಸಹಿ ಮಾಡಿ.'
+                            : 'Fill all details. Download PDF and get signatures from both parties.',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              _sectionTitle(isKn ? 'ಆಸ್ತಿ ವಿವರ' : 'Property Details'),
+              _buildField(_surveyNo, isKn ? 'ಸರ್ವೆ ಸಂಖ್ಯೆ' : 'Survey Number', required: true),
+              _buildField(_village, isKn ? 'ಗ್ರಾಮ / ಬಡಾವಣೆ' : 'Village / Layout'),
+              Row(children: [
+                Expanded(child: _buildField(_taluk, isKn ? 'ತಾಲ್ಲೂಕು' : 'Taluk')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildField(_district, isKn ? 'ಜಿಲ್ಲೆ' : 'District', required: true)),
+              ]),
+              _buildField(_extent, isKn ? 'ಅಳತೆ (acres/sq.ft)' : 'Extent (acres / sq.ft)'),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ವ್ಯವಹಾರ ವಿವರ' : 'Transaction Details'),
+              Row(children: [
+                Expanded(child: _buildField(_totalPrice, isKn ? 'ಒಟ್ಟು ಬೆಲೆ (₹)' : 'Total Price (₹)', required: true, keyboardType: TextInputType.number)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildField(_advanceAmount, isKn ? 'ಮುಂಗಡ (₹)' : 'Advance Paid (₹)', required: true, keyboardType: TextInputType.number)),
+              ]),
+              _buildField(_paymentMode, isKn ? 'ಪಾವತಿ ವಿಧಾನ' : 'Payment Mode (Cheque/RTGS/NEFT)'),
+              _buildField(_chequeNo, isKn ? 'ಚೆಕ್ / RTGS ಸಂಖ್ಯೆ' : 'Cheque / RTGS Reference No.'),
+              Row(children: [
+                Expanded(child: _buildField(_balanceDueDate, isKn ? 'ಬಾಕಿ ದಿನಾಂಕ' : 'Balance Due Date')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildField(_registrationDeadline, isKn ? 'ನೋಂದಣಿ ದಿನಾಂಕ' : 'Registration Deadline')),
+              ]),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ಖರೀದಿದಾರ ವಿವರ' : 'Buyer Details'),
+              _buildField(_buyerName, isKn ? 'ಹೆಸರು' : 'Full Name', required: true),
+              Row(children: [
+                Expanded(child: _buildField(_buyerPhone, isKn ? 'ಫೋನ್' : 'Phone', required: true, keyboardType: TextInputType.phone)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildField(_buyerAadhaar, isKn ? 'ಆಧಾರ್ ಕೊನೆ 4 ಅಂಕೆ' : 'Aadhaar last 4 digits', keyboardType: TextInputType.number, maxLength: 4)),
+              ]),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ಮಾರಾಟಗಾರ ವಿವರ' : 'Seller Details'),
+              _buildField(_sellerName, isKn ? 'ಹೆಸರು' : 'Full Name', required: true),
+              _buildField(_sellerPhone, isKn ? 'ಫೋನ್' : 'Phone', required: true, keyboardType: TextInputType.phone),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ಹೆಚ್ಚುವರಿ ಷರತ್ತುಗಳು (ಐಚ್ಛಿಕ)' : 'Additional Terms (Optional)'),
+              TextFormField(
+                controller: _notes,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: isKn
+                      ? 'ಯಾವುದೇ ವಿಶೇಷ ಷರತ್ತುಗಳು, ಅಳವಡಿಕೆ ವಿವರ...'
+                      : 'Any special conditions, fixtures included, access rights...',
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Balance preview
+              if (_totalPrice.text.isNotEmpty && _advanceAmount.text.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(isKn ? 'ಬಾಕಿ ಮೊತ್ತ:' : 'Balance Amount:',
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text('₹${_balanceAmount()}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 16),
+
+              // Generate button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _generating ? null : () => _generatePdf(isKn),
+                  icon: _generating
+                      ? const SizedBox(width: 18, height: 18,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.picture_as_pdf),
+                  label: Text(isKn ? 'PDF ರಸೀದಿ ರಚಿಸಿ' : 'Generate PDF Receipt'),
+                ),
+              ),
+
+              if (_pdfPath != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => OpenFile.open(_pdfPath!),
+                        icon: const Icon(Icons.open_in_new),
+                        label: Text(isKn ? 'ತೆರೆಯಿರಿ' : 'Open'),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B5E20)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Share.shareXFiles([XFile(_pdfPath!)],
+                            text: 'Advance Receipt — ${_surveyNo.text}, ${_district.text}'),
+                        icon: const Icon(Icons.share),
+                        label: Text(isKn ? 'ಹಂಚಿಕೊಳ್ಳಿ' : 'Share'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isKn
+                        ? 'PDF ತಯಾರಾಗಿದೆ. WhatsApp ಮೂಲಕ ಮಾರಾಟಗಾರರಿಗೆ ಕಳುಹಿಸಿ, ಪ್ರಿಂಟ್ ತೆಗೆದು ಎರಡೂ ಕಡೆ ಸಹಿ ಮಾಡಿ.'
+                        : 'PDF ready. Share via WhatsApp with seller, print and get signatures from both parties.',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), height: 1.4),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 4),
+      child: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+    );
+  }
+
+  Widget _buildField(
+    TextEditingController ctrl,
+    String label, {
+    bool required = false,
+    TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
+        controller: ctrl,
+        keyboardType: keyboardType,
+        maxLength: maxLength,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          labelText: required ? '$label *' : label,
+          counterText: '',
+        ),
+        validator: required
+            ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
+            : null,
+      ),
+    );
+  }
+}

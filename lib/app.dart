@@ -38,6 +38,8 @@ import 'package:digi_sampatti/features/legal/privacy_terms_screen.dart';
 import 'package:digi_sampatti/features/subscription/subscription_screen.dart';
 import 'package:digi_sampatti/features/profile/profile_screen.dart';
 import 'package:digi_sampatti/features/gov_services/gov_services_screen.dart';
+import 'package:digi_sampatti/features/buying_journey/buying_journey_screen.dart';
+import 'package:digi_sampatti/features/buying_journey/advance_receipt_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -235,6 +237,16 @@ final _router = GoRouter(
       path: '/terms',
       name: 'terms',
       builder: (context, state) => const PrivacyTermsScreen(showTerms: true),
+    ),
+    GoRoute(
+      path: '/buying-journey',
+      name: 'buying-journey',
+      builder: (context, state) => const BuyingJourneyScreen(),
+    ),
+    GoRoute(
+      path: '/advance-receipt',
+      name: 'advance-receipt',
+      builder: (context, state) => const AdvanceReceiptScreen(),
     ),
     GoRoute(
       path: '/gov-services',
