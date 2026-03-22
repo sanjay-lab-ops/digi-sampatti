@@ -137,6 +137,8 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
           isLakeBed: landRecord.isLakeBed,
           remarks: landRecord.remarks,
           fetchedAt: DateTime.now(),
+          guidanceValuePerSqft: landRecord.guidanceValuePerSqft,
+          estimatedMarketValue: landRecord.estimatedMarketValue,
         );
 
         ref.read(currentLandRecordProvider.notifier).state = updatedRecord;
