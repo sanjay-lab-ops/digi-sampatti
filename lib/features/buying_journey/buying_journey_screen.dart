@@ -81,22 +81,22 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
   Widget _buildStage1(bool isKn) {
     final checks = isKn
         ? [
-            'RTC ಪರಿಶೀಲಿಸಿ — ಮಾಲೀಕರ ಹೆಸರು ಮಾರಾಟಗಾರರ ಹೆಸರಿಗೆ ಹೊಂದುತ್ತದೆಯೇ?',
-            'EC ಪಡೆಯಿರಿ — ಯಾವುದೇ ಸಾಲ, ಅಡಮಾನ ಇಲ್ಲ ಎಂದು ದೃಢಪಡಿಸಿ',
-            'eCourts ನಲ್ಲಿ ನ್ಯಾಯಾಲಯ ಪ್ರಕರಣ ತಿಳಿಯಿರಿ',
-            'ಅಪಾರ್ಟ್‌ಮೆಂಟ್ ಆಗಿದ್ದರೆ — RERA ನೋಂದಣಿ ಪರಿಶೀಲಿಸಿ',
-            'ಭೂಮಿ ಬಳಕೆ ಪರಿಶೀಲಿಸಿ — ಕೃಷಿ ಭೂಮಿ / ಪರಿವರ್ತನೆ ಅಗತ್ಯ ಇದೆಯೇ?',
-            'ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ ಹೋಲಿಸಿ — ಸರ್ಕಾರಿ ನಿಗದಿ ಬೆಲೆ ಎಷ್ಟು?',
-            'ಹಣ ನೀಡುವ ಮೊದಲು DigiSampatti ರಿಪೋರ್ಟ್ ಮಾಡಿ',
+            'RTC (ಭೂ ದಾಖಲೆ) — ಮಾರಾಟಗಾರರ ಹೆಸರು ಸರ್ಕಾರಿ ದಾಖಲೆಯಲ್ಲಿ ಇದೆಯೇ?',
+            'EC (ಭಾರ ಪ್ರಮಾಣಪತ್ರ) — ಈ ಆಸ್ತಿ ಮೇಲೆ ಯಾವ ಬ್ಯಾಂಕ್ ಸಾಲ ಇಲ್ಲ ತಾನೇ?',
+            'ನ್ಯಾಯಾಲಯ ಪ್ರಕರಣ — ಈ ಆಸ್ತಿ ಕೋರ್ಟ್‌ನಲ್ಲಿ ತಗಾದೆ ಇಲ್ಲ ತಾನೇ?',
+            'ಅಪಾರ್ಟ್‌ಮೆಂಟ್ ಆಗಿದ್ದರೆ — RERA ನೋಂದಣಿ ಇದೆಯೇ? (ನೋಂದಣಿ ಇಲ್ಲದ ಬಿಲ್ಡರ್ ಕಾನೂನುಬಾಹಿರ)',
+            'ಭೂಮಿ ಬಳಕೆ — ಕೃಷಿ ಭೂಮಿ ಅಲ್ಲ ತಾನೇ? ಕೃಷಿ ಭೂಮಿ ಖರೀದಿಗೆ ವಿಶೇಷ ಅನುಮತಿ ಬೇಕು',
+            'ಬೆಲೆ ಸರಿ ಇದೆಯೇ? ಸರ್ಕಾರಿ ನಿಗದಿ ಬೆಲೆಗಿಂತ ತುಂಬಾ ಹೆಚ್ಚು ಕೇಳುತ್ತಿದ್ದಾರೆಯೇ?',
+            'DigiSampatti ರಿಪೋರ್ಟ್ ಮಾಡಿ — ಮೇಲಿನ ಎಲ್ಲ ಒಂದೇ ಕ್ಲಿಕ್‌ನಲ್ಲಿ ತಿಳಿಯಿರಿ',
           ]
         : [
-            'Check RTC — does owner name match the seller?',
-            'Get EC — confirm no loans, mortgage, or legal charges',
-            'Check court cases on eCourts.gov.in',
-            'If apartment — verify RERA registration of the project',
-            'Check land use — is it agricultural? DC conversion needed?',
-            'Compare with Government Guidance Value — is price fair?',
-            'Run DigiSampatti report before paying any money',
+            'RTC (land ownership record) — is the seller\'s name on the government record?',
+            'EC (no-loan certificate) — does this property have any bank loan on it?',
+            'Court cases — is this property involved in any legal dispute?',
+            'If apartment — is the project RERA registered? (Unregistered builder = illegal)',
+            'Land type — is it agricultural land? Buying farm land has special restrictions',
+            'Is the price fair? Is it way above government guidance value?',
+            'Run DigiSampatti report — checks all of the above in one go',
           ];
 
     final done = _preAdvance.values.where((v) => v).length;
@@ -255,22 +255,22 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
   Widget _buildStage2(bool isKn) {
     final mustHave = isKn
         ? [
-            'ಆಸ್ತಿ ವಿವರ — ಸರ್ವೆ ಸಂಖ್ಯೆ, ಅಳತೆ, ಸ್ಥಳ',
-            'ಮಾರಾಟ ಮೊತ್ತ ಮತ್ತು ಪಾವತಿ ವೇಳಾಪಟ್ಟಿ',
-            'ಸ್ವಾಧೀನ ದಿನಾಂಕ — ನಿಖರವಾಗಿ',
-            'ವಿಳಂಬಕ್ಕೆ ದಂಡ ಷರತ್ತು (ಮಾರಾಟಗಾರ ಮತ್ತು ಖರೀದಿದಾರ ಇಬ್ಬರಿಗೂ)',
-            'ಮುಂಗಡ ವಾಪಸ್ ಷರತ್ತು — ಒಪ್ಪಂದ ಮುರಿದರೆ ಏನಾಗುತ್ತದೆ',
-            'ಎಲ್ಲ ಬಾಕಿ ತೆರಿಗೆ / ಬಿಲ್ ಮಾರಾಟಗಾರ ತೆರಿಸುತ್ತಾರೆ ಎಂಬ ಷರತ್ತು',
-            'ಸಾಕ್ಷಿ ಹೆಸರು ಮತ್ತು ಸಹಿ',
+            'ಸರ್ವೆ ಸಂಖ್ಯೆ ಮತ್ತು ಜಿಲ್ಲೆ ಸ್ಪಷ್ಟವಾಗಿ ಇದೆಯೇ?',
+            'ಒಟ್ಟು ಮೊತ್ತ ಮತ್ತು ಯಾವಾಗ ಎಷ್ಟು ಕೊಡಬೇಕು — ಸ್ಪಷ್ಟವಾಗಿ ಇದೆಯೇ?',
+            'ಕೀ ಕೊಡುವ ದಿನಾಂಕ — "ಆದಷ್ಟು ಬೇಗ" ಅಲ್ಲ, ನಿಖರ ದಿನಾಂಕ ಇದೆಯೇ?',
+            'ತಡ ಆದರೆ ದಂಡ — ಮಾರಾಟಗಾರ ತಡ ಮಾಡಿದರೂ ದಂಡ ಇದೆಯೇ?',
+            'ಡೀಲ್ ಮುರಿದರೆ — ಮುಂಗಡ ವಾಪಸ್ ಸಿಗುತ್ತದೆ ಎಂದು ಬರೆದಿದೆಯೇ?',
+            'ಹಳೆ ಬಾಕಿ ತೆರಿಗೆ / ಬಿಲ್ — ಮಾರಾಟಗಾರ ಮೊದಲು ತೀರಿಸುತ್ತಾರೆ ಎಂದು ಇದೆಯೇ?',
+            'ಎರಡೂ ಕಡೆ ಸಹಿ + ಸಾಕ್ಷಿ ಸಹಿ ಎಲ್ಲ ಪುಟಗಳ ಮೇಲೆ ಇದೆಯೇ?',
           ]
         : [
-            'Property details — survey number, extent, location',
-            'Sale amount and payment schedule (how much, by when)',
-            'Possession date — exact date, not "within 6 months"',
-            'Penalty clause for delay — applies to BOTH buyer and seller',
-            'Advance refund clause — what happens if deal breaks',
-            'Seller clears all pending taxes, bills before registration',
-            'Witness names and signatures on all pages',
+            'Survey number and district clearly mentioned?',
+            'Total price + when each payment is due — clearly written?',
+            'Handover date — exact date, not "as soon as possible"?',
+            'Penalty if seller delays — not just buyer, seller too?',
+            'If deal breaks — advance refund clearly stated?',
+            'Old pending taxes/bills — seller pays before registration?',
+            'Both signatures + witness signature on every page?',
           ];
 
     final redFlags = isKn

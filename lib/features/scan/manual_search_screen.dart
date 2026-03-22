@@ -98,8 +98,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Enter survey number from your property documents or from the Bhoomi portal.',
-                        style: TextStyle(fontSize: 13, color: AppColors.primary),
+                        'Enter the survey number from your sale deed or RTC document.\nDon\'t know it? Ask the seller — it\'s on every land document.',
+                        style: TextStyle(fontSize: 13, color: AppColors.primary, height: 1.4),
                       ),
                     ),
                   ],
@@ -108,19 +108,20 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
               const SizedBox(height: 20),
 
               // Survey Number
-              const _FieldLabel(AppStrings.enterSurveyNo, required: true),
+              const _FieldLabel('Survey Number (from land document)', required: true),
               TextFormField(
                 controller: _surveyController,
                 decoration: const InputDecoration(
-                  hintText: 'e.g. 45/2, 123, 67/A',
+                  hintText: 'e.g. 45/2  or  123  or  67/A',
                   prefixIcon: Icon(Icons.tag),
+                  helperText: 'Look for "Survey No." or "Sy. No." on the RTC / sale deed',
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Enter survey number' : null,
               ),
               const SizedBox(height: 16),
 
               // District
-              const _FieldLabel(AppStrings.selectDistrict, required: true),
+              const _FieldLabel('District (where the land is)', required: true),
               DropdownButtonFormField<String>(
                 value: _selectedDistrict,
                 decoration: const InputDecoration(prefixIcon: Icon(Icons.location_city)),
@@ -140,36 +141,24 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
 
               // Taluk
               if (_selectedDistrict != null) ...[
-                const _FieldLabel(AppStrings.selectTaluk, required: true),
+                const _FieldLabel('Taluk (optional — helps narrow results)'),
                 DropdownButtonFormField<String>(
                   value: _selectedTaluk,
                   decoration: const InputDecoration(prefixIcon: Icon(Icons.map_outlined)),
-                  hint: const Text('Select Taluk'),
+                  hint: const Text('Select Taluk (optional)'),
                   items: _taluks.map((t) =>
                     DropdownMenuItem(value: t, child: Text(t))
                   ).toList(),
                   onChanged: (v) => setState(() { _selectedTaluk = v; }),
-                  validator: (v) => v == null ? 'Select taluk' : null,
                 ),
                 const SizedBox(height: 16),
               ],
 
-              // Hobli (optional)
-              const _FieldLabel(AppStrings.selectHobli),
-              TextFormField(
-                decoration: const InputDecoration(
-                  hintText: 'Enter Hobli name (optional)',
-                  prefixIcon: Icon(Icons.place_outlined),
-                ),
-                onChanged: (v) => _selectedHobli = v,
-              ),
-              const SizedBox(height: 16),
-
               // Village (optional)
-              const _FieldLabel(AppStrings.selectVillage),
+              const _FieldLabel('Village / Area (optional)'),
               TextFormField(
                 decoration: const InputDecoration(
-                  hintText: 'Enter Village name (optional)',
+                  hintText: 'e.g. Yelahanka, Devanahalli...',
                   prefixIcon: Icon(Icons.villa_outlined),
                 ),
                 onChanged: (v) => _selectedVillage = v,

@@ -324,44 +324,44 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
               ),
               const SizedBox(height: 16),
 
-              _sectionTitle(isKn ? 'ಆಸ್ತಿ ವಿವರ' : 'Property Details'),
-              _buildField(_surveyNo, isKn ? 'ಸರ್ವೆ ಸಂಖ್ಯೆ' : 'Survey Number', required: true),
-              _buildField(_village, isKn ? 'ಗ್ರಾಮ / ಬಡಾವಣೆ' : 'Village / Layout'),
-              Row(children: [
-                Expanded(child: _buildField(_taluk, isKn ? 'ತಾಲ್ಲೂಕು' : 'Taluk')),
-                const SizedBox(width: 10),
-                Expanded(child: _buildField(_district, isKn ? 'ಜಿಲ್ಲೆ' : 'District', required: true)),
-              ]),
-              _buildField(_extent, isKn ? 'ಅಳತೆ (acres/sq.ft)' : 'Extent (acres / sq.ft)'),
-
-              const SizedBox(height: 6),
-              _sectionTitle(isKn ? 'ವ್ಯವಹಾರ ವಿವರ' : 'Transaction Details'),
+              // Required fields — minimal
+              _sectionTitle(isKn ? 'ಮುಖ್ಯ ವಿವರ (ಕಡ್ಡಾಯ)' : 'Essential Details *required'),
+              _buildField(_buyerName, isKn ? 'ಖರೀದಿದಾರ ಹೆಸರು' : 'Buyer Name', required: true),
+              _buildField(_sellerName, isKn ? 'ಮಾರಾಟಗಾರ ಹೆಸರು' : 'Seller Name', required: true),
               Row(children: [
                 Expanded(child: _buildField(_totalPrice, isKn ? 'ಒಟ್ಟು ಬೆಲೆ (₹)' : 'Total Price (₹)', required: true, keyboardType: TextInputType.number)),
                 const SizedBox(width: 10),
                 Expanded(child: _buildField(_advanceAmount, isKn ? 'ಮುಂಗಡ (₹)' : 'Advance Paid (₹)', required: true, keyboardType: TextInputType.number)),
               ]),
-              _buildField(_paymentMode, isKn ? 'ಪಾವತಿ ವಿಧಾನ' : 'Payment Mode (Cheque/RTGS/NEFT)'),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ಆಸ್ತಿ ವಿವರ (ಐಚ್ಛಿಕ)' : 'Property Details (optional)'),
+              _buildField(_surveyNo, isKn ? 'ಸರ್ವೆ ಸಂಖ್ಯೆ' : 'Survey Number'),
+              Row(children: [
+                Expanded(child: _buildField(_village, isKn ? 'ಗ್ರಾಮ / ಬಡಾವಣೆ' : 'Village / Layout')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildField(_district, isKn ? 'ಜಿಲ್ಲೆ' : 'District')),
+              ]),
+              _buildField(_extent, isKn ? 'ಅಳತೆ' : 'Extent (acres / sq.ft)'),
+
+              const SizedBox(height: 6),
+              _sectionTitle(isKn ? 'ಪಾವತಿ ವಿವರ (ಐಚ್ಛಿಕ)' : 'Payment Details (optional)'),
+              _buildField(_paymentMode, isKn ? 'ಪಾವತಿ ವಿಧಾನ' : 'Payment Mode — Cheque / RTGS / NEFT'),
               _buildField(_chequeNo, isKn ? 'ಚೆಕ್ / RTGS ಸಂಖ್ಯೆ' : 'Cheque / RTGS Reference No.'),
               Row(children: [
                 Expanded(child: _buildField(_balanceDueDate, isKn ? 'ಬಾಕಿ ದಿನಾಂಕ' : 'Balance Due Date')),
                 const SizedBox(width: 10),
-                Expanded(child: _buildField(_registrationDeadline, isKn ? 'ನೋಂದಣಿ ದಿನಾಂಕ' : 'Registration Deadline')),
+                Expanded(child: _buildField(_registrationDeadline, isKn ? 'ನೋಂದಣಿ ಗಡುವು' : 'Registration Deadline')),
               ]),
 
               const SizedBox(height: 6),
-              _sectionTitle(isKn ? 'ಖರೀದಿದಾರ ವಿವರ' : 'Buyer Details'),
-              _buildField(_buyerName, isKn ? 'ಹೆಸರು' : 'Full Name', required: true),
+              _sectionTitle(isKn ? 'ಸಂಪರ್ಕ (ಐಚ್ಛಿಕ)' : 'Contact Details (optional)'),
               Row(children: [
-                Expanded(child: _buildField(_buyerPhone, isKn ? 'ಫೋನ್' : 'Phone', required: true, keyboardType: TextInputType.phone)),
+                Expanded(child: _buildField(_buyerPhone, isKn ? 'ಖರೀದಿದಾರ ಫೋನ್' : 'Buyer Phone', keyboardType: TextInputType.phone)),
                 const SizedBox(width: 10),
-                Expanded(child: _buildField(_buyerAadhaar, isKn ? 'ಆಧಾರ್ ಕೊನೆ 4 ಅಂಕೆ' : 'Aadhaar last 4 digits', keyboardType: TextInputType.number, maxLength: 4)),
+                Expanded(child: _buildField(_sellerPhone, isKn ? 'ಮಾರಾಟಗಾರ ಫೋನ್' : 'Seller Phone', keyboardType: TextInputType.phone)),
               ]),
-
-              const SizedBox(height: 6),
-              _sectionTitle(isKn ? 'ಮಾರಾಟಗಾರ ವಿವರ' : 'Seller Details'),
-              _buildField(_sellerName, isKn ? 'ಹೆಸರು' : 'Full Name', required: true),
-              _buildField(_sellerPhone, isKn ? 'ಫೋನ್' : 'Phone', required: true, keyboardType: TextInputType.phone),
+              _buildField(_buyerAadhaar, isKn ? 'ಆಧಾರ್ ಕೊನೆ 4 ಅಂಕೆ (ಐಚ್ಛಿಕ)' : 'Aadhaar last 4 digits (optional)', keyboardType: TextInputType.number, maxLength: 4),
 
               const SizedBox(height: 6),
               _sectionTitle(isKn ? 'ಹೆಚ್ಚುವರಿ ಷರತ್ತುಗಳು (ಐಚ್ಛಿಕ)' : 'Additional Terms (Optional)'),
