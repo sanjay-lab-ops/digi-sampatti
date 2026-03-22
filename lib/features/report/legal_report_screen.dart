@@ -5,10 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/core/services/payment_service.dart';
 
 class LegalReportScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? reportData;
@@ -21,6 +24,52 @@ class LegalReportScreen extends ConsumerStatefulWidget {
 class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
   String? _pdfPath;
   bool _isGeneratingPdf = false;
+  bool _isPaid = false;
+  final _paymentService = PaymentService();
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentService.initialize();
+    _paymentService.onSuccess = _onPaymentSuccess;
+    _paymentService.onFailure = _onPaymentFailure;
+  }
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
+  }
+
+  void _startPayment(String reportId) {
+    final phone = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+    _paymentService.openPayment(
+      reportId: reportId,
+      userPhone: phone,
+      description: 'Property Report #$reportId',
+    );
+  }
+
+  void _onPaymentSuccess(PaymentSuccessResponse response) {
+    setState(() => _isPaid = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Payment successful! Generating your PDF...'),
+        backgroundColor: AppColors.safe,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    _generatePdf();
+  }
+
+  void _onPaymentFailure(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Payment failed: ${response.message ?? "Try again"}'),
+        backgroundColor: AppColors.danger,
+      ),
+    );
+  }
 
   Future<void> _generatePdf() async {
     setState(() => _isGeneratingPdf = true);
@@ -45,6 +94,67 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
         text: 'DigiSampatti Report — Karnataka Land Verification',
       );
     }
+  }
+
+  Widget _buildPaymentCard(String reportId) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.picture_as_pdf, color: Colors.white, size: 22),
+              SizedBox(width: 10),
+              Text('Download Full PDF Report', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('Get the complete legal report as PDF — share with your lawyer, bank, or family.',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('₹99', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text('one-time · instant download', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                ],
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () => _startPayment(reportId),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF1B5E20),
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Pay & Download', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Row(
+            children: [
+              Icon(Icons.lock, size: 12, color: Colors.white70),
+              SizedBox(width: 4),
+              Text('Secured by Razorpay · UPI, Card, Net Banking accepted', style: TextStyle(fontSize: 10, color: Colors.white70)),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _shareWhatsApp(LegalReport report) async {
@@ -273,16 +383,17 @@ _Verified by DigiSampatti — Karnataka's #1 Property Verification App_
             const SizedBox(height: 20),
 
             // ── PDF Actions
-            if (_pdfPath == null)
-              ElevatedButton.icon(
+            if (_pdfPath == null) ...[
+              if (!_isPaid) _buildPaymentCard(report.reportId)
+              else ElevatedButton.icon(
                 onPressed: _isGeneratingPdf ? null : _generatePdf,
                 icon: _isGeneratingPdf
                     ? const SizedBox(width: 18, height: 18,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.picture_as_pdf),
                 label: Text(_isGeneratingPdf ? 'Generating PDF...' : 'Download PDF Report'),
-              )
-            else
+              ),
+            ] else
               Row(
                 children: [
                   Expanded(
