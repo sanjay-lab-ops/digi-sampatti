@@ -46,4 +46,23 @@ class AppL10n {
   String get betaBanner => isKannada
       ? 'ಬೀಟಾ: ಮಾದರಿ ಡೇಟಾ ತೋರಿಸಲಾಗಿದೆ. ನೈಜ ಭೂಮಿ ದಾಖಲೆಗಳು ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿವೆ.'
       : 'Beta: Sample data shown. Real Bhoomi records coming soon.';
+
+  // ── More Tools
+  String get propertyTransfer   => isKannada ? 'ಆಸ್ತಿ ವರ್ಗಾವಣೆ'              : 'Property Transfer';
+  String get financialTools      => isKannada ? 'ಹಣಕಾಸು ಸಾಧನಗಳು'             : 'Financial Tools';
+  String get buyerGuides         => isKannada ? 'ಖರೀದಿದಾರ ಮಾರ್ಗದರ್ಶಿ'        : 'Buyer Guides';
+  String get expertHelp          => isKannada ? 'ತಜ್ಞರ ಸಹಾಯ'                  : 'Expert Help';
+  String get courtCaseCheck      => isKannada ? 'ನ್ಯಾಯಾಲಯ ಪ್ರಕರಣ ಪರಿಶೀಲನೆ'   : 'Court Case Check';
+
+  // ── Action card subtitles
+  String get photoGps            => isKannada ? 'ಫೋಟೋ + GPS'                  : 'Photo + GPS';
+  String get surveyNo            => isKannada ? 'ಸರ್ವೆ ಸಂಖ್ಯೆ'                : 'Survey No.';
+  String get pastSearches        => isKannada ? 'ಹಿಂದಿನ ಹುಡುಕಾಟಗಳು'           : 'Past searches';
+  String get freeReports         => isKannada ? '5 ಉಚಿತ ವರದಿಗಳು'              : '5 free reports';
+
+  // ── Misc
+  String get viewAll             => isKannada ? 'ಎಲ್ಲ ನೋಡಿ'                   : 'View All';
+  String get whyDigiSampatti     => isKannada ? 'ಡಿಜಿ ಸಂಪತ್ತಿ ಏಕೆ?'           : 'Why DigiSampatti?';
+  String get knowBeforeYouBuyTag => isKannada ? 'ಖರೀದಿಸುವ ಮೊದಲು ತಿಳಿಯಿರಿ'    : 'Know Before You Buy';
+  String get verifyInMinutes     => isKannada ? 'ನಿಮಿಷಗಳಲ್ಲಿ ಆಸ್ತಿ ಪರಿಶೀಲನೆ'  : 'Property verification in minutes';
 }

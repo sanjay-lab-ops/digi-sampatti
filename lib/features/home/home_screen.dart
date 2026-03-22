@@ -45,6 +45,7 @@ class HomeScreen extends ConsumerWidget {
             _WelcomeBanner(
               userName: user?.phoneNumber ?? '',
               headline: l.knowBeforeYouBuy,
+              subtitle: l.verifyInMinutes,
             ),
             const SizedBox(height: 20),
 
@@ -64,7 +65,7 @@ class HomeScreen extends ConsumerWidget {
                   child: _ActionCard(
                     icon: Icons.camera_alt,
                     title: l.scanProperty,
-                    subtitle: 'Photo + GPS',
+                    subtitle: l.photoGps,
                     color: AppColors.primary,
                     onTap: () => context.push('/scan/camera'),
                   ),
@@ -74,7 +75,7 @@ class HomeScreen extends ConsumerWidget {
                   child: _ActionCard(
                     icon: Icons.search,
                     title: l.manualSearch,
-                    subtitle: 'Survey No.',
+                    subtitle: l.surveyNo,
                     color: AppColors.info,
                     onTap: () => context.push('/scan/manual'),
                   ),
@@ -88,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
                   child: _ActionCard(
                     icon: Icons.history,
                     title: l.myReports,
-                    subtitle: 'Past searches',
+                    subtitle: l.pastSearches,
                     color: const Color(0xFF6366F1),
                     onTap: () => context.push('/history'),
                   ),
@@ -98,7 +99,7 @@ class HomeScreen extends ConsumerWidget {
                   child: _ActionCard(
                     icon: Icons.people,
                     title: l.brokerZone,
-                    subtitle: '5 free reports',
+                    subtitle: l.freeReports,
                     color: const Color(0xFFD97706),
                     onTap: () => context.push('/broker'),
                   ),
@@ -123,15 +124,15 @@ class HomeScreen extends ConsumerWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
                   ),
                   const Divider(height: 1),
-                  _ToolRow(Icons.home_work, 'Property Transfer', 'Stamp Duty · Mutation · SRO', const Color(0xFF1A237E), () => context.push('/transfer')),
+                  _ToolRow(Icons.home_work, l.propertyTransfer, 'Stamp Duty · Mutation · SRO', const Color(0xFF1A237E), () => context.push('/transfer')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.account_balance_wallet, 'Financial Tools', 'EMI · Total Cost · Loan Eligibility', const Color(0xFF1B5E20), () => context.push('/tools')),
+                  _ToolRow(Icons.account_balance_wallet, l.financialTools, 'EMI · Total Cost · Loan Eligibility', const Color(0xFF1B5E20), () => context.push('/tools')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.school, 'Buyer Guides', 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
+                  _ToolRow(Icons.school, l.buyerGuides, 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.people_outline, 'Expert Help', 'Lawyer · Bank · Developers', AppColors.warning, () => context.push('/partners')),
+                  _ToolRow(Icons.people_outline, l.expertHelp, 'Lawyer · Bank · Developers', AppColors.warning, () => context.push('/partners')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.gavel, 'Court Case Check', 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
+                  _ToolRow(Icons.gavel, l.courtCaseCheck, 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
                 ],
               ),
             ),
@@ -156,7 +157,7 @@ class HomeScreen extends ConsumerWidget {
                 if (recentReports.isNotEmpty)
                   TextButton(
                     onPressed: () => context.push('/history'),
-                    child: const Text(AppStrings.viewAll),
+                    child: Text(l.viewAll),
                   ),
               ],
             ),
@@ -241,7 +242,8 @@ class HomeScreen extends ConsumerWidget {
 class _WelcomeBanner extends StatelessWidget {
   final String userName;
   final String headline;
-  const _WelcomeBanner({required this.userName, required this.headline});
+  final String subtitle;
+  const _WelcomeBanner({required this.userName, required this.headline, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -272,9 +274,9 @@ class _WelcomeBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Karnataka property verification in minutes',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
