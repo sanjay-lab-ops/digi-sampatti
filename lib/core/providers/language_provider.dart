@@ -47,6 +47,18 @@ class AppL10n {
       ? 'ಬೀಟಾ: ಮಾದರಿ ಡೇಟಾ ತೋರಿಸಲಾಗಿದೆ. ನೈಜ ಭೂಮಿ ದಾಖಲೆಗಳು ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿವೆ.'
       : 'Beta: Sample data shown. Real Bhoomi records coming soon.';
 
+  // ── Auth screen
+  String get enterMobileNumber  => isKannada ? 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ'        : 'Enter Mobile Number';
+  String get sendOtp             => isKannada ? 'OTP ಕಳುಹಿಸಿ'                  : 'Send OTP';
+  String get verifyOtp           => isKannada ? 'OTP ಪರಿಶೀಲಿಸಿ'               : 'Verify OTP';
+  String get enterOtpHint        => isKannada ? '6 ಅಂಕಿಯ OTP ನಮೂದಿಸಿ'         : 'Enter 6-digit OTP';
+  String get otpSentTo           => isKannada ? 'OTP ಕಳುಹಿಸಲಾಗಿದೆ: '          : 'OTP sent to: ';
+  String get changeNumber        => isKannada ? 'ಸಂಖ್ಯೆ ಬದಲಿಸಿ'                : 'Change Number';
+  String get agreeTerms          => isKannada
+      ? 'ಮುಂದುವರೆಯುವ ಮೂಲಕ ನೀವು ನಮ್ಮ ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ನೀತಿಗೆ ಒಪ್ಪುತ್ತೀರಿ'
+      : 'By continuing, you agree to our Terms of Service\nand Privacy Policy';
+  String get platformTagline     => isKannada ? 'ಆಸ್ತಿ ಪರಿಶೀಲನಾ ವೇದಿಕೆ'       : 'Property Verification Platform';
+
   // ── More Tools
   String get propertyTransfer   => isKannada ? 'ಆಸ್ತಿ ವರ್ಗಾವಣೆ'              : 'Property Transfer';
   String get financialTools      => isKannada ? 'ಹಣಕಾಸು ಸಾಧನಗಳು'             : 'Financial Tools';
@@ -59,6 +71,17 @@ class AppL10n {
   String get surveyNo            => isKannada ? 'ಸರ್ವೆ ಸಂಖ್ಯೆ'                : 'Survey No.';
   String get pastSearches        => isKannada ? 'ಹಿಂದಿನ ಹುಡುಕಾಟಗಳು'           : 'Past searches';
   String get freeReports         => isKannada ? '5 ಉಚಿತ ವರದಿಗಳು'              : '5 free reports';
+
+  // ── Profile screen
+  String get myProfile          => isKannada ? 'ನನ್ನ ಪ್ರೊಫೈಲ್'               : 'My Profile';
+  String get memberSince        => isKannada ? 'DigiSampatti ಸದಸ್ಯ'           : 'DigiSampatti Member';
+  String get reportsGenerated   => isKannada ? 'ವರದಿಗಳು\nರಚಿಸಲಾಗಿದೆ'          : 'Reports\nGenerated';
+  String get lastSafetyScore    => isKannada ? 'ಕೊನೆಯ ಸುರಕ್ಷತಾ\nಅಂಕ'         : 'Last Safety\nScore';
+  String get appVersion         => isKannada ? 'ಆ್ಯಪ್\nಆವೃತ್ತಿ'               : 'App\nVersion';
+  String get plansPricing       => isKannada ? 'ಯೋಜನೆ & ಬೆಲೆ'               : 'Plans & Pricing';
+  String get signOut            => isKannada ? 'ಹೊರಗೆ ಹೋಗಿ'                  : 'Sign Out';
+  String get language           => isKannada ? 'ಭಾಷೆ / Language'             : 'Language / ಭಾಷೆ';
+  String get aboutApp           => isKannada ? 'DigiSampatti ಬಗ್ಗೆ'           : 'About DigiSampatti';
 
   // ── Misc
   String get viewAll             => isKannada ? 'ಎಲ್ಲ ನೋಡಿ'                   : 'View All';

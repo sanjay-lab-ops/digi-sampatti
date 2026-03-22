@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
+import 'package:digi_sampatti/core/providers/language_provider.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -90,6 +91,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n(ref.watch(languageProvider));
+    final lang = ref.watch(languageProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -100,50 +104,52 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 40),
-                // Logo
-                Center(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Center(
-                      child: Text('🏠', style: TextStyle(fontSize: 36)),
+                // Language toggle top-right
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () => ref.read(languageProvider.notifier)
+                        .setLanguage(lang == 'kn' ? 'en' : 'kn'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        lang == 'kn' ? 'EN' : 'ಕನ್ನಡ',
+                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Center(
-                  child: Text(
-                    'DigiSampatti',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                // Logo
+                Center(
+                  child: Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(18),
                     ),
+                    child: const Center(child: Text('🏠', style: TextStyle(fontSize: 36))),
                   ),
                 ),
+                const SizedBox(height: 24),
                 const Center(
-                  child: Text(
-                    'Property Verification Platform',
-                    style: TextStyle(color: AppColors.textMedium, fontSize: 14),
-                  ),
+                  child: Text('DigiSampatti',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                ),
+                Center(
+                  child: Text(l.platformTagline,
+                    style: const TextStyle(color: AppColors.textMedium, fontSize: 14)),
                 ),
                 const SizedBox(height: 40),
 
                 // Phone Input
                 if (!_otpSent) ...[
-                  const Text(
-                    'Enter Mobile Number',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: AppColors.textDark,
-                    ),
-                  ),
+                  Text(l.enterMobileNumber,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: AppColors.textDark)),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
@@ -163,27 +169,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _sendOtp,
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20, width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text(AppStrings.sendOtp),
+                        ? const SizedBox(height: 20, width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(l.sendOtp),
                   ),
                 ] else ...[
-                  // OTP Input
-                  Text(
-                    '${AppStrings.otpSent}+91 ${_phoneController.text}',
-                    style: const TextStyle(color: AppColors.textMedium),
-                  ),
+                  Text('${l.otpSentTo}+91 ${_phoneController.text}',
+                    style: const TextStyle(color: AppColors.textMedium)),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _otpController,
                     keyboardType: TextInputType.number,
                     maxLength: 6,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter 6-digit OTP',
-                      counterText: '',
-                    ),
+                    decoration: InputDecoration(hintText: l.enterOtpHint, counterText: ''),
                     validator: (v) {
                       if (v == null || v.length != 6) return 'Enter 6-digit OTP';
                       return null;
@@ -193,22 +191,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _verifyOtp,
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20, width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text(AppStrings.verifyOtp),
+                        ? const SizedBox(height: 20, width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(l.verifyOtp),
                   ),
                   const SizedBox(height: 12),
                   Center(
                     child: TextButton(
                       onPressed: () => setState(() { _otpSent = false; }),
-                      child: const Text('Change Number'),
+                      child: Text(l.changeNumber),
                     ),
                   ),
                 ],
 
-                // Error
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -217,20 +212,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       color: AppColors.statusDangerBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: AppColors.statusDangerText),
-                    ),
+                    child: Text(_errorMessage!,
+                      style: const TextStyle(color: AppColors.statusDangerText)),
                   ),
                 ],
 
                 const SizedBox(height: 32),
-                const Center(
-                  child: Text(
-                    'By continuing, you agree to our Terms of Service\nand Privacy Policy',
+                Center(
+                  child: Text(l.agreeTerms,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: AppColors.textLight),
-                  ),
+                    style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
                 ),
               ],
             ),

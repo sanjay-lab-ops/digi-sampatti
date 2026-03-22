@@ -15,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
     final reports = ref.watch(recentReportsProvider);
     final lang = ref.watch(languageProvider);
+    final l = AppL10n(lang);
     final phone = user?.phoneNumber ?? 'Unknown';
     final maskedPhone = phone.length > 5
         ? '${phone.substring(0, phone.length - 4)}****'
@@ -22,7 +23,7 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(title: Text(l.myProfile)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -53,8 +54,8 @@ class ProfileScreen extends ConsumerWidget {
                   Text(maskedPhone,
                     style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  const Text('DigiSampatti Member',
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(l.memberSince,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
             ),
@@ -65,19 +66,19 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 Expanded(child: _StatBox(
                   value: '${reports.length}',
-                  label: 'Reports\nGenerated',
+                  label: l.reportsGenerated,
                   color: AppColors.primary,
                 )),
                 const SizedBox(width: 10),
                 Expanded(child: _StatBox(
                   value: reports.isEmpty ? '—' : _safeScore(reports.first.riskAssessment.score),
-                  label: 'Last Safety\nScore',
+                  label: l.lastSafetyScore,
                   color: AppColors.safe,
                 )),
                 const SizedBox(width: 10),
                 Expanded(child: _StatBox(
                   value: 'Beta',
-                  label: 'App\nVersion',
+                  label: l.appVersion,
                   color: AppColors.warning,
                 )),
               ],
@@ -86,13 +87,13 @@ class ProfileScreen extends ConsumerWidget {
 
             // Menu
             _buildMenuCard([
-              _MenuItem(Icons.subscriptions_outlined, 'Plans & Pricing',
+              _MenuItem(Icons.subscriptions_outlined, l.plansPricing,
                 '₹99/report · ₹999/month', AppColors.primary,
                 () => context.push('/subscription')),
-              _MenuItem(Icons.history, 'My Reports',
+              _MenuItem(Icons.history, l.myReports,
                 'View all past reports', AppColors.info,
                 () => context.push('/history')),
-              _MenuItem(Icons.people_outline, 'Expert Help',
+              _MenuItem(Icons.people_outline, l.expertHelp,
                 'Lawyers, banks, developers', AppColors.warning,
                 () => context.push('/partners')),
             ]),
@@ -104,7 +105,7 @@ class ProfileScreen extends ConsumerWidget {
               _MenuItem(Icons.description_outlined, 'Terms of Service',
                 'Usage terms', AppColors.textMedium,
                 () => context.push('/terms')),
-              _MenuItem(Icons.info_outline, 'About DigiSampatti',
+              _MenuItem(Icons.info_outline, l.aboutApp,
                 'v1.0 Beta · Property Verification Platform', AppColors.textMedium,
                 () => _showAbout(context)),
             ]),
@@ -132,7 +133,7 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Language / ಭಾಷೆ',
+                        Text(l.language,
                           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                         Text('English / ಕನ್ನಡ',
                           style: TextStyle(fontSize: 11, color: AppColors.textLight)),
@@ -153,7 +154,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _buildMenuCard([
-              _MenuItem(Icons.logout, 'Sign Out',
+              _MenuItem(Icons.logout, l.signOut,
                 'Log out of your account', AppColors.danger,
                 () => _signOut(context)),
             ]),
