@@ -109,6 +109,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               children: [
                 Text(l.startPropertyCheck,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _StepChip(label: '1. Scan'),
+                    const _StepArrow(),
+                    _StepChip(label: '2. Analyse'),
+                    const _StepArrow(),
+                    _StepChip(label: '3. Report'),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Row(children: [
                   Expanded(child: _ActionCard(
@@ -320,6 +331,35 @@ class _WelcomeBanner extends StatelessWidget {
 }
 
 // ─── Action Card ───────────────────────────────────────────────────────────────
+class _StepChip extends StatelessWidget {
+  final String label;
+  const _StepChip({required this.label});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.25)),
+      ),
+      child: Text(label,
+          style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+class _StepArrow extends StatelessWidget {
+  const _StepArrow();
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4),
+      child: Icon(Icons.arrow_forward, size: 12, color: AppColors.textLight),
+    );
+  }
+}
+
 class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String title;

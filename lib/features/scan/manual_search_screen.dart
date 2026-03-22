@@ -114,10 +114,11 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                 decoration: const InputDecoration(
                   hintText: 'e.g. 45/2  or  123  or  67/A',
                   prefixIcon: Icon(Icons.tag),
-                  helperText: 'Look for "Survey No." or "Sy. No." on the RTC / sale deed',
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Enter survey number' : null,
               ),
+              const SizedBox(height: 6),
+              const _SurveyHint(),
               const SizedBox(height: 16),
 
               // District
@@ -184,6 +185,80 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SurveyHint extends StatefulWidget {
+  const _SurveyHint();
+  @override
+  State<_SurveyHint> createState() => _SurveyHintState();
+}
+
+class _SurveyHintState extends State<_SurveyHint> {
+  bool _open = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => setState(() => _open = !_open),
+          child: Row(
+            children: [
+              Icon(_open ? Icons.expand_less : Icons.help_outline,
+                  size: 15, color: AppColors.info),
+              const SizedBox(width: 5),
+              const Text('Where do I find the survey number?',
+                  style: TextStyle(fontSize: 12, color: AppColors.info, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+        if (_open) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _HintRow('On the RTC / Pahani document', 'Top section — printed as "Sy. No." or "Survey No."'),
+                SizedBox(height: 6),
+                _HintRow('On the sale deed / agreement', 'First page — under "Schedule of Property"'),
+                SizedBox(height: 6),
+                _HintRow('Don\'t have it?', 'Ask the seller — every land has one. No survey number = verify before paying anything'),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+}
+
+class _HintRow extends StatelessWidget {
+  final String title, desc;
+  const _HintRow(this.title, this.desc);
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('• ', style: TextStyle(color: AppColors.info, fontWeight: FontWeight.bold)),
+        Expanded(child: RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 12, color: AppColors.textDark, height: 1.4),
+            children: [
+              TextSpan(text: '$title — ', style: const TextStyle(fontWeight: FontWeight.w600)),
+              TextSpan(text: desc),
+            ],
+          ),
+        )),
+      ],
     );
   }
 }
