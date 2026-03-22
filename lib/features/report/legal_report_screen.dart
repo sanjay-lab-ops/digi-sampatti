@@ -21,11 +21,14 @@ class LegalReportScreen extends ConsumerStatefulWidget {
   ConsumerState<LegalReportScreen> createState() => _LegalReportScreenState();
 }
 
-class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
+class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
+    with SingleTickerProviderStateMixin {
   String? _pdfPath;
   bool _isGeneratingPdf = false;
   bool _isPaid = false;
   final _paymentService = PaymentService();
+  late AnimationController _scoreCtrl;
+  late Animation<int> _scoreAnim;
 
   @override
   void initState() {
@@ -33,10 +36,22 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
     _paymentService.initialize();
     _paymentService.onSuccess = _onPaymentSuccess;
     _paymentService.onFailure = _onPaymentFailure;
+    _scoreCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+  }
+
+  void _animateScore(int target) {
+    _scoreAnim = IntTween(begin: 0, end: target).animate(
+      CurvedAnimation(parent: _scoreCtrl, curve: Curves.easeOut),
+    );
+    _scoreCtrl.forward(from: 0);
   }
 
   @override
   void dispose() {
+    _scoreCtrl.dispose();
     _paymentService.dispose();
     super.dispose();
   }
@@ -189,6 +204,11 @@ _Verified by DigiSampatti — Property Verification Platform_
         : AppColors.danger;
     final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
 
+    // Trigger score animation on first build
+    if (!_scoreCtrl.isAnimating && _scoreCtrl.value == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _animateScore(score));
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -223,9 +243,16 @@ _Verified by DigiSampatti — Property Verification Platform_
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('SAFETY SCORE', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
-                          Text('$score/100', style: TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.bold, color: color,
-                          )),
+                          AnimatedBuilder(
+                            animation: _scoreCtrl,
+                            builder: (_, __) {
+                              final display = _scoreCtrl.value == 0 ? score
+                                  : _scoreAnim.value;
+                              return Text('$display/100', style: TextStyle(
+                                fontSize: 40, fontWeight: FontWeight.bold, color: color,
+                              ));
+                            },
+                          ),
                           Text(assessment.level.displayName,
                               style: TextStyle(color: color, fontWeight: FontWeight.bold)),
                         ],

@@ -9,11 +9,65 @@ import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late List<Animation<double>> _fades;
+  late List<Animation<Offset>> _slides;
+
+  // 5 sections: banner, actions-row1, actions-row2, more-tools, why+recent
+  static const _count = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _fades = List.generate(_count, (i) {
+      final start = i * 0.15;
+      return Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: _ctrl,
+          curve: Interval(start, (start + 0.4).clamp(0, 1), curve: Curves.easeOut),
+        ),
+      );
+    });
+    _slides = List.generate(_count, (i) {
+      final start = i * 0.15;
+      return Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _ctrl,
+          curve: Interval(start, (start + 0.4).clamp(0, 1), curve: Curves.easeOut),
+        ),
+      );
+    });
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Widget _animated(int index, Widget child) {
+    return FadeTransition(
+      opacity: _fades[index],
+      child: SlideTransition(position: _slides[index], child: child),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recentReports = ref.watch(recentReportsProvider);
     final user = FirebaseAuth.instance.currentUser;
     final l = AppL10n(ref.watch(languageProvider));
@@ -42,74 +96,49 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Welcome Banner
-            _WelcomeBanner(
+            _animated(0, _WelcomeBanner(
               userName: user?.phoneNumber ?? '',
               headline: l.knowBeforeYouBuy,
               subtitle: l.verifyInMinutes,
-            ),
+            )),
             const SizedBox(height: 20),
 
             // ── Quick Action Buttons
-            Text(
-              l.startPropertyCheck,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+            _animated(1, Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _ActionCard(
-                    icon: Icons.camera_alt,
-                    title: l.scanProperty,
-                    subtitle: l.photoGps,
-                    color: AppColors.primary,
-                    onTap: () => context.push('/scan/camera'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ActionCard(
-                    icon: Icons.search,
-                    title: l.manualSearch,
-                    subtitle: l.surveyNo,
-                    color: AppColors.info,
-                    onTap: () => context.push('/scan/manual'),
-                  ),
-                ),
+                Text(l.startPropertyCheck,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(child: _ActionCard(
+                    icon: Icons.camera_alt, title: l.scanProperty, subtitle: l.photoGps,
+                    color: AppColors.primary, onTap: () => context.push('/scan/camera'),
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(child: _ActionCard(
+                    icon: Icons.search, title: l.manualSearch, subtitle: l.surveyNo,
+                    color: AppColors.info, onTap: () => context.push('/scan/manual'),
+                  )),
+                ]),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(child: _ActionCard(
+                    icon: Icons.history, title: l.myReports, subtitle: l.pastSearches,
+                    color: const Color(0xFF6366F1), onTap: () => context.push('/history'),
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(child: _ActionCard(
+                    icon: Icons.people, title: l.brokerZone, subtitle: l.freeReports,
+                    color: const Color(0xFFD97706), onTap: () => context.push('/broker'),
+                  )),
+                ]),
               ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionCard(
-                    icon: Icons.history,
-                    title: l.myReports,
-                    subtitle: l.pastSearches,
-                    color: const Color(0xFF6366F1),
-                    onTap: () => context.push('/history'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ActionCard(
-                    icon: Icons.people,
-                    title: l.brokerZone,
-                    subtitle: l.freeReports,
-                    color: const Color(0xFFD97706),
-                    onTap: () => context.push('/broker'),
-                  ),
-                ),
-              ],
-            ),
+            )),
             const SizedBox(height: 16),
 
             // ── More Tools
-            Container(
+            _animated(2, Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
@@ -135,37 +164,36 @@ class HomeScreen extends ConsumerWidget {
                   _ToolRow(Icons.gavel, l.courtCaseCheck, 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
                 ],
               ),
-            ),
+            )),
             const SizedBox(height: 16),
 
             // ── Why DigiSampatti — interactive card
-            _WhyDigiSampattiCard(onTap: () => _showWhySheet(context)),
+            _animated(3, _WhyDigiSampattiCard(onTap: () => _showWhySheet(context))),
             const SizedBox(height: 24),
 
             // ── Recent Reports
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            _animated(4, Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l.recentReports,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(l.recentReports,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    if (recentReports.isNotEmpty)
+                      TextButton(
+                        onPressed: () => context.push('/history'),
+                        child: Text(l.viewAll),
+                      ),
+                  ],
                 ),
-                if (recentReports.isNotEmpty)
-                  TextButton(
-                    onPressed: () => context.push('/history'),
-                    child: Text(l.viewAll),
-                  ),
+                const SizedBox(height: 8),
+                if (recentReports.isEmpty)
+                  _EmptyReportsCard(noReportsText: l.noReports)
+                else
+                  ...recentReports.take(5).map((r) => _RecentReportCard(report: r)),
               ],
-            ),
-            const SizedBox(height: 8),
-            if (recentReports.isEmpty)
-              _EmptyReportsCard(noReportsText: l.noReports)
-            else
-              ...recentReports.take(5).map((r) => _RecentReportCard(report: r)),
+            )),
           ],
         ),
       ),
