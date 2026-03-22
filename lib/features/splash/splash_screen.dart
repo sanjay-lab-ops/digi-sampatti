@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 
@@ -42,8 +43,17 @@ class _SplashScreenState extends State<SplashScreen>
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       context.go('/home');
-    } else {
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+    if (!mounted) return;
+
+    if (onboardingDone) {
       context.go('/auth');
+    } else {
+      context.go('/onboarding');
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/features/splash/splash_screen.dart';
+import 'package:digi_sampatti/features/onboarding/onboarding_screen.dart';
 import 'package:digi_sampatti/features/auth/auth_screen.dart';
 import 'package:digi_sampatti/features/home/home_screen.dart';
 import 'package:digi_sampatti/features/scan/camera_scan_screen.dart';
@@ -22,6 +23,11 @@ final _router = GoRouter(
       path: '/splash',
       name: 'splash',
       builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: '/auth',

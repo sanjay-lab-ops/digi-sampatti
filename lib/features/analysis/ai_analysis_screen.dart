@@ -51,8 +51,8 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
     );
   }
 
-  Future<void> _generateReport(report) async {
-    context.push('/report');
+  Future<void> _generateReport(LegalReport report) async {
+    context.push('/report', extra: report.toJson());
   }
 }
 

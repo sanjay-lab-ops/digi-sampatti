@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 
@@ -411,7 +412,7 @@ class _PhysicalVerificationScreenState
             width: double.infinity,
             child: ElevatedButton(
               onPressed: allDone
-                  ? () => Navigator.pushNamed(context, '/partners')
+                  ? () => context.push('/partners')
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: allDone ? AppColors.safe : AppColors.textLight,
