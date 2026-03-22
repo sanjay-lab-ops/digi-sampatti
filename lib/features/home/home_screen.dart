@@ -115,6 +115,8 @@ class HomeScreen extends ConsumerWidget {
                   _ToolRow(Icons.school, 'Buyer Guides', 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.people_outline, 'Expert Help', 'Lawyer · Bank · Insurance · Developers', AppColors.warning, () => context.push('/partners')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.gavel, 'Court Case Check', 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
                 ],
               ),
             ),

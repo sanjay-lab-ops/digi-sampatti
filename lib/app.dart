@@ -33,6 +33,7 @@ import 'package:digi_sampatti/features/guides/dc_conversion_screen.dart';
 import 'package:digi_sampatti/features/guides/legal_glossary_screen.dart';
 import 'package:digi_sampatti/features/guides/red_flags_screen.dart';
 import 'package:digi_sampatti/features/guides/faq_screen.dart';
+import 'package:digi_sampatti/features/ecourts/ecourts_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -210,6 +211,17 @@ final _router = GoRouter(
       path: '/guides/faq',
       name: 'faq',
       builder: (context, state) => const FaqScreen(),
+    ),
+    GoRoute(
+      path: '/ecourts',
+      name: 'ecourts',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return EcourtsScreen(
+          ownerName: extra?['ownerName'] as String?,
+          surveyNumber: extra?['surveyNumber'] as String?,
+        );
+      },
     ),
   ],
 );
