@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _Slide(
       icon: Icons.verified_user,
       title: 'Know Before You Buy',
-      subtitle: 'Buying property in Karnataka?\nCheck land records in minutes — before paying any advance.',
+      subtitle: 'Buying property?\nCheck land records in minutes — before paying any advance.',
       highlight: 'Used by 1,000+ buyers, brokers & investors',
       color: Color(0xFF1B5E20),
     ),

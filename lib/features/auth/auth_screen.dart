@@ -128,7 +128,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 ),
                 const Center(
                   child: Text(
-                    'Karnataka Land Verification',
+                    'Property Verification Platform',
                     style: TextStyle(color: AppColors.textMedium, fontSize: 14),
                   ),
                 ),

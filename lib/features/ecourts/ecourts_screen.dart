@@ -102,7 +102,7 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
                 Text('eCourts Property Case Check',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1A237E))),
                 SizedBox(height: 3),
-                Text('Check if owner or property has pending civil disputes, title claims, or injunctions in Karnataka courts.',
+                Text('Check if owner or property has pending civil disputes, title claims, or injunctions in any court.',
                   style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.4)),
               ],
             ),
@@ -189,7 +189,7 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Checking Karnataka court records...', style: TextStyle(color: AppColors.textLight, fontSize: 13)),
+          Text('Checking court records...', style: TextStyle(color: AppColors.textLight, fontSize: 13)),
           SizedBox(height: 4),
           Text('Searching civil, title, and injunction cases', style: TextStyle(color: AppColors.textLight, fontSize: 11)),
         ],

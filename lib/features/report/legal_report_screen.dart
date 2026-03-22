@@ -91,7 +91,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
     if (_pdfPath != null) {
       await Share.shareXFiles(
         [XFile(_pdfPath!)],
-        text: 'DigiSampatti Report — Karnataka Land Verification',
+        text: 'DigiSampatti Report — Property Verification',
       );
     }
   }
@@ -170,7 +170,7 @@ Bank Loan: ${report.riskAssessment.isBankLoanEligible ? "ELIGIBLE ✓" : "NOT EL
 
 ${report.riskAssessment.summary}
 
-_Verified by DigiSampatti — Karnataka's #1 Property Verification App_
+_Verified by DigiSampatti — Property Verification Platform_
 ''';
     await Share.share(text);
   }
