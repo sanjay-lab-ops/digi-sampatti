@@ -6,6 +6,7 @@ import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -15,18 +16,19 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recentReports = ref.watch(recentReportsProvider);
     final user = FirebaseAuth.instance.currentUser;
+    final l = AppL10n(ref.watch(languageProvider));
 
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAskSheet(context),
         icon: const Icon(Icons.chat_bubble_outline),
-        label: const Text('Ask a Question'),
+        label: Text(l.askQuestion),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       appBar: AppBar(
-        title: const Text('DigiSampatti'),
+        title: Text(l.homeTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
@@ -40,13 +42,16 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Welcome Banner
-            _WelcomeBanner(userName: user?.phoneNumber ?? ''),
+            _WelcomeBanner(
+              userName: user?.phoneNumber ?? '',
+              headline: l.knowBeforeYouBuy,
+            ),
             const SizedBox(height: 20),
 
             // ── Quick Action Buttons
-            const Text(
-              'Start Property Check',
-              style: TextStyle(
+            Text(
+              l.startPropertyCheck,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -58,17 +63,17 @@ class HomeScreen extends ConsumerWidget {
                 Expanded(
                   child: _ActionCard(
                     icon: Icons.camera_alt,
-                    title: 'Scan Property',
+                    title: l.scanProperty,
                     subtitle: 'Take photo + GPS',
                     color: AppColors.primary,
                     onTap: () => context.push('/scan/camera'),
                   ),
                 ),
-                    const SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _ActionCard(
                     icon: Icons.search,
-                    title: 'Manual Search',
+                    title: l.manualSearch,
                     subtitle: 'Survey number',
                     color: AppColors.info,
                     onTap: () => context.push('/scan/manual'),
@@ -82,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
                 Expanded(
                   child: _ActionCard(
                     icon: Icons.history,
-                    title: 'My Reports',
+                    title: l.myReports,
                     subtitle: 'Past searches',
                     color: const Color(0xFF6366F1),
                     onTap: () => context.push('/history'),
@@ -92,7 +97,7 @@ class HomeScreen extends ConsumerWidget {
                 Expanded(
                   child: _ActionCard(
                     icon: Icons.people,
-                    title: 'Broker Zone',
+                    title: l.brokerZone,
                     subtitle: '5 free reports',
                     color: const Color(0xFFD97706),
                     onTap: () => context.push('/broker'),
@@ -110,9 +115,9 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: Text('More Tools', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text(l.moreTools, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
                   ),
                   const Divider(height: 1),
                   _ToolRow(Icons.home_work, 'Property Transfer', 'Stamp Duty · Mutation · SRO', const Color(0xFF1A237E), () => context.push('/transfer')),
@@ -127,6 +132,26 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // ── Investor Confidence Banner
+            const _InvestorBanner(),
+            const SizedBox(height: 16),
+
+            // ── Digital India Expansion
+            const _DigitalIndiaSection(),
+            const SizedBox(height: 16),
+
+            // ── Rural & Tribal Access
+            const _TribalInclusionCard(),
+            const SizedBox(height: 16),
+
+            // ── Property Price Ladder
+            const _PriceLadderCard(),
+            const SizedBox(height: 16),
+
+            // ── Clean Governance
+            const _CleanGovernanceCard(),
             const SizedBox(height: 24),
 
             // ── What We Check Section
@@ -146,9 +171,9 @@ class HomeScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  AppStrings.recentReports,
-                  style: TextStyle(
+                Text(
+                  l.recentReports,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -156,14 +181,14 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 if (recentReports.isNotEmpty)
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () => context.push('/history'),
                     child: const Text(AppStrings.viewAll),
                   ),
               ],
             ),
             const SizedBox(height: 8),
             if (recentReports.isEmpty)
-              _EmptyReportsCard()
+              _EmptyReportsCard(noReportsText: l.noReports)
             else
               ...recentReports.take(5).map((r) => _RecentReportCard(report: r)),
           ],
@@ -232,7 +257,8 @@ class HomeScreen extends ConsumerWidget {
 // ─── Welcome Banner ────────────────────────────────────────────────────────────
 class _WelcomeBanner extends StatelessWidget {
   final String userName;
-  const _WelcomeBanner({required this.userName});
+  final String headline;
+  const _WelcomeBanner({required this.userName, required this.headline});
 
   @override
   Widget build(BuildContext context) {
@@ -254,9 +280,9 @@ class _WelcomeBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Know Before You Buy',
-                  style: TextStyle(
+                Text(
+                  headline,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -405,6 +431,9 @@ class _VerificationList extends StatelessWidget {
 
 // ─── Empty Reports ─────────────────────────────────────────────────────────────
 class _EmptyReportsCard extends StatelessWidget {
+  final String noReportsText;
+  const _EmptyReportsCard({required this.noReportsText});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -414,14 +443,14 @@ class _EmptyReportsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderColor),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.folder_open, size: 48, color: AppColors.textLight),
-          SizedBox(height: 12),
-          Text(AppStrings.noReports,
-              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMedium)),
-          SizedBox(height: 4),
-          Text(AppStrings.startScan,
+          const Icon(Icons.folder_open, size: 48, color: AppColors.textLight),
+          const SizedBox(height: 12),
+          Text(noReportsText,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMedium)),
+          const SizedBox(height: 4),
+          const Text(AppStrings.startScan,
               style: TextStyle(fontSize: 12, color: AppColors.textLight)),
         ],
       ),
@@ -463,6 +492,617 @@ class _RecentReportCard extends StatelessWidget {
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/report', extra: report.toJson()),
+      ),
+    );
+  }
+}
+
+// ─── Tribal & Rural Inclusion Card ───────────────────────────────────────────
+class _TribalInclusionCard extends StatelessWidget {
+  const _TribalInclusionCard();
+
+  static const _rights = [
+    _RightItem(Icons.forest,           '🌿 Forest Rights Act 2006',   'Tribal communities have legal rights over forest land they live on. FRA ensures every family\'s rights are properly recorded and protected.'),
+    _RightItem(Icons.account_balance,  '⚖️ PESA Act 1996',            'Gram Sabha (village council) has authority over land in Scheduled Areas. No transfer without their consent.'),
+    _RightItem(Icons.shield,           '🛡️ Anti-Alienation Laws',     'In Karnataka & most states, tribal land cannot be sold to non-tribals without government permission.'),
+    _RightItem(Icons.agriculture,      '🌾 Agricultural Land Rights', 'Farmers and small landholders can verify if their RTC, Khata, and EC are correct — free of brokers.'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8F5E9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2E7D32),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text('🌍', style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 8),
+                    Text(
+                      'For Every Indian',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'City flat · Village farm · Forest village · Tribal land — your land rights matter equally.',
+                  style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+
+          // Rights list
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: _rights.asMap().entries.map((e) {
+                final item = e.value;
+                return Column(
+                  children: [
+                    _ExpandableRight(item: item),
+                    if (e.key < _rights.length - 1)
+                      const Divider(height: 16, color: Color(0xFFE8F5E9)),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+
+          // Footer note
+          Container(
+            margin: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFCC02).withOpacity(0.5)),
+            ),
+            child: const Row(
+              children: [
+                Text('💡', style: TextStyle(fontSize: 13)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'DigiSampatti is designed for simple use — no legal knowledge needed. If you can read a phone, you can protect your land.',
+                    style: TextStyle(fontSize: 10, color: Color(0xFF5D4037), height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RightItem {
+  final IconData icon;
+  final String title;
+  final String description;
+  const _RightItem(this.icon, this.title, this.description);
+}
+
+class _ExpandableRight extends StatefulWidget {
+  final _RightItem item;
+  const _ExpandableRight({required this.item});
+
+  @override
+  State<_ExpandableRight> createState() => _ExpandableRightState();
+}
+
+class _ExpandableRightState extends State<_ExpandableRight> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => setState(() => _open = !_open),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(widget.item.icon, size: 16, color: const Color(0xFF2E7D32)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    widget.item.title,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B5E20)),
+                  ),
+                ),
+                Icon(
+                  _open ? Icons.expand_less : Icons.expand_more,
+                  size: 16, color: const Color(0xFF81C784),
+                ),
+              ],
+            ),
+            if (_open) ...[
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 42),
+                child: Text(
+                  widget.item.description,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF37474F), height: 1.5),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Property Price Ladder ────────────────────────────────────────────────────
+class _PriceLadderCard extends StatelessWidget {
+  const _PriceLadderCard();
+
+  static const _zones = [
+    _Zone('Gram\nPanchayat', '₹200–\n800/sqft',   '🌾', Color(0xFF795548)),
+    _Zone('CMC/TMC\nTown',   '₹800–\n3,000/sqft', '🏘️', Color(0xFF607D8B)),
+    _Zone('City\nOutskirts', '₹3k–\n8k/sqft',     '🏗️', Color(0xFF1976D2)),
+    _Zone('BBMP\nBengaluru', '₹5k–\n20k/sqft',    '🏙️', Color(0xFF6A1B9A)),
+    _Zone('Premium\nMetro',  '₹20k–\n80k/sqft',   '🏢', Color(0xFFB71C1C)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
+              children: [
+                Icon(Icons.trending_up, size: 18, color: Color(0xFF1976D2)),
+                SizedBox(width: 8),
+                Text('Property Price Ranges — Village to Metro',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF37474F))),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Text('Karnataka approximate rates. Always verify current market price.',
+              style: TextStyle(fontSize: 10, color: Color(0xFF90A4AE))),
+          ),
+          SizedBox(
+            height: 100,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              itemCount: _zones.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                final z = _zones[i];
+                final isLast = i == _zones.length - 1;
+                return Row(
+                  children: [
+                    Container(
+                      width: 88,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: z.color.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: z.color.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(z.emoji, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(z.label,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 9, color: z.color, fontWeight: FontWeight.bold, height: 1.2)),
+                          const SizedBox(height: 3),
+                          Text(z.price,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 9, color: z.color, height: 1.2)),
+                        ],
+                      ),
+                    ),
+                    if (!isLast)
+                      Icon(Icons.arrow_forward, size: 14, color: Colors.grey[300]),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Zone {
+  final String label, price, emoji;
+  final Color color;
+  const _Zone(this.label, this.price, this.emoji, this.color);
+}
+
+// ─── Clean Governance Card ────────────────────────────────────────────────────
+class _CleanGovernanceCard extends StatelessWidget {
+  const _CleanGovernanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8EAF6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A237E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Row(
+              children: [
+                Text('⚖️', style: TextStyle(fontSize: 18)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Corruption-Free Land Records',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Karnataka Revenue Dept. Digital Mission',
+                        style: TextStyle(color: Colors.white60, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: const Column(
+              children: [
+                _GovItem('🗂️', 'Bhoomi Portal',
+                  'All Karnataka land records available online. Get your RTC copy instantly from home — fast, easy, and transparent.'),
+                Divider(height: 16),
+                _GovItem('📋', 'SAKALA Scheme',
+                  'Government guarantees service delivery within fixed days. Delayed mutation or khata = compensation.'),
+                Divider(height: 16),
+                _GovItem('🔑', 'Kaveri 2.0',
+                  'Online property registration. Stamp duty payment, deed booking, and EC — all from home.'),
+                Divider(height: 16),
+                _GovItem('📡', 'NLRMP / DILRMP',
+                  'National programme to digitize every survey stone, village map, and land boundary in India.'),
+                Divider(height: 16),
+                _GovItem('🛡️', 'DigiSampatti Mission',
+                  'Putting verified government data directly in your hands — so every citizen can make confident, informed property decisions.'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GovItem extends StatelessWidget {
+  final String emoji, title, description;
+  const _GovItem(this.emoji, this.title, this.description);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 16)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF1A237E))),
+              const SizedBox(height: 3),
+              Text(description,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF546E7A), height: 1.4)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Digital India Section ────────────────────────────────────────────────────
+class _DigitalIndiaSection extends StatelessWidget {
+  const _DigitalIndiaSection();
+
+  // States grouped: Live → Metro priority → Southern → Northern → Eastern → NE → UTs
+  static const _states = [
+    // ── Live
+    _StateItem('Karnataka',           true,  '🟢'),
+    // ── Metros / High Priority
+    _StateItem('Delhi',               false, '🔜'),
+    _StateItem('Maharashtra',         false, '🔜'),
+    _StateItem('Telangana',           false, '🔜'),
+    _StateItem('Tamil Nadu',          false, '🔜'),
+    _StateItem('Gujarat',             false, '🔜'),
+    _StateItem('West Bengal',         false, '🔜'),
+    // ── South
+    _StateItem('Kerala',              false, '🔜'),
+    _StateItem('Andhra Pradesh',      false, '🔜'),
+    _StateItem('Goa',                 false, '🔜'),
+    // ── North
+    _StateItem('Uttar Pradesh',       false, '🔜'),
+    _StateItem('Rajasthan',           false, '🔜'),
+    _StateItem('Haryana',             false, '🔜'),
+    _StateItem('Punjab',              false, '🔜'),
+    _StateItem('Madhya Pradesh',      false, '🔜'),
+    _StateItem('Himachal Pradesh',    false, '🔜'),
+    _StateItem('Uttarakhand',         false, '🔜'),
+    _StateItem('J & K',               false, '🔜'),
+    // ── East & Central
+    _StateItem('Bihar',               false, '🔜'),
+    _StateItem('Jharkhand',           false, '🔜'),
+    _StateItem('Odisha',              false, '🔜'),
+    _StateItem('Chhattisgarh',        false, '🔜'),
+    _StateItem('Assam',               false, '🔜'),
+    // ── North-East
+    _StateItem('Meghalaya',           false, '🔜'),
+    _StateItem('Manipur',             false, '🔜'),
+    _StateItem('Nagaland',            false, '🔜'),
+    _StateItem('Mizoram',             false, '🔜'),
+    _StateItem('Tripura',             false, '🔜'),
+    _StateItem('Arunachal Pradesh',   false, '🔜'),
+    _StateItem('Sikkim',              false, '🔜'),
+    // ── UTs
+    _StateItem('Chandigarh',          false, '🔜'),
+    _StateItem('Puducherry',          false, '🔜'),
+    _StateItem('Andaman & Nicobar',   false, '🔜'),
+    _StateItem('Lakshadweep',         false, '🔜'),
+    _StateItem('Ladakh',              false, '🔜'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8EAF6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header bar — tricolor accent
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFFF9800), Color(0xFF4CAF50)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: Row(
+              children: [
+                const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Digital India · Property Platform',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        'PM Modi\'s vision: every citizen empowered with land data',
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('Expanding', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+          // States grid
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'State Coverage',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF37474F)),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _states.map((s) => _StateChip(s)).toList(),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F8E9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFC8E6C9)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 14, color: Color(0xFF388E3C)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'DILRMP — Digital India Land Records Modernisation Programme — is digitizing all 36 state & UT land records under PM Modi\'s Digital India mission. DigiSampatti integrates state-by-state as portals go live.',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF2E7D32), height: 1.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StateItem {
+  final String name;
+  final bool live;
+  final String emoji;
+  const _StateItem(this.name, this.live, this.emoji);
+}
+
+class _StateChip extends StatelessWidget {
+  final _StateItem state;
+  const _StateChip(this.state);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: state.live ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: state.live ? const Color(0xFF66BB6A) : const Color(0xFFE0E0E0),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(state.emoji, style: const TextStyle(fontSize: 10)),
+          const SizedBox(width: 4),
+          Text(
+            state.name,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: state.live ? FontWeight.bold : FontWeight.normal,
+              color: state.live ? const Color(0xFF2E7D32) : const Color(0xFF757575),
+            ),
+          ),
+          if (state.live) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('LIVE', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Investor Confidence Banner ───────────────────────────────────────────────
+class _InvestorBanner extends StatelessWidget {
+  const _InvestorBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.trending_up, color: Colors.white, size: 26),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Invest with Confidence',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Dubai, Singapore & UAE require full legal due diligence before every property deal. DigiSampatti brings the same standard to Karnataka.',
+                  style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  '🏙️  Property Expo Ready  ·  Investor Grade Reports',
+                  style: TextStyle(color: Color(0xFFFFD54F), fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
