@@ -14,6 +14,8 @@ import 'package:digi_sampatti/features/report/legal_report_screen.dart';
 import 'package:digi_sampatti/features/map/map_view_screen.dart';
 import 'package:digi_sampatti/features/verification/physical_verification_screen.dart';
 import 'package:digi_sampatti/features/partners/partners_screen.dart';
+import 'package:digi_sampatti/features/history/report_history_screen.dart';
+import 'package:digi_sampatti/features/broker/broker_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -96,6 +98,16 @@ final _router = GoRouter(
         final extra = state.extra as Map<String, dynamic>?;
         return PartnersScreen(reportData: extra);
       },
+    ),
+    GoRoute(
+      path: '/history',
+      name: 'report-history',
+      builder: (context, state) => const ReportHistoryScreen(),
+    ),
+    GoRoute(
+      path: '/broker',
+      name: 'broker',
+      builder: (context, state) => const BrokerScreen(),
     ),
   ],
 );

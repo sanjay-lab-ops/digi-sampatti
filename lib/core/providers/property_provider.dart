@@ -8,6 +8,7 @@ import 'package:digi_sampatti/core/services/rera_service.dart';
 import 'package:digi_sampatti/core/services/ai_analysis_service.dart';
 import 'package:digi_sampatti/core/services/report_generator_service.dart';
 import 'package:digi_sampatti/core/services/gps_service.dart';
+import 'package:digi_sampatti/core/services/report_history_service.dart';
 
 // ─── Services Providers ────────────────────────────────────────────────────────
 final gpsServiceProvider = Provider<GpsService>((ref) => GpsService());
@@ -217,6 +218,9 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
       );
 
       ref.read(currentReportProvider.notifier).state = report;
+
+      // Save to persistent history
+      await ReportHistoryService().saveReport(report);
 
       // Add to recent reports list
       final reports = [...ref.read(recentReportsProvider)];

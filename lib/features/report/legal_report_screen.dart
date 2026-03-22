@@ -47,6 +47,24 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
     }
   }
 
+  Future<void> _shareWhatsApp(LegalReport report) async {
+    final score = report.riskAssessment.score;
+    final text = '''
+*DigiSampatti — Property Verification Report*
+
+Survey No: ${report.scan.surveyNumber ?? 'N/A'}
+District: ${report.scan.district ?? 'N/A'}
+Risk Score: $score/100
+Verdict: ${report.riskAssessment.recommendation}
+Bank Loan: ${report.riskAssessment.isBankLoanEligible ? "ELIGIBLE ✓" : "NOT ELIGIBLE ✗"}
+
+${report.riskAssessment.summary}
+
+_Verified by DigiSampatti — Karnataka's #1 Property Verification App_
+''';
+    await Share.share(text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final report = ref.watch(currentReportProvider);
@@ -315,6 +333,19 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
                       label: const Text('Physical Verification Checklist'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _shareWhatsApp(report),
+                      icon: const Icon(Icons.share),
+                      label: const Text('Share Report on WhatsApp'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),

@@ -19,6 +19,8 @@ class LandRecord {
   final bool isLakeBed;
   final String? remarks;
   final DateTime? fetchedAt;
+  final double? guidanceValuePerSqft;   // Karnataka stamp duty guidance value
+  final double? estimatedMarketValue;   // Estimated market value in lakhs
 
   const LandRecord({
     required this.surveyNumber,
@@ -40,6 +42,8 @@ class LandRecord {
     required this.isLakeBed,
     this.remarks,
     this.fetchedAt,
+    this.guidanceValuePerSqft,
+    this.estimatedMarketValue,
   });
 
   Map<String, dynamic> toJson() => {
@@ -62,6 +66,8 @@ class LandRecord {
     'isLakeBed': isLakeBed,
     'remarks': remarks,
     'fetchedAt': fetchedAt?.toIso8601String(),
+    'guidanceValuePerSqft': guidanceValuePerSqft,
+    'estimatedMarketValue': estimatedMarketValue,
   };
 
   factory LandRecord.fromJson(Map<String, dynamic> json) => LandRecord(
@@ -94,6 +100,8 @@ class LandRecord {
     fetchedAt: json['fetchedAt'] != null
         ? DateTime.parse(json['fetchedAt'])
         : null,
+    guidanceValuePerSqft: json['guidanceValuePerSqft']?.toDouble(),
+    estimatedMarketValue: json['estimatedMarketValue']?.toDouble(),
   );
 }
 

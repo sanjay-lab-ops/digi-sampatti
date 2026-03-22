@@ -57,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
                     onTap: () => context.push('/scan/camera'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                    const SizedBox(width: 12),
                 Expanded(
                   child: _ActionCard(
                     icon: Icons.search,
@@ -65,6 +65,30 @@ class HomeScreen extends ConsumerWidget {
                     subtitle: 'Survey number',
                     color: AppColors.info,
                     onTap: () => context.push('/scan/manual'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _ActionCard(
+                    icon: Icons.history,
+                    title: 'My Reports',
+                    subtitle: 'Past searches',
+                    color: const Color(0xFF6366F1),
+                    onTap: () => context.push('/history'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ActionCard(
+                    icon: Icons.people,
+                    title: 'Broker Zone',
+                    subtitle: '5 free reports',
+                    color: const Color(0xFFD97706),
+                    onTap: () => context.push('/broker'),
                   ),
                 ),
               ],

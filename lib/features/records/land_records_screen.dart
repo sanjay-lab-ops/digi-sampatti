@@ -115,6 +115,11 @@ class _RecordsView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
+          // Guidance Value
+          if (landRecord.guidanceValuePerSqft != null)
+            _GuidanceValueCard(landRecord: landRecord),
+          const SizedBox(height: 12),
+
           // Risk Flags
           _RiskFlagsCard(landRecord: landRecord),
           const SizedBox(height: 12),
@@ -203,6 +208,70 @@ class _KhataCard extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Guidance Value Card ───────────────────────────────────────────────────────
+class _GuidanceValueCard extends StatelessWidget {
+  final LandRecord landRecord;
+  const _GuidanceValueCard({required this.landRecord});
+
+  @override
+  Widget build(BuildContext context) {
+    final guidance = landRecord.guidanceValuePerSqft!;
+    final market = landRecord.estimatedMarketValue;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.currency_rupee, color: AppColors.primary, size: 18),
+              SizedBox(width: 6),
+              Text('Property Value (Estimated)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary)),
+            ],
+          ),
+          const Divider(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Guidance Value', style: TextStyle(color: AppColors.textLight, fontSize: 11)),
+                    Text('₹${guidance.toStringAsFixed(0)}/sqft', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
+                    const Text('Karnataka Stamp Duty Rate', style: TextStyle(color: AppColors.textLight, fontSize: 10)),
+                  ],
+                ),
+              ),
+              if (market != null)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Market Value (Est.)', style: TextStyle(color: AppColors.textLight, fontSize: 11)),
+                      Text('₹${market.toStringAsFixed(0)} Lakhs', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.safe)),
+                      const Text('Based on area & location', style: TextStyle(color: AppColors.textLight, fontSize: 10)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('* Estimated values. Actual market price may vary. Consult a registered valuer for exact assessment.', style: TextStyle(fontSize: 10, color: AppColors.textLight, fontStyle: FontStyle.italic)),
         ],
       ),
     );
