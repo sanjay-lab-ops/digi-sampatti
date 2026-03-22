@@ -194,6 +194,59 @@ class PartnersScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+            _buildSectionTitle('After You Buy'),
+            const SizedBox(height: 4),
+            const Text('Services you\'ll need after registration',
+              style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+            const SizedBox(height: 12),
+            _buildSimpleCard(
+              context,
+              icon: Icons.self_improvement,
+              iconColor: const Color(0xFFFF6F00),
+              title: 'Vastu Consultation',
+              subtitle: 'Vastu check before interior or construction',
+              onTap: () => _showContactDialog(context,
+                title: 'Book Vastu Consultant',
+                message: 'A certified Vastu consultant will visit and advise on direction, layout, and corrections.',
+                phone: '+91-XXXXXXXXXX'),
+            ),
+            const SizedBox(height: 10),
+            _buildSimpleCard(
+              context,
+              icon: Icons.design_services,
+              iconColor: const Color(0xFF6A1B9A),
+              title: 'Interior Designer',
+              subtitle: 'Home interiors — modular kitchen, wardrobes, living',
+              onTap: () => _showContactDialog(context,
+                title: 'Connect with Interior Designer',
+                message: 'Get a free consultation and estimate for your new home interiors.',
+                phone: '+91-XXXXXXXXXX'),
+            ),
+            const SizedBox(height: 10),
+            _buildSimpleCard(
+              context,
+              icon: Icons.local_shipping,
+              iconColor: const Color(0xFF00695C),
+              title: 'Packers & Movers',
+              subtitle: 'Trusted local shifting service in Karnataka',
+              onTap: () => _showContactDialog(context,
+                title: 'Book Packers & Movers',
+                message: 'Get a quote for safe, insured home shifting within Karnataka.',
+                phone: '+91-XXXXXXXXXX'),
+            ),
+            const SizedBox(height: 10),
+            _buildSimpleCard(
+              context,
+              icon: Icons.receipt_long,
+              iconColor: const Color(0xFF1565C0),
+              title: 'Khata & Mutation Agent',
+              subtitle: 'BBMP Khata transfer, Bhoomi mutation paperwork',
+              onTap: () => _showContactDialog(context,
+                title: 'Khata Transfer Help',
+                message: 'A liaison agent will handle your Bhoomi mutation and BBMP Khata transfer end to end.',
+                phone: '+91-XXXXXXXXXX'),
+            ),
+            const SizedBox(height: 20),
             _buildDisclaimerCard(),
             const SizedBox(height: 20),
           ],
@@ -391,6 +444,47 @@ class PartnersScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleCard(BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderColor),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44, height: 44,
+              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(color: AppColors.textLight, fontSize: 11)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.textLight),
+          ],
+        ),
       ),
     );
   }
