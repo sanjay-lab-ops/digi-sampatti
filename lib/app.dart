@@ -16,6 +16,20 @@ import 'package:digi_sampatti/features/verification/physical_verification_screen
 import 'package:digi_sampatti/features/partners/partners_screen.dart';
 import 'package:digi_sampatti/features/history/report_history_screen.dart';
 import 'package:digi_sampatti/features/broker/broker_screen.dart';
+import 'package:digi_sampatti/features/transfer/property_transfer_screen.dart';
+import 'package:digi_sampatti/features/transfer/stamp_duty_screen.dart';
+import 'package:digi_sampatti/features/transfer/document_checklist_screen.dart';
+import 'package:digi_sampatti/features/transfer/mutation_guide_screen.dart';
+import 'package:digi_sampatti/features/transfer/sro_locator_screen.dart';
+import 'package:digi_sampatti/features/transfer/registration_guide_screen.dart';
+import 'package:digi_sampatti/features/tools/financial_tools_screen.dart';
+import 'package:digi_sampatti/features/tools/emi_calculator_screen.dart';
+import 'package:digi_sampatti/features/tools/total_cost_screen.dart';
+import 'package:digi_sampatti/features/guides/buyer_guides_screen.dart';
+import 'package:digi_sampatti/features/guides/apartment_guide_screen.dart';
+import 'package:digi_sampatti/features/guides/dc_conversion_screen.dart';
+import 'package:digi_sampatti/features/guides/legal_glossary_screen.dart';
+import 'package:digi_sampatti/features/guides/red_flags_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -108,6 +122,76 @@ final _router = GoRouter(
       path: '/broker',
       name: 'broker',
       builder: (context, state) => const BrokerScreen(),
+    ),
+    GoRoute(
+      path: '/transfer',
+      name: 'transfer',
+      builder: (context, state) => const PropertyTransferScreen(),
+    ),
+    GoRoute(
+      path: '/transfer/stamp-duty',
+      name: 'stamp-duty',
+      builder: (context, state) => const StampDutyScreen(),
+    ),
+    GoRoute(
+      path: '/transfer/documents',
+      name: 'document-checklist',
+      builder: (context, state) => const DocumentChecklistScreen(),
+    ),
+    GoRoute(
+      path: '/transfer/mutation',
+      name: 'mutation-guide',
+      builder: (context, state) => const MutationGuideScreen(),
+    ),
+    GoRoute(
+      path: '/transfer/sro',
+      name: 'sro-locator',
+      builder: (context, state) => const SroLocatorScreen(),
+    ),
+    GoRoute(
+      path: '/transfer/registration',
+      name: 'registration-guide',
+      builder: (context, state) => const RegistrationGuideScreen(),
+    ),
+    GoRoute(
+      path: '/tools',
+      name: 'financial-tools',
+      builder: (context, state) => const FinancialToolsScreen(),
+    ),
+    GoRoute(
+      path: '/tools/emi',
+      name: 'emi-calculator',
+      builder: (context, state) => const EmiCalculatorScreen(),
+    ),
+    GoRoute(
+      path: '/tools/total-cost',
+      name: 'total-cost',
+      builder: (context, state) => const TotalCostScreen(),
+    ),
+    GoRoute(
+      path: '/guides',
+      name: 'buyer-guides',
+      builder: (context, state) => const BuyerGuidesScreen(),
+    ),
+    GoRoute(
+      path: '/guides/apartment',
+      name: 'apartment-guide',
+      builder: (context, state) => const ApartmentGuideScreen(),
+    ),
+    GoRoute(
+      path: '/guides/dc-conversion',
+      name: 'dc-conversion',
+      builder: (context, state) => const DcConversionScreen(),
+    ),
+    GoRoute(
+      path: '/guides/glossary',
+      name: 'legal-glossary',
+      builder: (context, state) => const LegalGlossaryScreen(),
+    ),
+    GoRoute(
+      path: '/guides/red-flags',
+      name: 'red-flags',
+      builder: (context, state) => const RedFlagsScreen(),
     ),
   ],
 );

@@ -93,6 +93,30 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            _BannerCard(
+              colors: [Color(0xFF1A237E), Color(0xFF283593)],
+              icon: Icons.home_work,
+              title: 'Property Transfer',
+              subtitle: 'Stamp Duty · Mutation · SRO · Registration',
+              onTap: () => context.push('/transfer'),
+            ),
+            const SizedBox(height: 10),
+            _BannerCard(
+              colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+              icon: Icons.account_balance_wallet,
+              title: 'Financial Tools',
+              subtitle: 'EMI · Total Cost · Property Tax · Loan',
+              onTap: () => context.push('/tools'),
+            ),
+            const SizedBox(height: 10),
+            _BannerCard(
+              colors: [Color(0xFF4A1942), Color(0xFF6B2D5E)],
+              icon: Icons.school,
+              title: 'Buyer Guides',
+              subtitle: 'Apartment · DC Conversion · Glossary · Red Flags',
+              onTap: () => context.push('/guides'),
+            ),
             const SizedBox(height: 24),
 
             // ── What We Check Section
@@ -263,6 +287,46 @@ class _ActionCard extends StatelessWidget {
             Text(subtitle, style: const TextStyle(
               color: Colors.white70, fontSize: 12,
             )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Banner Card ───────────────────────────────────────────────────────────────
+class _BannerCard extends StatelessWidget {
+  final List<Color> colors;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _BannerCard({required this.colors, required this.icon, required this.title, required this.subtitle, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 13),
           ],
         ),
       ),
