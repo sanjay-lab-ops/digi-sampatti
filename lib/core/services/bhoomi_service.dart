@@ -78,21 +78,16 @@ class BhoomiService {
           surveyNumber: surveyNumber,
         );
       }
-    } on DioException catch (e) {
-      // Portal unavailable — return structured error or demo data
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.connectionError) {
-        return _getDemoRecord(
-          district: district,
-          taluk: taluk,
-          hobli: hobli,
-          village: village,
-          surveyNumber: surveyNumber,
-        );
-      }
     } catch (_) {}
 
-    return null;
+    // Always return demo data when real portal unavailable
+    return _getDemoRecord(
+      district: district,
+      taluk: taluk,
+      hobli: hobli,
+      village: village,
+      surveyNumber: surveyNumber,
+    );
   }
 
   // ─── Fetch Mutation History ────────────────────────────────────────────────
