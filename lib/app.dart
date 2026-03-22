@@ -25,6 +25,8 @@ import 'package:digi_sampatti/features/transfer/registration_guide_screen.dart';
 import 'package:digi_sampatti/features/tools/financial_tools_screen.dart';
 import 'package:digi_sampatti/features/tools/emi_calculator_screen.dart';
 import 'package:digi_sampatti/features/tools/total_cost_screen.dart';
+import 'package:digi_sampatti/features/tools/property_tax_screen.dart';
+import 'package:digi_sampatti/features/tools/loan_eligibility_screen.dart';
 import 'package:digi_sampatti/features/guides/buyer_guides_screen.dart';
 import 'package:digi_sampatti/features/guides/apartment_guide_screen.dart';
 import 'package:digi_sampatti/features/guides/dc_conversion_screen.dart';
@@ -167,6 +169,16 @@ final _router = GoRouter(
       path: '/tools/total-cost',
       name: 'total-cost',
       builder: (context, state) => const TotalCostScreen(),
+    ),
+    GoRoute(
+      path: '/tools/property-tax',
+      name: 'property-tax',
+      builder: (context, state) => const PropertyTaxScreen(),
+    ),
+    GoRoute(
+      path: '/tools/loan-eligibility',
+      name: 'loan-eligibility',
+      builder: (context, state) => const LoanEligibilityScreen(),
     ),
     GoRoute(
       path: '/guides',
