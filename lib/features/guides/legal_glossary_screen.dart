@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 class LegalGlossaryScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
     _Term('UDS', 'Undivided Share of Land', 'Your share of the total land in an apartment complex. E.g., 1000 sq ft flat in 20,000 sq ft building on 5,000 sq ft land = 250 sq ft UDS. Higher is better.', 'Apartment'),
     _Term('OC', 'Occupancy Certificate', 'BBMP/BDA certificate that building is safe to occupy and built as per plan. Mandatory for getting water, electricity connection legally. No OC = illegal building.', 'Apartment'),
     _Term('CC', 'Completion Certificate', 'Confirms building is built as per approved plan. Issued before OC. Both CC and OC required for a fully legal building.', 'Apartment'),
-    _Term('RERA', 'Real Estate Regulatory Authority', 'Karnataka\'s real estate regulator. All residential projects above 500 sq m must register. Protects buyers from delays and cheating.', 'Apartment'),
+    _Term('RERA', 'Real Estate Regulatory Authority', 'Karnataka\'s real estate regulator. All residential projects above 500 sq m must register. Protects buyers from delays and cheating.', 'Apartment', portal: 'rera.karnataka.gov.in', portalLabel: 'Check RERA Registration'),
     _Term('Sale Deed', 'Registered Sale Deed', 'Final ownership transfer document. Executed and registered at Sub-Registrar office. After registration, you are the legal owner. Most important document.', 'Legal'),
     _Term('Mother Deed', 'Parent Title Deed', 'The oldest sale deed showing original ownership. Establishes complete chain of ownership from beginning. Essential for title verification.', 'Legal'),
     _Term('DC Conversion', 'Deputy Commissioner Conversion', 'Government order changing land use from agricultural to non-agricultural (residential/commercial/industrial). Mandatory before constructing on agricultural land.', 'Land'),
@@ -30,8 +31,8 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
     _Term('Stamp Duty', 'State Tax on Property Transfer', 'Tax paid to Karnataka government on property purchase. Rate: 3%–5.6% depending on value and buyer gender. Paid before registration. Without payment, deed cannot be registered.', 'Tax'),
     _Term('JDA', 'Joint Development Agreement', 'Contract between landowner and builder. Landowner provides land, builder constructs, they share flats or revenue. Registered JDA is legal. Unregistered JDA is risky for buyers.', 'Legal'),
     _Term('POA', 'Power of Attorney', 'Legal document authorizing someone else to act on your behalf. If seller gives registered POA to another person, that person can sign sale deed. Common for NRIs.', 'Legal'),
-    _Term('Bhoomi', 'Karnataka Land Records Portal', 'bhoomi.karnataka.gov.in — official Karnataka government portal for RTC, mutation, land records. All land data is here. Free to use.', 'Portal'),
-    _Term('Kaveri', 'Document Registration Portal', 'kaveri2.karnataka.gov.in — for booking SRO appointments, checking EC online, downloading registered documents. Free to use.', 'Portal'),
+    _Term('Bhoomi', 'Karnataka Land Records Portal', 'Official Karnataka government portal for RTC, mutation, land records. All land data is here. Free to use.', 'Portal', portal: 'bhoomi.karnataka.gov.in', portalLabel: 'Open Bhoomi Portal'),
+    _Term('Kaveri', 'Document Registration Portal', 'For booking SRO appointments, checking EC online, downloading registered documents. Free to use.', 'Portal', portal: 'kaveri2.karnataka.gov.in', portalLabel: 'Open Kaveri Portal'),
     _Term('BDA', 'Bangalore Development Authority', 'Plans and develops layouts in Bengaluru. BDA approved layouts are legal and bank loanable. BDA also acquires land for roads and projects.', 'Authority'),
     _Term('BBMP', 'Bruhat Bengaluru Mahanagara Palike', 'Bengaluru city municipal corporation. Issues Khata, OC, building plan approvals, and collects property tax within BBMP limits.', 'Authority'),
     _Term('KIADB', 'Karnataka Industrial Areas Development Board', 'Develops and allots industrial land in Karnataka. KIADB plots are pre-approved for industrial use. Faster than DC conversion for industrial purpose.', 'Authority'),
@@ -130,6 +131,37 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(t.description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
+                        if (t.portal != null) ...[
+                          const SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: 'https://${t.portal}'));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('${t.portal} copied — open in browser'),
+                                duration: const Duration(seconds: 2),
+                              ));
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: color.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.open_in_new, size: 13, color: color),
+                                  const SizedBox(width: 6),
+                                  Text(t.portalLabel ?? t.portal!,
+                                    style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+                                  const SizedBox(width: 6),
+                                  Icon(Icons.copy, size: 11, color: color.withOpacity(0.6)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -148,5 +180,7 @@ class _Term {
   final String full;
   final String description;
   final String category;
-  const _Term(this.short, this.full, this.description, this.category);
+  final String? portal;
+  final String? portalLabel;
+  const _Term(this.short, this.full, this.description, this.category, {this.portal, this.portalLabel});
 }
