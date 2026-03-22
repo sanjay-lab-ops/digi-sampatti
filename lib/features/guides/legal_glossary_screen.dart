@@ -38,6 +38,12 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
     _Term('Guideline Value', 'Government Guidance Value', 'Minimum price per sq ft set by Karnataka government for each area. Stamp duty is calculated on guideline value or actual price — whichever is higher.', 'Tax'),
     _Term('FTL', 'Full Tank Level', 'Water level boundary of lakes. No construction allowed within FTL boundary. BBMP and BDA map shows FTL boundaries. Very common issue in Bengaluru lake-adjacent areas.', 'Restriction'),
     _Term('Raja Kaluve', 'Storm Water Drain', 'Government storm drain network. No construction allowed within 30 ft (primary) or 15 ft (secondary) buffer. Many illegal buildings exist on Raja Kaluve buffer.', 'Restriction'),
+    _Term('BMRDA', 'Bangalore Metropolitan Region Development Authority', 'Approves layouts and developments within 40km radius around Bengaluru — areas like Devanahalli, Doddaballapur, Ramanagara, Tumakuru Road, Anekal. BMRDA approved = legal and bank loanable. Many buyers confuse BMRDA areas with BBMP — they have different rules.', 'Authority'),
+    _Term('BIAAPA', 'Bangalore International Airport Area Planning Authority', 'Handles approvals specifically in the Devanahalli and Nandi Hills area — around the airport. Separate from BMRDA. Any layout near Kempegowda Airport must have BIAAPA approval, not BDA or BBMP.', 'Authority'),
+    _Term('CMC / TMC', 'City / Town Municipal Council', 'Municipal bodies for smaller towns like Anekal, Hoskote, Nelamangala, Ramanagara. Properties in CMC/TMC areas have their own Khata — different from BBMP Khata. Banks give loans for CMC/TMC properties.', 'Municipal'),
+    _Term('Gram Panchayat', 'Village Local Body', 'Governing body for rural villages. GP Khata is for agricultural or rural properties. GP areas have fewer restrictions but also fewer services. Banks are cautious with GP properties without DC conversion.', 'Municipal'),
+    _Term('LP Number', 'Layout Plan Number', 'Official approval number given by BDA/BBMP/BMRDA when a layout is approved. Every plot in a legal layout has an LP number. No LP number = illegal layout. Always ask for LP number before buying a plot.', 'Land'),
+    _Term('SAS', 'Self-Assessment Scheme', 'BBMP property tax self-assessment. Owner calculates and pays tax based on property details. SAS receipt is proof of property tax payment and is needed for Khata transfer and registration.', 'Tax'),
   ];
 
   List<_Term> get _filtered {

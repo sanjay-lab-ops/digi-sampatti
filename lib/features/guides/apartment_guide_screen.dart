@@ -162,7 +162,30 @@ class _ApartmentGuideScreenState extends State<ApartmentGuideScreen> {
         _CheckItem('Company is registered — check MCA portal (mca.gov.in)'),
         _CheckItem('Land title is in builder\'s name (not JDA without disclosure)'),
         _CheckItem('Bank loans available — HDFC/SBI approved project'),
-        _CheckItem('Building plan approved by BBMP/BDA — not "applied"'),
+        _CheckItem('Building plan approved by correct authority — see below'),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.info.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.info.withOpacity(0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Which Authority Approves Your Area?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.info)),
+              const SizedBox(height: 8),
+              _AuthRow('BBMP', 'Bengaluru city (Indiranagar, Koramangala, Whitefield, JP Nagar...)'),
+              _AuthRow('BDA', 'BDA layouts anywhere in Bengaluru district'),
+              _AuthRow('BMRDA', 'Within 40km of Bengaluru (Devanahalli, Doddaballapur, Ramanagara, Tumakuru Rd, Anekal)'),
+              _AuthRow('BIAAPA', 'Airport area — Devanahalli, Nandi Hills corridor'),
+              _AuthRow('CMC/TMC', 'Hoskote, Nelamangala, Magadi, Ramanagara town'),
+              _AuthRow('Gram Panchayat', 'Villages — check if DC converted before buying'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         const SizedBox(height: 16),
         _InfoCard(AppColors.danger, Icons.report_problem, 'Biggest Red Flags',
           '• Heavily discounted price vs market rate\n• "Limited time offer — pay today"\n• No RERA number\n• Land still in original owner\'s name\n• Refuses to show approved building plan'),
@@ -241,6 +264,25 @@ class _ApartmentGuideScreenState extends State<ApartmentGuideScreen> {
       ),
     );
   }
+}
+
+class _AuthRow extends StatelessWidget {
+  final String name;
+  final String area;
+  const _AuthRow(this.name, this.area);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(color: AppColors.info, borderRadius: BorderRadius.circular(4)),
+        child: Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+      ),
+      const SizedBox(width: 8),
+      Expanded(child: Text(area, style: const TextStyle(fontSize: 11, color: AppColors.textMedium))),
+    ]),
+  );
 }
 
 class _InfoCard extends StatelessWidget {
