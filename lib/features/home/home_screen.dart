@@ -94,28 +94,27 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _BannerCard(
-              colors: [Color(0xFF1A237E), Color(0xFF283593)],
-              icon: Icons.home_work,
-              title: 'Property Transfer',
-              subtitle: 'Stamp Duty · Mutation · SRO · Registration',
-              onTap: () => context.push('/transfer'),
-            ),
-            const SizedBox(height: 10),
-            _BannerCard(
-              colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
-              icon: Icons.account_balance_wallet,
-              title: 'Financial Tools',
-              subtitle: 'EMI · Total Cost · Property Tax · Loan',
-              onTap: () => context.push('/tools'),
-            ),
-            const SizedBox(height: 10),
-            _BannerCard(
-              colors: [Color(0xFF4A1942), Color(0xFF6B2D5E)],
-              icon: Icons.school,
-              title: 'Buyer Guides',
-              subtitle: 'Apartment · DC Conversion · Glossary · Red Flags',
-              onTap: () => context.push('/guides'),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text('More Tools', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+                  ),
+                  const Divider(height: 1),
+                  _ToolRow(Icons.home_work, 'Property Transfer', 'Stamp Duty · Mutation · SRO', const Color(0xFF1A237E), () => context.push('/transfer')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.account_balance_wallet, 'Financial Tools', 'EMI · Total Cost · Loan Eligibility', const Color(0xFF1B5E20), () => context.push('/tools')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.school, 'Buyer Guides', 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -294,39 +293,39 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-// ─── Banner Card ───────────────────────────────────────────────────────────────
-class _BannerCard extends StatelessWidget {
-  final List<Color> colors;
+// ─── Tool Row ──────────────────────────────────────────────────────────────────
+class _ToolRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color color;
   final VoidCallback onTap;
-  const _BannerCard({required this.colors, required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _ToolRow(this.icon, this.title, this.subtitle, this.color, this.onTap);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(14),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 26),
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              child: Icon(icon, color: color, size: 18),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  Text(subtitle, style: const TextStyle(color: AppColors.textLight, fontSize: 11)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 13),
+            const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textLight),
           ],
         ),
       ),
