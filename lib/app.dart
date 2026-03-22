@@ -32,6 +32,7 @@ import 'package:digi_sampatti/features/guides/apartment_guide_screen.dart';
 import 'package:digi_sampatti/features/guides/dc_conversion_screen.dart';
 import 'package:digi_sampatti/features/guides/legal_glossary_screen.dart';
 import 'package:digi_sampatti/features/guides/red_flags_screen.dart';
+import 'package:digi_sampatti/features/guides/faq_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -204,6 +205,11 @@ final _router = GoRouter(
       path: '/guides/red-flags',
       name: 'red-flags',
       builder: (context, state) => const RedFlagsScreen(),
+    ),
+    GoRoute(
+      path: '/guides/faq',
+      name: 'faq',
+      builder: (context, state) => const FaqScreen(),
     ),
   ],
 );
