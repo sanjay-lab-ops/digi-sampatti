@@ -113,6 +113,8 @@ class HomeScreen extends ConsumerWidget {
                   _ToolRow(Icons.account_balance_wallet, 'Financial Tools', 'EMI · Total Cost · Loan Eligibility', const Color(0xFF1B5E20), () => context.push('/tools')),
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.school, 'Buyer Guides', 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.people_outline, 'Expert Help', 'Lawyer · Bank · Insurance · Developers', AppColors.warning, () => context.push('/partners')),
                 ],
               ),
             ),

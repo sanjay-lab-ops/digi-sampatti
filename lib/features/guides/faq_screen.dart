@@ -85,15 +85,15 @@ class _FaqScreenState extends State<FaqScreen> {
     ).toList();
   }
 
-  static const _catColors = {
+  static final _catColors = {
     'General': AppColors.primary,
-    'Land Records': Color(0xFF7C3AED),
+    'Land Records': const Color(0xFF7C3AED),
     'Payments': AppColors.safe,
     'Apartments': AppColors.info,
-    'Authorities': Color(0xFFB45309),
+    'Authorities': const Color(0xFFB45309),
     'Transfer': AppColors.warning,
     'Red Flags': AppColors.danger,
-    'Finance': Color(0xFF1B5E20),
+    'Finance': const Color(0xFF1B5E20),
     'Legal': AppColors.primary,
   };
 
