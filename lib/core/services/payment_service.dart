@@ -24,15 +24,30 @@ class PaymentService {
   }) {
     final options = {
       'key': _keyId,
-      'amount': reportPrice * 100, // paise
+      'amount': reportPrice * 100,
       'name': 'DigiSampatti',
       'description': description,
-      'prefill': {
-        'contact': userPhone,
-      },
+      'prefill': {'contact': userPhone},
       'theme': {'color': '#1B5E20'},
       'retry': {'enabled': false},
       'notes': {'report_id': reportId},
+    };
+    _razorpay.open(options);
+  }
+
+  void openPaymentAmount({
+    required int amount,
+    required String userPhone,
+    String description = 'DigiSampatti',
+  }) {
+    final options = {
+      'key': _keyId,
+      'amount': amount * 100,
+      'name': 'DigiSampatti',
+      'description': description,
+      'prefill': {'contact': userPhone},
+      'theme': {'color': '#1B5E20'},
+      'retry': {'enabled': false},
     };
     _razorpay.open(options);
   }

@@ -198,11 +198,22 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.subscriptions_outlined),
-              title: const Text('Subscribe - ₹999/month'),
-              subtitle: const Text('Unlimited Reports'),
-              onTap: () => Navigator.pop(ctx),
+              leading: const Icon(Icons.subscriptions_outlined, color: AppColors.primary),
+              title: const Text('Plans & Pricing'),
+              subtitle: const Text('₹99/report · ₹999/month unlimited'),
+              onTap: () { Navigator.pop(ctx); context.push('/subscription'); },
             ),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: const Text('Privacy Policy'),
+              onTap: () { Navigator.pop(ctx); context.push('/privacy'); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Terms of Service'),
+              onTap: () { Navigator.pop(ctx); context.push('/terms'); },
+            ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Sign Out', style: TextStyle(color: Colors.red)),

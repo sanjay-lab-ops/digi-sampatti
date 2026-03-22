@@ -18,20 +18,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _Slide(
       icon: Icons.verified_user,
       title: 'Know Before You Buy',
-      subtitle: 'Verify Karnataka land records in minutes.\nNo lawyer needed for basic checks.',
-      highlight: 'Karnataka\'s #1 Property Verification App',
+      subtitle: 'Buying property in Karnataka?\nCheck land records in minutes — before paying any advance.',
+      highlight: 'Used by 1,000+ buyers, brokers & investors',
+      color: Color(0xFF1B5E20),
+    ),
+    _Slide(
+      icon: Icons.search,
+      title: 'Search Any Property',
+      subtitle: 'Enter survey number or\ntake a photo + GPS to identify the land automatically.',
+      highlight: 'Works for plots, apartments, villas & layouts',
+      color: Color(0xFF0D47A1),
+    ),
+    _Slide(
+      icon: Icons.checklist,
+      title: 'We Check 8 Things',
+      subtitle: 'Bhoomi RTC · EC · RERA · BDA/BBMP\nRaja Kaluve · Lake bed · Court cases · AI Score',
+      highlight: 'Everything a lawyer checks — in 30 seconds',
+      color: Color(0xFF4A148C),
     ),
     _Slide(
       icon: Icons.psychology,
-      title: 'AI Legal Analysis',
-      subtitle: 'Our AI checks Bhoomi RTC, Encumbrance,\nRERA, Lake bed, Raja Kaluve — everything.',
-      highlight: 'Powered by Claude AI',
+      title: 'Safety Score + Next Steps',
+      subtitle: 'Get a clear Safety Score (0–100)\nand a simple "What to do next" — no legal jargon.',
+      highlight: 'Powered by Claude AI — India\'s most accurate',
+      color: Color(0xFF37474F),
     ),
     _Slide(
       icon: Icons.picture_as_pdf,
-      title: 'Get a Legal Report',
-      subtitle: 'Download a complete PDF report.\nShare with your bank or lawyer instantly.',
-      highlight: '₹99 per report — save ₹20,000 in lawyer fees',
+      title: 'Share the Report',
+      subtitle: 'Download PDF for ₹99.\nShare with your family, bank, or lawyer on WhatsApp.',
+      highlight: 'Save ₹10,000–₹20,000 in initial legal fees',
+      color: Color(0xFF1B5E20),
     ),
   ];
 
@@ -110,7 +127,8 @@ class _Slide {
   final String title;
   final String subtitle;
   final String highlight;
-  const _Slide({required this.icon, required this.title, required this.subtitle, required this.highlight});
+  final Color color;
+  const _Slide({required this.icon, required this.title, required this.subtitle, required this.highlight, required this.color});
 }
 
 class _SlideWidget extends StatelessWidget {
@@ -128,10 +146,10 @@ class _SlideWidget extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.surfaceGreen,
+              color: slide.color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(slide.icon, size: 60, color: AppColors.primary),
+            child: Icon(slide.icon, size: 60, color: slide.color),
           ),
           const SizedBox(height: 32),
           Text(
@@ -157,15 +175,15 @@ class _SlideWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: slide.color.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              border: Border.all(color: slide.color.withOpacity(0.2)),
             ),
             child: Text(
               slide.highlight,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.primary,
+                color: slide.color,
                 fontWeight: FontWeight.w600,
               ),
             ),

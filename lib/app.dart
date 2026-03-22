@@ -34,6 +34,8 @@ import 'package:digi_sampatti/features/guides/legal_glossary_screen.dart';
 import 'package:digi_sampatti/features/guides/red_flags_screen.dart';
 import 'package:digi_sampatti/features/guides/faq_screen.dart';
 import 'package:digi_sampatti/features/ecourts/ecourts_screen.dart';
+import 'package:digi_sampatti/features/legal/privacy_terms_screen.dart';
+import 'package:digi_sampatti/features/subscription/subscription_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -211,6 +213,21 @@ final _router = GoRouter(
       path: '/guides/faq',
       name: 'faq',
       builder: (context, state) => const FaqScreen(),
+    ),
+    GoRoute(
+      path: '/subscription',
+      name: 'subscription',
+      builder: (context, state) => const SubscriptionScreen(),
+    ),
+    GoRoute(
+      path: '/privacy',
+      name: 'privacy',
+      builder: (context, state) => const PrivacyTermsScreen(showTerms: false),
+    ),
+    GoRoute(
+      path: '/terms',
+      name: 'terms',
+      builder: (context, state) => const PrivacyTermsScreen(showTerms: true),
     ),
     GoRoute(
       path: '/ecourts',
