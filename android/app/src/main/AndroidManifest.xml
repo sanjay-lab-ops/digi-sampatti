@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.digisampatti.app">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -58,7 +59,8 @@
         <activity
             android:name="com.razorpay.CheckoutActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            tools:replace="android:theme"/>
 
     </application>
 </manifest>
