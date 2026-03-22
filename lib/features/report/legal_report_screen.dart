@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
@@ -283,6 +284,58 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen> {
                   ),
                 ],
               ),
+            const SizedBox(height: 16),
+
+            // ── Next Steps
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGreen,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
+                      SizedBox(width: 6),
+                      Text('Next Steps', style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.primary,
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/verification'),
+                      icon: const Icon(Icons.checklist),
+                      label: const Text('Physical Verification Checklist'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push('/partners'),
+                      icon: const Icon(Icons.people_outline),
+                      label: const Text('Get Expert Help — Lawyer / Bank / Insurance'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
           ],
         ),
