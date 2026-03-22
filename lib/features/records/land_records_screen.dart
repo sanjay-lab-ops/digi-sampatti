@@ -83,6 +83,28 @@ class _RecordsView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Beta Banner
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFFB300).withOpacity(0.5)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.science_outlined, size: 16, color: Color(0xFFFF6F00)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Beta: Sample data shown. Real Bhoomi records coming soon.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF5D4037), height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Survey Header
           _SectionCard(
             title: 'Survey Details',

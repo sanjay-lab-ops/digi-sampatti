@@ -30,7 +30,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
-            onPressed: () => _showProfileMenu(context),
+            onPressed: () => context.push('/profile'),
           ),
         ],
       ),

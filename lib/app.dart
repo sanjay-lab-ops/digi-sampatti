@@ -36,6 +36,7 @@ import 'package:digi_sampatti/features/guides/faq_screen.dart';
 import 'package:digi_sampatti/features/ecourts/ecourts_screen.dart';
 import 'package:digi_sampatti/features/legal/privacy_terms_screen.dart';
 import 'package:digi_sampatti/features/subscription/subscription_screen.dart';
+import 'package:digi_sampatti/features/profile/profile_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -213,6 +214,11 @@ final _router = GoRouter(
       path: '/guides/faq',
       name: 'faq',
       builder: (context, state) => const FaqScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      name: 'profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/subscription',
