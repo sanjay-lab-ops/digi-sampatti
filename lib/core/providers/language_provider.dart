@@ -67,6 +67,7 @@ class AppL10n {
   String get courtCaseCheck      => isKannada ? 'ನ್ಯಾಯಾಲಯ ಪ್ರಕರಣ ಪರಿಶೀಲನೆ'   : 'Court Case Check';
   String get applyAndTrack       => isKannada ? 'ಅರ್ಜಿ & ಟ್ರ್ಯಾಕ್'             : 'Apply & Track';
   String get buyingJourney       => isKannada ? 'ಖರೀದಿ ಮಾರ್ಗದರ್ಶಿ'              : 'Buying Journey';
+  String get nriMode             => isKannada ? 'NRI ಮಾರ್ಗದರ್ಶಿ'               : 'NRI Mode';
 
   // ── Action card subtitles
   String get photoGps            => isKannada ? 'ಫೋಟೋ + GPS'                  : 'Photo + GPS';

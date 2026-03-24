@@ -177,6 +177,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   _ToolRow(Icons.assignment_turned_in, l.applyAndTrack, 'EC · RTC · Mutation · RERA · Registration', const Color(0xFF004D40), () => context.push('/gov-services')),
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.route, l.buyingJourney, 'Advance · Agreement · Registration', const Color(0xFF1B5E20), () => context.push('/buying-journey')),
+                  const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.flight, l.nriMode, 'UAE · USA · UK · FEMA · Ground Verify', const Color(0xFF0D47A1), () => context.push('/nri')),
                 ],
               ),
             )),
