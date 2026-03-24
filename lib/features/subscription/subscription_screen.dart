@@ -85,39 +85,83 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            _buildFreeCard(),
+            const SizedBox(height: 12),
             _buildPlanCard(
-              title: 'Single Report',
+              title: 'Basic',
+              badge: 'PER REPORT',
               price: '₹99',
               period: 'per report',
               color: AppColors.info,
               features: const [
-                'Full legal report for 1 property',
-                'AI risk analysis + safety score',
-                'PDF download & WhatsApp share',
-                'Valid for 30 days',
+                'Full legal verification report',
+                'Safety Score 0–100',
+                'EC + RTC + Court case + RERA check',
+                'PDF download + WhatsApp share',
+                'Apply & Track — 7 government services',
+                'Buying Journey checklist',
               ],
-              buttonText: 'Buy Single Report — ₹99',
-              onTap: () => _pay(99, 'DigiSampatti — Single Property Report'),
+              buttonText: 'Buy Report — ₹99',
+              onTap: () => _pay(99, 'DigiSampatti — Basic Report'),
               isPopular: false,
             ),
             const SizedBox(height: 12),
             _buildPlanCard(
-              title: 'Monthly Unlimited',
-              price: '₹999',
+              title: 'Standard',
+              badge: 'MONTHLY',
+              price: '₹299',
+              period: 'per month',
+              color: const Color(0xFF6A1B9A),
+              features: const [
+                '5 property reports per month',
+                'All Basic features included',
+                'Advance Receipt PDF generator',
+                'Buying Journey — all 3 stages',
+                'Report history saved permanently',
+                'Cancel anytime',
+              ],
+              buttonText: 'Subscribe Standard — ₹299/mo',
+              onTap: () => _pay(299, 'DigiSampatti — Standard Plan'),
+              isPopular: false,
+            ),
+            const SizedBox(height: 12),
+            _buildPlanCard(
+              title: 'Premium',
+              badge: 'MOST POPULAR',
+              price: '₹699',
               period: 'per month',
               color: AppColors.primary,
               features: const [
                 'Unlimited property reports',
-                'Priority AI analysis',
-                'PDF download & share — unlimited',
-                'Court case check — unlimited',
-                'Cancel anytime',
-                'Best for brokers & investors',
+                'All Standard features included',
+                'NRI Mode — FEMA, USD/AED pricing',
+                '1 Ground Verification per month',
+                'Priority WhatsApp support',
+                'Broker branded reports',
               ],
-              buttonText: 'Subscribe — ₹999/month',
-              onTap: () => _pay(999, 'DigiSampatti — Monthly Unlimited Plan'),
+              buttonText: 'Subscribe Premium — ₹699/mo',
+              onTap: () => _pay(699, 'DigiSampatti — Premium Plan'),
               isPopular: true,
+            ),
+            const SizedBox(height: 12),
+            _buildPlanCard(
+              title: 'NRI Pro',
+              badge: 'FOR NRIs',
+              price: '₹999',
+              period: 'per month',
+              color: const Color(0xFF0D47A1),
+              features: const [
+                'Unlimited reports — all features',
+                '2 Ground Verifications per month',
+                'NRI Mode — 10 countries, live rates',
+                'FEMA compliance checklist',
+                'POA guidance + lawyer referral',
+                'USD / AED invoice on request',
+              ],
+              buttonText: 'Subscribe NRI Pro — ₹999/mo',
+              onTap: () => _pay(999, 'DigiSampatti — NRI Pro Plan'),
+              isPopular: false,
             ),
             const SizedBox(height: 12),
             _buildBrokerPlan(),
@@ -156,8 +200,46 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
+  Widget _buildFreeCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1B5E20),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Free — Always',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15,
+                        color: Color(0xFF1B5E20))),
+                SizedBox(height: 4),
+                Text('1 free report/month for everyone\nPermanent free access for BPL · SC/ST · Tribal users',
+                    style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlanCard({
     required String title,
+    required String badge,
     required String price,
     required String period,
     required Color color,
@@ -180,7 +262,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isPopular) const SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
               const SizedBox(height: 8),
               Row(
@@ -223,19 +305,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ],
           ),
         ),
-        if (isPopular)
-          Positioned(
-            top: 0, right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
-              ),
-              child: const Text('MOST POPULAR',
-                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        Positioned(
+          top: 0, right: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
             ),
+            child: Text(badge,
+              style: const TextStyle(color: Colors.white, fontSize: 10,
+                  fontWeight: FontWeight.bold, letterSpacing: 1)),
           ),
+        ),
       ],
     );
   }
