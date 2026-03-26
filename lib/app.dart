@@ -41,6 +41,9 @@ import 'package:digi_sampatti/features/gov_services/gov_services_screen.dart';
 import 'package:digi_sampatti/features/buying_journey/buying_journey_screen.dart';
 import 'package:digi_sampatti/features/buying_journey/advance_receipt_screen.dart';
 import 'package:digi_sampatti/features/nri/nri_mode_screen.dart';
+import 'package:digi_sampatti/features/demo/demo_report_screen.dart';
+import 'package:digi_sampatti/features/auth/user_type_screen.dart';
+import 'package:digi_sampatti/features/gov/gov_dashboard_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -253,6 +256,21 @@ final _router = GoRouter(
       path: '/nri',
       name: 'nri',
       builder: (context, state) => const NriModeScreen(),
+    ),
+    GoRoute(
+      path: '/user-type',
+      name: 'user-type',
+      builder: (context, state) => const UserTypeScreen(),
+    ),
+    GoRoute(
+      path: '/demo',
+      name: 'demo',
+      builder: (context, state) => const DemoReportScreen(),
+    ),
+    GoRoute(
+      path: '/gov-dashboard',
+      name: 'gov-dashboard',
+      builder: (context, state) => const GovDashboardScreen(),
     ),
     GoRoute(
       path: '/gov-services',

@@ -7,7 +7,7 @@ import 'package:digi_sampatti/core/constants/app_colors.dart';
 final nriModeProvider = StateProvider<bool>((ref) => false);
 
 // NRI country selection
-final nriCountryProvider = StateProvider<String>((ref) => 'UAE');
+final nriCountryProvider = StateProvider<String>((ref) => 'UAE / Dubai');
 
 const _countries = [
   ('UAE / Dubai',     '🇦🇪', 'AED', 37.0),

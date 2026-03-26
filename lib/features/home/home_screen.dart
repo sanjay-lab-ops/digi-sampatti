@@ -22,8 +22,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late List<Animation<double>> _fades;
   late List<Animation<Offset>> _slides;
 
-  // 5 sections: banner, actions-row1, actions-row2, more-tools, why+recent
-  static const _count = 5;
+  // 6 sections: banner, demo, actions, more-tools, why, recent
+  static const _count = 6;
 
   @override
   void initState() {
@@ -103,6 +103,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )),
             const SizedBox(height: 20),
 
+            // ── Demo Mode Banner
+            _animated(2, GestureDetector(
+              onTap: () => context.push('/demo'),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.play_circle_filled, color: Colors.amber, size: 28),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('View Demo Report',
+                              style: TextStyle(color: Colors.white,
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text('See how DigiSampatti works — Survey 45/2, Bengaluru Urban',
+                              style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
+                  ],
+                ),
+              ),
+            )),
+
             // ── Quick Action Buttons
             _animated(1, Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +183,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const SizedBox(height: 16),
 
             // ── More Tools
-            _animated(2, Container(
+            _animated(3, Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
@@ -185,11 +219,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const SizedBox(height: 16),
 
             // ── Why DigiSampatti — interactive card
-            _animated(3, _WhyDigiSampattiCard(onTap: () => _showWhySheet(context))),
+            _animated(4, _WhyDigiSampattiCard(onTap: () => _showWhySheet(context))),
             const SizedBox(height: 24),
 
             // ── Recent Reports
-            _animated(4, Column(
+            _animated(5, Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
