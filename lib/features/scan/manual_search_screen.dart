@@ -26,6 +26,19 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   // 0 = Survey Number mode, 1 = Village/Name mode (rural friendly)
   int _searchMode = 0;
 
+  // State selector
+  String _selectedState = 'Karnataka';
+
+  static const List<Map<String, dynamic>> _states = [
+    {'name': 'Karnataka', 'live': true,  'flag': '🟢'},
+    {'name': 'Andhra Pradesh', 'live': false, 'flag': '🔜'},
+    {'name': 'Tamil Nadu',     'live': false, 'flag': '🔜'},
+    {'name': 'Telangana',      'live': false, 'flag': '🔜'},
+    {'name': 'Maharashtra',    'live': false, 'flag': '🔜'},
+    {'name': 'Goa',            'live': false, 'flag': '🔜'},
+    {'name': 'Kerala',         'live': false, 'flag': '🔜'},
+  ];
+
   // Karnataka district → taluk mapping (abbreviated for key districts)
   static const Map<String, List<String>> districtTaluks = {
     'Bengaluru Urban': ['Anekal', 'Bengaluru East', 'Bengaluru North', 'Bengaluru South', 'Yelahanka'],
@@ -91,6 +104,119 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              // ── State Selector ───────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.public, size: 16, color: AppColors.primary),
+                        SizedBox(width: 6),
+                        Text('ರಾಜ್ಯ / State',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: AppColors.primary)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _states.map((s) {
+                          final name = s['name'] as String;
+                          final live = s['live'] as bool;
+                          final selected = _selectedState == name;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (live) {
+                                  setState(() => _selectedState = name);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '$name — Coming Soon! We are expanding next.'),
+                                      duration: const Duration(seconds: 2),
+                                      backgroundColor: AppColors.primary,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? AppColors.primary
+                                      : live
+                                          ? const Color(0xFFE8F5E9)
+                                          : const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: selected
+                                        ? AppColors.primary
+                                        : live
+                                            ? AppColors.primary.withOpacity(0.3)
+                                            : Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: selected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: selected
+                                            ? Colors.white
+                                            : live
+                                                ? AppColors.primary
+                                                : Colors.grey,
+                                      ),
+                                    ),
+                                    if (!live) ...[
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: const Text('Soon',
+                                            style: TextStyle(
+                                                fontSize: 9,
+                                                color: Colors.orange,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // ── Mode Toggle ──────────────────────────────────────────
               Container(
