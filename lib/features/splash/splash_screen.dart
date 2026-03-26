@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (onboardingDone) {
-      context.go('/auth');
+      context.go('/user-type');
     } else {
       context.go('/onboarding');
     }

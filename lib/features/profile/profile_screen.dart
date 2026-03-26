@@ -157,6 +157,9 @@ class ProfileScreen extends ConsumerWidget {
               _MenuItem(Icons.logout, l.signOut,
                 'Log out of your account', AppColors.danger,
                 () => _signOut(context)),
+              _MenuItem(Icons.delete_forever, 'Delete Account',
+                'Permanently delete your account and data', const Color(0xFFB71C1C),
+                () => _deleteAccount(context)),
             ]),
             const SizedBox(height: 24),
             const Text('DigiSampatti v1.0 Beta',
@@ -262,6 +265,54 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     if (context.mounted) context.go('/auth');
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: const Text(
+          'This will permanently delete your account and all associated reports. '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFB71C1C)),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.delete();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account deleted successfully')),
+          );
+          context.go('/auth');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Could not delete account. Please sign in again and retry.'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
   }
 }
 

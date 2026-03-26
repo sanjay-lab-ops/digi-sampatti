@@ -401,7 +401,7 @@ class _SignQrTab extends StatelessWidget {
                     const Text('Report ID: DS-20260326-87421',
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.bold)),
-                    const Text('Hash: 3a7f...9c2d (Polygon Network)',
+                    const Text('Hash: 3a7f...9c2d (Hyperledger Fabric)',
                         style: TextStyle(fontSize: 10, color: Colors.grey)),
                   ],
                 ),
