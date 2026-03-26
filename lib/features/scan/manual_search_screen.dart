@@ -110,7 +110,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                       onTap: () => setState(() => _searchMode = 0),
                     ),
                     _ModeTab(
-                      icon: Icons.location_village,
+                      icon: Icons.holiday_village,
                       label: 'ಹಳ್ಳಿ / ಹೆಸರಿನಿಂದ',
                       sublabel: 'Search by village / name',
                       selected: _searchMode == 1,
