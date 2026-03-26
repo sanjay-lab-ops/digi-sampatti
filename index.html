@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiSampatti — India's Property Legal Verification App</title>
+  <meta name="description" content="Instant land record check, AI risk analysis, and due diligence reports for Karnataka property buyers. Know before you buy." />
+  <meta property="og:title" content="DigiSampatti — Know Before You Buy" />
+  <meta property="og:description" content="India's first AI-powered property legal verification app. Bhoomi records, RERA check, encumbrance history — one tap." />
+  <meta property="og:image" content="https://sanjay-lab-ops.github.io/digi-sampatti/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1B5E20;
+      --green-light: #2E7D32;
+      --green-accent: #43A047;
+      --gold: #F9A825;
+      --bg: #0D1117;
+      --bg2: #161B22;
+      --bg3: #1C2330;
+      --text: #E6EDF3;
+      --muted: #8B949E;
+      --border: #30363D;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      background: rgba(13,17,23,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--green-light); color: #fff; padding: 8px 20px;
+      border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--green-accent); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 100px 24px 60px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(27,94,32,0.18) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(249,168,37,0.12); border: 1px solid rgba(249,168,37,0.3);
+      color: var(--gold); padding: 6px 16px; border-radius: 100px;
+      font-size: 0.8rem; font-weight: 600; margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 3.8rem); font-weight: 800; line-height: 1.15;
+      margin-bottom: 20px; max-width: 800px;
+    }
+    .hero h1 span { color: var(--green-accent); }
+    .hero p {
+      font-size: clamp(1rem, 2.5vw, 1.25rem); color: var(--muted);
+      max-width: 560px; margin: 0 auto 36px;
+    }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--green-light); color: #fff;
+      padding: 14px 32px; border-radius: 10px; text-decoration: none;
+      font-weight: 700; font-size: 1rem; transition: background 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover { background: var(--green-accent); transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border); padding: 14px 32px;
+      border-radius: 10px; text-decoration: none; font-weight: 600;
+      font-size: 1rem; transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--muted); }
+    .hero-note { margin-top: 20px; font-size: 0.82rem; color: var(--muted); }
+
+    /* STATS BAR */
+    .stats-bar {
+      background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 28px 24px;
+      display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--green-accent); }
+    .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+    /* PROBLEM */
+    .section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      font-size: 0.8rem; font-weight: 700; color: var(--green-accent);
+      text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+    .section h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 16px; }
+    .section p.lead { color: var(--muted); font-size: 1.05rem; max-width: 600px; margin-bottom: 40px; }
+
+    .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .problem-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+    }
+    .problem-icon { font-size: 2rem; margin-bottom: 12px; }
+    .problem-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .problem-card p { font-size: 0.88rem; color: var(--muted); }
+
+    /* FEATURES */
+    .features-bg { background: var(--bg2); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .feature-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--green-accent); }
+    .feature-icon {
+      width: 44px; height: 44px; background: rgba(46,125,50,0.15);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.88rem; color: var(--muted); }
+
+    /* HOW IT WORKS */
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+    .step { text-align: center; }
+    .step-num {
+      width: 48px; height: 48px; background: var(--green-light);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.1rem; margin: 0 auto 14px;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .step p { font-size: 0.85rem; color: var(--muted); }
+    .step-arrow { display: flex; align-items: center; justify-content: center; color: var(--border); font-size: 1.5rem; padding-top: 14px; }
+
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .pricing-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px; position: relative;
+    }
+    .pricing-card.popular { border-color: var(--green-accent); }
+    .popular-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--green-accent); color: #fff; padding: 4px 16px;
+      border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+    }
+    .pricing-card h3 { font-size: 1rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .pricing-price { font-size: 2.2rem; font-weight: 800; margin-bottom: 4px; }
+    .pricing-price span { font-size: 1rem; color: var(--muted); font-weight: 400; }
+    .pricing-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .pricing-features li { font-size: 0.88rem; display: flex; gap: 10px; align-items: flex-start; }
+    .pricing-features li::before { content: "✓"; color: var(--green-accent); font-weight: 700; flex-shrink: 0; }
+
+    /* WHO IS IT FOR */
+    .audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .audience-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px; text-align: center;
+    }
+    .audience-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .audience-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .audience-card p { font-size: 0.82rem; color: var(--muted); }
+
+    /* TESTIMONIAL */
+    .quote-section { background: var(--bg2); }
+    .quote-box {
+      max-width: 700px; margin: 0 auto; text-align: center; padding: 60px 24px;
+    }
+    .quote-text {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; line-height: 1.5;
+      color: var(--text); margin-bottom: 20px;
+    }
+    .quote-author { font-size: 0.88rem; color: var(--muted); }
+
+    /* CTA */
+    .cta-section {
+      text-align: center; padding: 80px 24px;
+      background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(27,94,32,0.2) 0%, transparent 70%);
+    }
+    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 16px; }
+    .cta-section p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto 36px; }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 40px 24px 24px;
+    }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 32px; margin-bottom: 32px; }
+    .footer-brand h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .footer-brand h3 span { color: var(--gold); }
+    .footer-brand p { font-size: 0.85rem; color: var(--muted); max-width: 240px; }
+    .footer-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .footer-col a { display: block; color: var(--muted); text-decoration: none; font-size: 0.88rem; margin-bottom: 8px; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .footer-bottom p { font-size: 0.8rem; color: var(--muted); }
+    .startup-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(249,168,37,0.08); border: 1px solid rgba(249,168,37,0.2);
+      color: var(--gold); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .stats-bar { gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Digi<span>Sampatti</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <a href="#download" class="nav-cta">Get the App</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge">🏆 Startup India Registered &nbsp;|&nbsp; Patent Pending</div>
+    <h1>Know the <span>Legal Truth</span> of Any Property Before You Buy</h1>
+    <p>Instant land record check, AI risk analysis, encumbrance history, and RERA verification — in one tap. Built for Karnataka.</p>
+    <div class="hero-btns">
+      <a href="#download" class="btn-primary">📱 Download App — Free</a>
+      <a href="#features" class="btn-secondary">See How It Works →</a>
+    </div>
+    <p class="hero-note">₹99 per report &nbsp;·&nbsp; Android & iOS &nbsp;·&nbsp; Blockchain-verified</p>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">1 in 3</div>
+    <div class="stat-label">Properties have hidden legal issues</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">₹99</div>
+    <div class="stat-label">Per full verification report</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">&lt; 5 min</div>
+    <div class="stat-label">Time to get your report</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">10+</div>
+    <div class="stat-label">Legal data sources checked</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="section" id="problem">
+  <div class="section-tag">The Problem</div>
+  <h2>Most Property Frauds Happen Because Buyers Don't Know What to Check</h2>
+  <p class="lead">Government portals exist — but they require legal knowledge to interpret. Most buyers rely on brokers who have a conflict of interest.</p>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-icon">🔍</div>
+      <h3>Hidden Encumbrances</h3>
+      <p>Loans, liabilities, or court orders on the property that sellers hide from buyers.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">🏛️</div>
+      <h3>Government Claims</h3>
+      <p>Land acquisition notices or ceiling violations that make a property legally unsafe.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📋</div>
+      <h3>Fake RERA Projects</h3>
+      <p>Builders selling apartments in unregistered or cancelled RERA projects.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">👥</div>
+      <h3>Co-ownership Disputes</h3>
+      <p>Multiple heirs, undivided family property, or disputed succession — invisible without proper records check.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features-bg">
+<section class="section" id="features">
+  <div class="section-tag">What We Check</div>
+  <h2>Complete Legal Due Diligence in One App</h2>
+  <p class="lead">DigiSampatti connects to government databases and uses AI to interpret what it finds — not just show you raw documents.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📜</div>
+      <h3>Bhoomi Land Records</h3>
+      <p>RTC, mutation history, khata status, ownership chain — pulled directly from Karnataka Bhoomi portal.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏗️</div>
+      <h3>RERA Verification</h3>
+      <p>Check if the project is registered, active, and compliant with RERA Karnataka. Catch cancelled or lapsed registrations.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>Encumbrance Certificate</h3>
+      <p>Full EC history — loans, mortgages, and charges on the property dating back up to 30 years.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>AI Risk Score</h3>
+      <p>Claude AI analyzes all records together and gives a simple 0–100 safety score with plain-language explanation.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>GPS Photo Capture</h3>
+      <p>Visit the property and capture geo-tagged photos as evidence — embedded directly in your report.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>Blockchain Verified PDF</h3>
+      <p>Every report gets a tamper-proof QR code anchored to Hyperledger Fabric. Verifiable by banks and lawyers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Kannada + English</h3>
+      <p>All guidance available in Kannada. Every finding explained in simple language — no legal jargon.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Professional PDF Report</h3>
+      <p>Share-ready report with all findings, risk analysis, photos, and next steps — accepted by banks and lawyers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👨‍💼</div>
+      <h3>Broker & Bank Access</h3>
+      <p>Role-based login for brokers, banks, and developers. Bulk reports and API access available.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="section-tag">How It Works</div>
+  <h2>From Property to Report in 4 Simple Steps</h2>
+  <p class="lead">No legal knowledge needed. Just enter the property details and we do the rest.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Enter Property Details</h3>
+      <p>Survey number, district, taluk — or search by address. Karnataka-wide coverage.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>We Fetch All Records</h3>
+      <p>DigiSampatti queries Bhoomi, RERA, and encumbrance databases simultaneously.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>AI Analyses Everything</h3>
+      <p>Claude AI reads all records, flags risks, and calculates a safety score with plain explanations.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h3>Get Your Report</h3>
+      <p>Download a blockchain-verified PDF. Share with your lawyer, bank, or family — instantly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IS IT FOR -->
+<div class="features-bg">
+<section class="section" id="audience">
+  <div class="section-tag">Who Uses DigiSampatti</div>
+  <h2>Built for Everyone in the Property Journey</h2>
+  <div class="audience-grid">
+    <div class="audience-card">
+      <div class="audience-icon">🏡</div>
+      <h3>Home Buyers</h3>
+      <p>First-time buyers who want to verify before they invest their life savings.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🌍</div>
+      <h3>NRI Buyers</h3>
+      <p>Buying from Dubai or the US? Get complete remote verification without visiting.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🤝</div>
+      <h3>Brokers & Agents</h3>
+      <p>Pre-verify listings, build client trust, close faster. Bulk report plans available.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🏦</div>
+      <h3>Banks & NBFCs</h3>
+      <p>Faster loan approvals with AI-verified property reports. API access available.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">⚖️</div>
+      <h3>Lawyers</h3>
+      <p>Blockchain-verified reports accepted as supporting evidence. Save hours of manual search.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🏗️</div>
+      <h3>Developers</h3>
+      <p>Pre-launch due diligence. Verify land before building. RERA compliance check.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-tag">Pricing</div>
+  <h2>Simple, Transparent Pricing</h2>
+  <p class="lead">No hidden charges. Pay per report or subscribe for unlimited access.</p>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h3>Pay Per Report</h3>
+      <div class="pricing-price">₹99 <span>/ report</span></div>
+      <p class="pricing-desc">Perfect for individual buyers checking 1–2 properties.</p>
+      <ul class="pricing-features">
+        <li>Full legal verification report</li>
+        <li>AI risk score + explanation</li>
+        <li>Blockchain-verified PDF</li>
+        <li>GPS photo capture</li>
+        <li>Share via WhatsApp / email</li>
+      </ul>
+    </div>
+    <div class="pricing-card popular">
+      <div class="popular-badge">Most Popular</div>
+      <h3>Monthly Plan</h3>
+      <div class="pricing-price">₹999 <span>/ month</span></div>
+      <p class="pricing-desc">For brokers, lawyers, and active property investors.</p>
+      <ul class="pricing-features">
+        <li>Unlimited reports</li>
+        <li>All Pay-Per-Report features</li>
+        <li>Priority AI analysis</li>
+        <li>Bulk report management</li>
+        <li>Broker profile listing</li>
+        <li>Client sharing portal</li>
+      </ul>
+    </div>
+    <div class="pricing-card">
+      <h3>Enterprise / API</h3>
+      <div class="pricing-price">₹2,999 <span>/ month</span></div>
+      <p class="pricing-desc">For banks, NBFCs, and large real estate firms.</p>
+      <ul class="pricing-features">
+        <li>All Monthly Plan features</li>
+        <li>REST API access</li>
+        <li>White-label reports</li>
+        <li>Dedicated account manager</li>
+        <li>Custom integrations</li>
+        <li>SLA guarantee</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<div class="quote-section">
+  <div class="quote-box">
+    <div class="quote-text">"Landeed gives you the document. DigiSampatti tells you what to DO with it."</div>
+    <div class="quote-author">— The DigiSampatti Difference</div>
+  </div>
+</div>
+
+<!-- CTA / DOWNLOAD -->
+<section class="cta-section" id="download">
+  <div class="section-tag">Get Started Today</div>
+  <h2>Verify Any Karnataka Property in Under 5 Minutes</h2>
+  <p>Join thousands of smart property buyers who verify before they invest. Download DigiSampatti — free to install, ₹99 per report.</p>
+  <div class="hero-btns">
+    <a href="#" class="btn-primary">📱 Download on Android</a>
+    <a href="#" class="btn-secondary">🍎 Coming Soon on iOS</a>
+  </div>
+  <p style="margin-top:16px; font-size:0.82rem; color:var(--muted);">Available on Google Play Store · Patent Pending · Startup India Registered</p>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>Digi<span>Sampatti</span></h3>
+        <p>India's first AI-powered property legal verification app. Built in Karnataka, for Karnataka.</p>
+        <br/>
+        <span class="startup-badge">🇮🇳 Startup India · IN-0326-9427JD</span>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#download">Download</a>
+      </div>
+      <div class="footer-col">
+        <h4>For Business</h4>
+        <a href="#audience">Brokers</a>
+        <a href="#audience">Banks & NBFCs</a>
+        <a href="#audience">Developers</a>
+        <a href="#contact">API Access</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:hello@digisampatti.com">hello@digisampatti.com</a>
+        <a href="#">Karnataka, India</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 DigiSampatti. All rights reserved. Patent Pending.</p>
+      <p>Made with ❤️ in Karnataka, India</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
