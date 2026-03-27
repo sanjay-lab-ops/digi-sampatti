@@ -6,17 +6,16 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.0")
     }
 }
 
 subprojects {
     configurations.all {
         resolutionStrategy {
-            force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
-            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
-            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
-            force("com.google.maps.android:android-maps-utils:3.8.2")
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.0")
         }
     }
     afterEvaluate {
