@@ -95,3 +95,6 @@ flutter:
     - assets/icons/
     - assets/lottie/
     - .env
+
+dependency_overrides:
+  google_maps_flutter_android: 2.13.1
