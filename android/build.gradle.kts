@@ -16,6 +16,7 @@ subprojects {
             force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+            force("com.google.maps.android:android-maps-utils:3.8.2")
         }
     }
     afterEvaluate {
