@@ -53,7 +53,7 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDT_USjczbnftG5QE0wPMhXcrQAZJs9vmw"/>
+            android:value="AIzaSyCS7p_HxbQXy5q--5Cnz_F6u5PEnok-_uw"/>
 
         <!-- Razorpay Checkout Activity -->
         <activity
