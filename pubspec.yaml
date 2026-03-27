@@ -97,4 +97,4 @@ flutter:
     - .env
 
 dependency_overrides:
-  google_maps_flutter_android: 2.13.1
+  google_maps_flutter_android: 2.12.0
