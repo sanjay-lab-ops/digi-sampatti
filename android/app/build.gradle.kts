@@ -22,6 +22,21 @@ android {
         }
     }
 
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = java.util.Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    }
+
     defaultConfig {
         applicationId = "com.digisampatti.app"
         minSdk = 21
@@ -33,7 +48,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
