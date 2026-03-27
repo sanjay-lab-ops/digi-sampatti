@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.digisampatti.app"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
