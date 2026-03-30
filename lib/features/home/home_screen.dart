@@ -82,7 +82,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         foregroundColor: Colors.white,
       ),
       appBar: AppBar(
-        title: Text(l.homeTitle),
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                'assets/images/logo.jpeg',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(l.homeTitle),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
