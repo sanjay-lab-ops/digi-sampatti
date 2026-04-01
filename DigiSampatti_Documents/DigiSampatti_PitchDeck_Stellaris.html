@@ -365,6 +365,27 @@
       <td class="cross">✗</td>
     </tr>
     <tr>
+      <td>QR forgery detection (IPC 465)</td>
+      <td class="check">✓</td>
+      <td class="cross">✗</td>
+      <td class="cross">✗</td>
+      <td class="cross">✗</td>
+    </tr>
+    <tr>
+      <td>CERSAI hidden mortgage check</td>
+      <td class="check">✓</td>
+      <td class="cross">✗</td>
+      <td class="cross">✗</td>
+      <td>Manual</td>
+    </tr>
+    <tr>
+      <td>7-portal contradiction engine</td>
+      <td class="check">✓</td>
+      <td class="cross">✗</td>
+      <td class="cross">✗</td>
+      <td class="cross">✗</td>
+    </tr>
+    <tr>
       <td>B2B API</td>
       <td class="check">✓</td>
       <td class="check">✓</td>
@@ -373,14 +394,66 @@
     </tr>
     <tr>
       <td>Price</td>
-      <td>₹99</td>
+      <td>₹998</td>
       <td>Free (basic) / ₹499+ premium</td>
       <td>Free</td>
       <td>₹15,000+</td>
     </tr>
   </table>
 
-  <p><strong>Key differentiation vs Landeed:</strong> Landeed gives you the document. DigiSampatti tells you what to DO with it. Interpretation + Safety Score + Guidance — not raw data retrieval.</p>
+  <p><strong>Key differentiation vs Landeed:</strong> Landeed downloads documents. DigiSampatti catches forgeries, hidden mortgages, and cross-portal contradictions that no single document shows. Landeed's own users can still be defrauded — ours cannot.</p>
+</div>
+
+<!-- PROOF POINT SLIDE -->
+<div class="slide">
+  <div class="slide-num">Slide 08B — Proof Point</div>
+  <h2>The Test That Proves It</h2>
+  <div class="subtitle">A real fraud Landeed would miss. DigiSampatti would catch it in 3 minutes.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;">
+
+    <div style="background:#f4433608;border:1.5px solid #f4433640;border-radius:14px;padding:18px;">
+      <div style="font-size:13px;font-weight:800;color:#f44336;margin-bottom:12px;">❌ What Landeed Shows</div>
+      <div style="font-size:11px;color:#ccc;line-height:1.8;">
+        <div>📄 Downloads EC from IGRS portal</div>
+        <div style="padding-left:16px;color:#aaa;">→ EC says: "No encumbrances found"</div>
+        <div style="margin-top:8px;">📄 Downloads RTC from Bhoomi</div>
+        <div style="padding-left:16px;color:#aaa;">→ RTC says: Owner = Gopal (forged)</div>
+        <div style="margin-top:8px;background:#f4433615;padding:10px;border-radius:8px;">
+          <strong style="color:#f44336;">Result:</strong> <span style="color:#f44336;">User sees "CLEAN" — buys property</span><br>
+          <span style="color:#f44336;font-size:10px;">Hidden SBI mortgage of ₹42L exists in CERSAI</span><br>
+          <span style="color:#f44336;font-size:10px;">Real owner is Ramaiah, not Gopal</span><br>
+          <strong style="color:#f44336;font-size:11px;">Loss: ₹82 Lakh</strong>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#4caf5008;border:1.5px solid #4caf5040;border-radius:14px;padding:18px;">
+      <div style="font-size:13px;font-weight:800;color:#4caf50;margin-bottom:12px;">✅ What DigiSampatti Shows</div>
+      <div style="font-size:11px;color:#ccc;line-height:1.8;">
+        <div>🔍 Scans QR on physical RTC document</div>
+        <div style="padding-left:16px;color:#aaa;">→ Bhoomi portal says: Owner = Ramaiah</div>
+        <div style="padding-left:16px;color:#f44336;">→ 🚨 FORGERY: Gopal ≠ Ramaiah (IPC 465)</div>
+        <div style="margin-top:8px;">🏦 Checks CERSAI simultaneously</div>
+        <div style="padding-left:16px;color:#f44336;">→ SBI mortgage ₹42L ACTIVE (EC lied)</div>
+        <div style="margin-top:8px;background:#4caf5015;padding:10px;border-radius:8px;">
+          <strong style="color:#4caf50;">Result:</strong> <span style="color:#4caf50;">DO NOT BUY — alert in 3 minutes</span><br>
+          <span style="color:#4caf50;font-size:10px;">Forgery reported to Tahsildar</span><br>
+          <span style="color:#4caf50;font-size:10px;">Broker blacklisted in fraud map</span><br>
+          <strong style="color:#4caf50;font-size:11px;">Saved: ₹82 Lakh</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#ffffff08;border-radius:12px;padding:14px;text-align:center;">
+    <div style="font-size:12px;color:#aaa;margin-bottom:6px;">The structural gap:</div>
+    <div style="font-size:14px;font-weight:800;color:white;">
+      Landeed reads <span style="color:#f44336;">1 document at a time.</span>
+      DigiSampatti reads <span style="color:#4caf50;">7 portals simultaneously</span> and finds what contradicts.
+    </div>
+    <div style="font-size:10px;color:#888;margin-top:6px;">Fraud hides in the gap between portals — not inside any single document.</div>
+  </div>
 </div>
 
 <!-- SLIDE 9: TRACTION & GOVERNMENT BACKING -->

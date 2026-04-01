@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiSampatti — Full Story Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#050508;font-family:'Segoe UI',system-ui,sans-serif;color:white;min-height:100vh;overflow-x:hidden;}
+
+/* ── CINEMA FRAME ── */
+.cinema{
+  max-width:900px;margin:0 auto;
+  padding:20px 16px 40px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.cinema-title{
+  font-size:11px;letter-spacing:3px;text-transform:uppercase;
+  color:#6C63FF;font-weight:800;margin-bottom:4px;
+}
+.cinema-h1{font-size:22px;font-weight:900;text-align:center;margin-bottom:2px;}
+.cinema-sub{font-size:11px;color:#888;text-align:center;}
+
+/* ── SCENE STRIP ── */
+.scene-strip{
+  width:100%;display:flex;gap:4px;margin-bottom:4px;
+}
+.scene-dot{
+  flex:1;height:4px;border-radius:2px;background:#1a1a2e;
+  transition:background .3s;cursor:pointer;
+}
+.scene-dot.done{background:#6C63FF60;}
+.scene-dot.active{background:#6C63FF;}
+
+/* ── MAIN STAGE ── */
+.main-stage{
+  width:100%;
+  display:grid;
+  grid-template-columns:180px 1fr 180px;
+  gap:14px;
+  align-items:start;
+}
+
+/* ── CHARACTER PANEL ── */
+.char-side{display:flex;flex-direction:column;gap:10px;}
+.char-card{
+  background:#0d0d1f;
+  border:1px solid #1e1e3a;
+  border-radius:12px;
+  padding:12px;
+  display:none;
+  animation:popIn .3s ease;
+}
+.char-card.active{display:block;}
+.char-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.char-emoji{font-size:24px;}
+.char-card-name{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+.char-card-role{font-size:8px;color:#666;margin-top:1px;}
+.char-card-bubble{
+  background:#ffffff06;
+  border-radius:8px;
+  padding:8px;
+  font-size:9px;
+  color:#bbb;
+  line-height:1.7;
+}
+.char-card-bubble strong{color:white;}
+.char-card-bubble .red{color:#f44336;font-weight:700;}
+.char-card-bubble .green{color:#4caf50;font-weight:700;}
+.char-card-bubble .yellow{color:#ff9800;font-weight:700;}
+.char-card-bubble .purple{color:#9c8fff;font-weight:700;}
+.char-status{
+  margin-top:8px;
+  padding:5px 8px;
+  border-radius:6px;
+  font-size:8px;
+  font-weight:800;
+  text-align:center;
+}
+.status-danger{background:#f4433615;color:#f44336;border:1px solid #f4433630;}
+.status-success{background:#4caf5015;color:#4caf50;border:1px solid #4caf5030;}
+.status-warning{background:#ff980015;color:#ff9800;border:1px solid #ff980030;}
+.status-info{background:#6C63FF15;color:#9c8fff;border:1px solid #6C63FF30;}
+
+/* ── PHONE ── */
+.phone-center{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.scene-badge{
+  background:#6C63FF20;
+  border:1px solid #6C63FF50;
+  border-radius:20px;
+  padding:4px 14px;
+  font-size:9px;font-weight:800;
+  color:#9c8fff;letter-spacing:1px;text-transform:uppercase;
+}
+.phone{
+  width:220px;height:440px;
+  background:#0a0a12;
+  border:2.5px solid #2a2a3a;
+  border-radius:32px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 0 50px #6C63FF25;
+}
+.notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:64px;height:16px;
+  background:#0a0a12;border-radius:0 0 10px 10px;z-index:20;
+}
+.screen{width:100%;height:100%;display:flex;flex-direction:column;background:#0d0d1a;overflow:hidden;}
+.app-scr{display:none;width:100%;height:100%;flex-direction:column;animation:slideIn .3s ease;}
+.app-scr.active{display:flex;}
+
+.app-bar{
+  padding:24px 12px 8px;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid #ffffff08;
+}
+.bar-back{color:#6C63FF;font-size:14px;cursor:pointer;}
+.bar-title{color:white;font-size:12px;font-weight:700;flex:1;}
+.bar-logo{color:#6C63FF;font-size:13px;font-weight:900;}
+.bar-icon{font-size:14px;}
+.app-body{padding:10px 12px;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px;}
+
+/* Status bar */
+.phone-status-bar{
+  position:absolute;top:0;left:0;right:0;height:20px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;z-index:10;
+}
+.psb-time{font-size:7px;color:#888;font-weight:700;}
+.psb-icons{font-size:7px;color:#888;display:flex;gap:3px;}
+
+/* ── NARRATION BAR ── */
+.narr-bar{
+  width:100%;
+  background:#0d0d1f;
+  border:1px solid #1e1e3a;
+  border-radius:12px;
+  padding:12px 16px;
+  display:flex;gap:12px;align-items:flex-start;
+  min-height:54px;
+}
+.narr-icon{font-size:18px;margin-top:1px;}
+.narr-text{font-size:11px;color:#bbb;line-height:1.7;flex:1;}
+.narr-text strong{color:white;}
+.narr-text .red{color:#f44336;}
+.narr-text .green{color:#4caf50;}
+
+/* ── CONTROLS ── */
+.controls{display:flex;gap:10px;align-items:center;}
+.btn{
+  padding:9px 20px;border:none;border-radius:9px;
+  font-size:12px;font-weight:800;cursor:pointer;transition:.15s;
+}
+.btn-primary{background:#6C63FF;color:white;}
+.btn-primary:hover{background:#5a52e0;}
+.btn-secondary{background:#1a1a2e;color:#888;border:1px solid #2a2a3a;}
+.btn-secondary:hover{background:#222240;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.scene-counter{color:#555;font-size:11px;min-width:80px;text-align:center;}
+
+/* ── ANIMATIONS ── */
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scanLine{0%{top:15%}50%{top:75%}100%{top:15%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes countUp{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px #4caf5040}50%{box-shadow:0 0 40px #4caf5080}}
+
+/* ── SHARED SCREEN COMPONENTS ── */
+
+/* Splash */
+.splash{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:20px;text-align:center;gap:8px;
+}
+.splash-emoji{font-size:36px;}
+.splash-num{font-size:24px;font-weight:900;}
+.splash-label{font-size:10px;color:#888;}
+.splash-ds{color:#6C63FF;font-size:13px;font-weight:900;}
+
+/* Doc preview */
+.doc-preview{
+  background:#f5f0e0;
+  border-radius:8px;
+  padding:10px;
+  position:relative;
+}
+.doc-gov-title{color:#8B0000;font-size:7px;font-weight:900;text-align:center;border-bottom:1px solid #ccc;padding-bottom:3px;margin-bottom:5px;}
+.doc-line{height:4px;background:#aaa;border-radius:2px;margin-bottom:3px;}
+.doc-line.w70{width:70%;}
+.doc-line.w90{width:90%;}
+.doc-line.w50{width:50%;}
+.doc-stamp{
+  position:absolute;right:8px;bottom:8px;
+  width:28px;height:28px;
+  background:#8B000020;
+  border:2px solid #8B000050;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;color:#8B0000;font-weight:900;
+}
+.doc-qr{
+  position:absolute;left:8px;bottom:8px;
+  width:22px;height:22px;
+  background:white;
+  display:grid;grid-template-columns:repeat(4,4px);gap:1px;
+  padding:2px;border:1px solid #ccc;
+}
+.qr-c{background:#111;}
+.qr-w{background:white;}
+
+/* Camera */
+.cam-view{
+  flex:1;background:#030303;position:relative;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.cam-hint{
+  position:absolute;bottom:10px;left:0;right:0;
+  text-align:center;color:#666;font-size:8px;
+}
+.cam-frame{
+  position:absolute;
+  width:160px;height:100px;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1.5px solid #6C63FF;border-radius:4px;
+}
+.scan-anim{
+  position:absolute;
+  left:50%;top:15%;
+  width:160px;height:2px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,#6C63FF,transparent);
+  animation:scanLine 2s linear infinite;
+}
+.cam-label{
+  position:absolute;top:8px;left:0;right:0;
+  text-align:center;color:#6C63FF;font-size:7px;font-weight:800;
+}
+
+/* OCR badge */
+.ocr-card{
+  background:#4caf5010;
+  border:1px solid #4caf5040;
+  border-radius:8px;padding:8px;
+}
+.ocr-title{color:#4caf50;font-size:8px;font-weight:800;margin-bottom:4px;}
+.ocr-row{display:flex;justify-content:space-between;margin-bottom:2px;}
+.ocr-key{color:#888;font-size:7px;}
+.ocr-val{color:white;font-size:7px;font-weight:700;}
+
+/* Portal row */
+.portal-list{display:flex;flex-direction:column;gap:1px;}
+.prow{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 4px;
+  border-bottom:1px solid #ffffff06;
+  animation:slideIn .3s ease;
+}
+.prow-icon{font-size:12px;width:16px;text-align:center;}
+.prow-info{flex:1;}
+.prow-name{color:white;font-size:8px;font-weight:700;}
+.prow-status{font-size:7px;margin-top:1px;}
+.spinner-sm{
+  width:9px;height:9px;
+  border:1.5px solid #6C63FF30;
+  border-top-color:#6C63FF;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+/* Verdict */
+.verdict{
+  border-radius:10px;padding:10px;text-align:center;
+}
+.verdict.safe{background:#4caf5012;border:1.5px solid #4caf5040;}
+.verdict.danger{background:#f4433612;border:1.5px solid #f4433640;animation:shake .4s ease;}
+.verdict-title{font-size:11px;font-weight:800;margin-bottom:3px;}
+.verdict.safe .verdict-title{color:#4caf50;}
+.verdict.danger .verdict-title{color:#f44336;}
+.verdict-sub{font-size:7px;color:#888;line-height:1.5;}
+
+/* Risk ring */
+.risk-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.risk-ring{
+  width:90px;height:90px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;position:relative;
+  animation:countUp .5s ease;
+}
+.risk-ring.safe{
+  background:conic-gradient(#4caf50 0% 88%,#ffffff10 88%);
+  box-shadow:0 0 30px #4caf5040;animation:countUp .5s ease,glow 2s ease infinite;
+}
+.risk-ring::before{
+  content:'';position:absolute;inset:9px;
+  border-radius:50%;background:#0d0d1a;
+}
+.risk-score-inner{position:relative;z-index:1;text-align:center;}
+.risk-num{font-size:20px;font-weight:900;color:white;}
+.risk-unit{font-size:7px;color:#888;}
+.risk-label{font-size:10px;font-weight:800;}
+.risk-label.safe{color:#4caf50;}
+
+/* Expert screen */
+.expert-banner{
+  background:#6C63FF12;
+  border:1px solid #6C63FF40;
+  border-radius:10px;padding:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.expert-av{font-size:22px;}
+.expert-name{color:white;font-size:9px;font-weight:800;}
+.expert-role{color:#888;font-size:7px;margin-bottom:4px;}
+.live-row{display:flex;align-items:center;gap:4px;}
+.live-dot{width:5px;height:5px;background:#4caf50;border-radius:50%;animation:pulse 1.2s infinite;}
+.live-txt{color:#4caf50;font-size:7px;font-weight:800;}
+
+/* Report */
+.report-card{
+  background:#ffffff05;
+  border:1px solid #ffffff10;
+  border-radius:8px;padding:8px;
+}
+.report-title{color:#6C63FF;font-size:8px;font-weight:800;margin-bottom:5px;}
+.report-row{
+  display:flex;align-items:center;gap:5px;
+  margin-bottom:3px;
+}
+.report-icon{font-size:9px;width:12px;}
+.report-text{font-size:7px;color:#aaa;}
+.report-val{font-size:7px;font-weight:700;}
+
+/* Bank screen */
+.bank-header{
+  background:linear-gradient(135deg,#1a237e,#283593);
+  padding:14px 12px 10px;
+  border-radius:0;
+}
+.bank-logo{color:#90caf9;font-size:9px;font-weight:900;letter-spacing:1px;}
+.bank-title{color:white;font-size:11px;font-weight:800;margin-top:4px;}
+.bank-field{margin-bottom:6px;}
+.bank-field-label{color:#90caf9;font-size:7px;font-weight:700;margin-bottom:2px;}
+.bank-field-val{
+  background:#1a237e40;
+  border:1px solid #3949ab50;
+  border-radius:5px;
+  padding:5px 8px;
+  color:white;font-size:8px;
+}
+.bank-approve{
+  background:linear-gradient(135deg,#4caf50,#2e7d32);
+  border:none;border-radius:8px;padding:8px;
+  color:white;font-size:9px;font-weight:800;
+  width:100%;text-align:center;
+  animation:popIn .4s ease;
+}
+.bank-stamp{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-20deg);
+  border:3px solid #4caf50;
+  border-radius:8px;
+  color:#4caf50;font-size:16px;font-weight:900;
+  padding:6px 14px;letter-spacing:2px;
+  background:#4caf5010;
+  animation:countUp .4s .1s ease both;
+}
+
+/* Government screen */
+.govt-header{
+  background:#b71c1c;
+  padding:14px 12px 10px;
+}
+.govt-logo{color:#ffcdd2;font-size:8px;font-weight:900;letter-spacing:.5px;}
+.govt-title{color:white;font-size:10px;font-weight:800;margin-top:3px;}
+.alert-card{
+  background:#f4433610;
+  border:1px solid #f4433640;
+  border-radius:8px;padding:8px;
+  animation:shake .4s ease;
+}
+.alert-title{color:#f44336;font-size:9px;font-weight:800;margin-bottom:4px;}
+.alert-row{color:#f44336;font-size:7px;margin-bottom:2px;line-height:1.5;}
+.action-taken{
+  background:#4caf5012;
+  border:1px solid #4caf5030;
+  border-radius:8px;padding:8px;
+  margin-top:6px;
+}
+.action-title{color:#4caf50;font-size:8px;font-weight:800;margin-bottom:4px;}
+.action-row{color:#4caf50;font-size:7px;margin-bottom:2px;line-height:1.5;}
+
+/* Mutation */
+.mutation-track{display:flex;flex-direction:column;gap:4px;}
+.mut-step{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 0;
+}
+.mut-line{
+  display:flex;flex-direction:column;align-items:center;
+  width:16px;
+}
+.mut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.mut-dot.done{background:#4caf50;}
+.mut-dot.active{background:#ff9800;animation:pulse 1.2s infinite;}
+.mut-dot.pending{background:#333;}
+.mut-connector{width:2px;height:16px;background:#222;margin:1px 0;}
+.mut-label{font-size:8px;color:white;font-weight:700;}
+.mut-date{font-size:7px;color:#888;}
+
+/* Final */
+.final-stat{
+  background:#ffffff08;border-radius:10px;padding:10px;text-align:center;
+}
+.final-num{font-size:18px;font-weight:900;}
+.final-sub{font-size:8px;color:#888;margin-top:2px;}
+
+/* Broker blacklist */
+.blacklist-card{
+  background:#f4433608;
+  border:1px solid #f4433630;
+  border-radius:8px;padding:8px;
+}
+.bl-title{color:#f44336;font-size:8px;font-weight:800;margin-bottom:4px;}
+.bl-row{color:#f44336;font-size:7px;margin-bottom:2px;}
+
+/* Chip buttons */
+.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.chip-btn{
+  background:#ffffff08;border:1px solid #ffffff12;
+  border-radius:8px;padding:8px 4px;text-align:center;
+}
+.chip-icon{font-size:14px;margin-bottom:3px;}
+.chip-label{color:#888;font-size:7px;font-weight:700;}
+
+/* Footer area */
+.bot-nav{
+  display:flex;border-top:1px solid #ffffff08;
+  padding:6px 0 14px;margin-top:auto;
+}
+.bot-nav-item{flex:1;text-align:center;}
+.bot-nav-icon{font-size:14px;}
+.bot-nav-label{font-size:6px;color:#555;}
+.bot-nav-item.act .bot-nav-label{color:#6C63FF;}
+
+/* WhatsApp-style share */
+.wa-share{
+  background:#128c7e20;
+  border:1px solid #128c7e50;
+  border-radius:8px;padding:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.wa-icon{font-size:18px;}
+.wa-text{font-size:8px;color:#25d366;}
+.wa-label{font-size:7px;color:#888;margin-top:1px;}
+</style>
+</head>
+<body>
+<div class="cinema">
+
+<div class="cinema-title">DigiSampatti · Property Intelligence</div>
+<h1 class="cinema-h1">From Fraud to Safe Purchase — The Full Story</h1>
+<p class="cinema-sub">Buyer · Broker · Lawyer · Bank · Government Official · All in one demo</p>
+
+<!-- Scene strip -->
+<div class="scene-strip" id="scene-strip"></div>
+
+<!-- Main stage -->
+<div class="main-stage">
+
+  <!-- Left characters -->
+  <div class="char-side" id="left-panel">
+
+    <!-- Ramu (buyer) -->
+    <div class="char-card active" id="ch-ramu">
+      <div class="char-card-header">
+        <div class="char-emoji">🧑</div>
+        <div>
+          <div class="char-card-name">Ramu</div>
+          <div class="char-card-role">Farmer, Yelahanka</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        My son is sending <strong>₹85 lakh from Dubai</strong> for this plot.<br>
+        Broker says EC and RTC are clean.<br>
+        <span class="red">But how do I trust this?</span>
+      </div>
+    </div>
+
+    <!-- Broker -->
+    <div class="char-card" id="ch-broker">
+      <div class="char-card-header">
+        <div class="char-emoji">🤵</div>
+        <div>
+          <div class="char-card-name" style="color:#f44336;">Rajiv — Broker</div>
+          <div class="char-card-role">Yelahanka, Bengaluru</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        <span class="red">"EC clean, RTC clean — sign aaj hi!"</span><br><br>
+        <em style="color:#555;">Reality:<br>
+        → RTC forged: Ramaiah → Gopal<br>
+        → SBI has ₹42L mortgage (CERSAI)<br>
+        → He earns ₹4L commission</em>
+      </div>
+      <div class="char-status status-danger">🚨 FRAUD IN PROGRESS</div>
+    </div>
+
+    <!-- Lawyer -->
+    <div class="char-card" id="ch-lawyer">
+      <div class="char-card-header">
+        <div class="char-emoji">⚖️</div>
+        <div>
+          <div class="char-card-name" style="color:#6C63FF;">Adv. Kavitha Rao</div>
+          <div class="char-card-role">Property Lawyer · 12 yrs</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        I can see your DigiSampatti report.<br><br>
+        This is <strong>IPC 465 forgery</strong>.<br>
+        File police complaint + Tahsildar.<br><br>
+        <span class="green">Broker will be arrested.</span><br>
+        <span class="green">₹85L is safe.</span>
+      </div>
+      <div class="char-status status-info">📞 ON CALL WITH PRIYA</div>
+    </div>
+
+    <!-- Priya (buyer's daughter-in-law) -->
+    <div class="char-card" id="ch-priya">
+      <div class="char-card-header">
+        <div class="char-emoji">👩</div>
+        <div>
+          <div class="char-card-name" style="color:#4caf50;">Priya</div>
+          <div class="char-card-role">Daughter-in-law · Dubai NRI</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        I found another plot — <strong>Survey 142/3B</strong>.<br>
+        DigiSampatti says: <span class="green">SAFE TO BUY</span><br><br>
+        All 7 portals clean.<br>
+        Lawyer reviewed.<br>
+        <span class="green">Paying advance now!</span>
+      </div>
+      <div class="char-status status-success">✅ VERIFIED BUYER</div>
+    </div>
+
+  </div>
+
+  <!-- Center phone -->
+  <div class="phone-center">
+    <div class="scene-badge" id="scene-badge">Scene 1 — The Problem</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-status-bar">
+        <span class="psb-time">9:41</span>
+        <div class="psb-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="screen">
+
+        <!-- S1: Problem splash -->
+        <div class="app-scr active" id="s1">
+          <div class="splash" style="background:linear-gradient(180deg,#0d0d1a,#050508);">
+            <div class="splash-emoji">🏚️</div>
+            <div class="splash-num" style="color:#f44336;">₹4,000 Cr</div>
+            <div class="splash-label">lost to property fraud<br>in Karnataka every year</div>
+            <div style="height:1px;background:#1a1a2e;width:80%;margin:8px 0;"></div>
+            <div style="font-size:8px;color:#555;line-height:1.7;text-align:center;">
+              Forged RTC · Hidden mortgages<br>Benami land · EC vs CERSAI gap<br>Fake e-Stamps · Encroachment
+            </div>
+            <div style="margin-top:14px;">
+              <div class="splash-ds" style="font-size:16px;">DigiSampatti</div>
+              <div style="font-size:8px;color:#888;">Karnataka's Property Intelligence</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2: Broker shows docs -->
+        <div class="app-scr" id="s2">
+          <div class="app-bar">
+            <span class="bar-logo">DS</span>
+            <span class="bar-title" style="font-size:10px;">What the broker is showing</span>
+          </div>
+          <div class="app-body">
+            <div class="doc-preview" style="margin-bottom:6px;">
+              <div class="doc-gov-title">ಭೂಮಿ RTC / BHOOMI — GOVT OF KARNATAKA</div>
+              <div class="doc-line w90"></div>
+              <div class="doc-line w70"></div>
+              <div style="display:flex;gap:4px;margin:3px 0;">
+                <div style="font-size:7px;color:#555;">Owner:</div>
+                <div style="font-size:7px;color:#f44336;font-weight:800;">Gopal S ← FORGED</div>
+              </div>
+              <div class="doc-line w70"></div>
+              <div class="doc-qr">
+                <div class="qr-c"></div><div class="qr-w"></div><div class="qr-c"></div><div class="qr-c"></div>
+                <div class="qr-w"></div><div class="qr-c"></div><div class="qr-w"></div><div class="qr-c"></div>
+                <div class="qr-c"></div><div class="qr-c"></div><div class="qr-w"></div><div class="qr-c"></div>
+                <div class="qr-w"></div><div class="qr-c"></div><div class="qr-c"></div><div class="qr-w"></div>
+              </div>
+              <div class="doc-stamp">✓</div>
+            </div>
+            <div style="background:#f4433610;border:1px solid #f4433640;border-radius:8px;padding:8px;">
+              <div style="color:#f44336;font-size:8px;font-weight:800;margin-bottom:4px;">🏦 What the EC hides:</div>
+              <div style="color:#f44336;font-size:7px;line-height:1.7;">
+                CERSAI record: SBI mortgage ₹42L<br>
+                Loan disbursed: 14-Mar-2023<br>
+                Status: ACTIVE — not discharged
+              </div>
+            </div>
+            <div style="background:#ffffff06;border:1px solid #ffffff10;border-radius:8px;padding:7px;margin-top:4px;">
+              <div style="color:#aaa;font-size:7px;line-height:1.6;">
+                📌 Landeed would download this same RTC and show it as clean.<br>
+                <span style="color:#6C63FF;font-weight:700;">DigiSampatti scans the QR → calls Bhoomi → MISMATCH.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S3: Scan document -->
+        <div class="app-scr" id="s3">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Scan RTC Document</span>
+            <span class="bar-icon">📷</span>
+          </div>
+          <div class="cam-view" style="flex:1;">
+            <div style="width:150px;height:95px;background:#ece8d0;border-radius:4px;position:relative;padding:8px;">
+              <div style="color:#8B0000;font-size:6px;font-weight:800;text-align:center;border-bottom:1px solid #aaa;padding-bottom:2px;margin-bottom:4px;">ಭೂಮಿ — BHOOMI RTC</div>
+              <div style="height:4px;background:#888;border-radius:2px;margin-bottom:2px;width:90%;"></div>
+              <div style="height:4px;background:#888;border-radius:2px;margin-bottom:2px;width:70%;"></div>
+              <div style="height:4px;background:#888;border-radius:2px;margin-bottom:2px;width:85%;"></div>
+              <div style="height:4px;background:#888;border-radius:2px;width:60%;"></div>
+              <div style="position:absolute;right:6px;bottom:6px;width:20px;height:20px;background:white;border:1px solid #888;display:grid;grid-template-columns:repeat(3,5px);gap:1px;padding:2px;">
+                <div style="background:#111;"></div><div style="background:white;"></div><div style="background:#111;"></div>
+                <div style="background:white;"></div><div style="background:#111;"></div><div style="background:white;"></div>
+                <div style="background:#111;"></div><div style="background:#111;"></div><div style="background:white;"></div>
+              </div>
+            </div>
+            <div class="cam-frame"></div>
+            <div class="scan-anim"></div>
+            <div class="cam-label">📡 READING QR CODE</div>
+            <div class="cam-hint">Align document within frame → auto-capture</div>
+          </div>
+          <div style="padding:8px 12px;background:#4caf5015;border-top:1px solid #4caf5030;text-align:center;">
+            <div style="color:#4caf50;font-size:8px;font-weight:800;">AI reading Kannada + English text...</div>
+          </div>
+        </div>
+
+        <!-- S4: OCR result -->
+        <div class="app-scr" id="s4">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Document Read</span>
+            <span style="color:#4caf50;font-size:9px;font-weight:700;">✓ 94% confidence</span>
+          </div>
+          <div class="app-body">
+            <div class="ocr-card">
+              <div class="ocr-title">📖 AI OCR — Extracted from document</div>
+              <div class="ocr-row"><span class="ocr-key">Survey No.</span><span class="ocr-val">147/2A, Yelahanka</span></div>
+              <div class="ocr-row"><span class="ocr-key">Owner (printed)</span><span class="ocr-val" style="color:#f44336;">Gopal S</span></div>
+              <div class="ocr-row"><span class="ocr-key">District</span><span class="ocr-val">Bengaluru North</span></div>
+              <div class="ocr-row"><span class="ocr-key">Taluk</span><span class="ocr-val">Yelahanka</span></div>
+              <div class="ocr-row"><span class="ocr-key">Area</span><span class="ocr-val">1200 sq ft (30×40)</span></div>
+              <div class="ocr-row"><span class="ocr-key">QR token</span><span class="ocr-val" style="color:#6C63FF;">BHM2024XXXX ✓</span></div>
+            </div>
+            <div style="background:#6C63FF12;border:1px solid #6C63FF30;border-radius:8px;padding:8px;text-align:center;">
+              <div style="color:#9c8fff;font-size:8px;font-weight:700;">Now checking 7 government portals...</div>
+              <div style="color:#555;font-size:7px;margin-top:2px;">Bhoomi · CERSAI · IGRS · eCourts · BBMP · RERA · Benami IT</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S5: Portal verification in progress -->
+        <div class="app-scr" id="s5">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Verifying All Portals</span>
+          </div>
+          <div class="app-body" style="gap:0;">
+            <div class="portal-list" id="portal-list">
+              <div class="prow" id="pr1">
+                <span class="prow-icon">🌾</span>
+                <div class="prow-info">
+                  <div class="prow-name">Bhoomi — QR Signature Verify</div>
+                  <div class="prow-status" style="color:#ff9800;">Calling land.kar.nic.in...</div>
+                </div>
+                <div class="spinner-sm"></div>
+              </div>
+              <div class="prow" id="pr2" style="opacity:.25;">
+                <span class="prow-icon">🏦</span>
+                <div class="prow-info">
+                  <div class="prow-name">CERSAI — Bank Mortgages</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+              <div class="prow" id="pr3" style="opacity:.25;">
+                <span class="prow-icon">📜</span>
+                <div class="prow-info">
+                  <div class="prow-name">IGRS/KAVERI — EC Verify</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+              <div class="prow" id="pr4" style="opacity:.25;">
+                <span class="prow-icon">🏛️</span>
+                <div class="prow-info">
+                  <div class="prow-name">eCourts — Legal Cases</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+              <div class="prow" id="pr5" style="opacity:.25;">
+                <span class="prow-icon">🏘️</span>
+                <div class="prow-info">
+                  <div class="prow-name">BBMP — Khata Status</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+              <div class="prow" id="pr6" style="opacity:.25;">
+                <span class="prow-icon">🏗️</span>
+                <div class="prow-info">
+                  <div class="prow-name">RERA Karnataka</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+              <div class="prow" id="pr7" style="opacity:.25;">
+                <span class="prow-icon">💼</span>
+                <div class="prow-info">
+                  <div class="prow-name">Benami — Income Tax Dept</div>
+                  <div class="prow-status" style="color:#555;">Waiting...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S6: Forgery alert -->
+        <div class="app-scr" id="s6">
+          <div class="app-bar" style="background:#f4433615;">
+            <span class="bar-back">←</span>
+            <span class="bar-title" style="color:#f44336;">🚨 FRAUD ALERT</span>
+          </div>
+          <div class="app-body" style="overflow-y:auto;">
+            <div style="background:#f4433612;border:1.5px solid #f4433650;border-radius:8px;padding:10px;margin-bottom:6px;animation:shake .4s ease;">
+              <div style="color:#f44336;font-size:9px;font-weight:800;margin-bottom:5px;">FORGERY DETECTED — IPC Section 465</div>
+              <div style="color:#f44336;font-size:7px;line-height:1.8;">
+                📄 Printed: Owner = <strong style="color:white;">Gopal S</strong><br>
+                🔍 Bhoomi QR: Owner = <strong style="color:white;">Ramaiah K</strong><br>
+                ❌ MISMATCH → document has been ALTERED
+              </div>
+            </div>
+            <div style="background:#f4433612;border:1.5px solid #f4433650;border-radius:8px;padding:10px;margin-bottom:6px;">
+              <div style="color:#f44336;font-size:9px;font-weight:800;margin-bottom:5px;">HIDDEN MORTGAGE — CERSAI vs EC</div>
+              <div style="color:#f44336;font-size:7px;line-height:1.8;">
+                📜 EC (IGRS): "No encumbrances"<br>
+                🏦 CERSAI: SBI loan ₹42L ACTIVE<br>
+                ❌ EC and CERSAI CONTRADICT
+              </div>
+            </div>
+            <div class="verdict danger">
+              <div class="verdict-title">🛑 DO NOT BUY — 2 Critical Issues</div>
+              <div class="verdict-sub">This property cannot be legally purchased.<br>Buying it transfers the bank's ₹42L debt to you.</div>
+            </div>
+            <div class="chip-grid" style="margin-top:6px;">
+              <div class="chip-btn"><div class="chip-icon">📋</div><div class="chip-label">Download Report</div></div>
+              <div class="chip-btn"><div class="chip-icon">⚖️</div><div class="chip-label">Call Lawyer</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S7: Expert call -->
+        <div class="app-scr" id="s7">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Expert Consultation</span>
+          </div>
+          <div class="app-body">
+            <div class="expert-banner">
+              <div class="expert-av">⚖️</div>
+              <div style="flex:1;">
+                <div class="expert-name">Adv. Kavitha Rao</div>
+                <div class="expert-role">Property Law · Bengaluru North · 12 yrs</div>
+                <div class="live-row">
+                  <div class="live-dot"></div>
+                  <div class="live-txt">LIVE CALL · 03:42</div>
+                </div>
+              </div>
+            </div>
+            <div class="report-card">
+              <div class="report-title">Report shared with lawyer →</div>
+              <div class="report-row"><span class="report-icon">🚨</span><span class="report-text">Forgery (Bhoomi QR mismatch)</span><span class="report-val" style="color:#f44336;">CRITICAL</span></div>
+              <div class="report-row"><span class="report-icon">🏦</span><span class="report-text">CERSAI mortgage active</span><span class="report-val" style="color:#f44336;">CRITICAL</span></div>
+              <div class="report-row"><span class="report-icon">📜</span><span class="report-text">EC contradicts CERSAI</span><span class="report-val" style="color:#f44336;">HIGH</span></div>
+            </div>
+            <div style="background:#ffffff06;border:1px solid #ffffff10;border-radius:8px;padding:8px;">
+              <div style="color:#aaa;font-size:8px;font-weight:700;margin-bottom:4px;">Lawyer's instructions:</div>
+              <div style="font-size:7px;color:#ccc;line-height:1.8;">
+                ✓ File FIR at Yelahanka Police Station<br>
+                ✓ File complaint: Tahsildar, Yelahanka<br>
+                ✓ Report broker to Karnataka REA<br>
+                ✓ Sub-Registrar notified — stop transfer
+              </div>
+            </div>
+            <div class="wa-share">
+              <div class="wa-icon">💬</div>
+              <div>
+                <div class="wa-text">Report sent via WhatsApp</div>
+                <div class="wa-label">To: Adv. Kavitha · 2 mins ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S8: Government Tahsildar alert -->
+        <div class="app-scr" id="s8">
+          <div class="govt-header">
+            <div class="govt-logo">GOVT. OF KARNATAKA · YELAHANKA TALUK</div>
+            <div class="govt-title">Tahsildar Office — Alert Received</div>
+          </div>
+          <div class="app-body" style="padding:10px 12px;">
+            <div class="alert-card">
+              <div class="alert-title">🚨 Forgery Report — Survey 147/2A</div>
+              <div class="alert-row">Source: DigiSampatti Platform</div>
+              <div class="alert-row">QR mismatch: Gopal S ≠ Ramaiah K</div>
+              <div class="alert-row">Reported by: Priya (NRI buyer)</div>
+              <div class="alert-row">Time: 14-Jan-2026 · 11:34 AM</div>
+            </div>
+            <div class="action-taken">
+              <div class="action-title">✅ Action Taken — 2 hours later</div>
+              <div class="action-row">→ Survey 147/2A: FROZEN for transfer</div>
+              <div class="action-row">→ Broker Rajiv: summoned</div>
+              <div class="action-row">→ Bhoomi record flagged for audit</div>
+              <div class="action-row">→ FIR registered: IPC 465 + 468</div>
+            </div>
+            <div style="background:#6C63FF10;border:1px solid #6C63FF30;border-radius:8px;padding:7px;margin-top:5px;text-align:center;">
+              <div style="color:#9c8fff;font-size:7px;font-weight:700;">DigiSampatti notified buyer of action taken</div>
+              <div style="color:#555;font-size:7px;">Fraud map updated · Broker blacklisted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S9: Bank screen (loan application) -->
+        <div class="app-scr" id="s9">
+          <div class="bank-header">
+            <div class="bank-logo">HDFC BANK · PROPERTY LOANS</div>
+            <div class="bank-title">Loan Application — Survey 142/3B</div>
+          </div>
+          <div class="app-body" style="padding:10px 12px;">
+            <div class="bank-field">
+              <div class="bank-field-label">Applicant</div>
+              <div class="bank-field-val">Priya R · Dubai NRI</div>
+            </div>
+            <div class="bank-field">
+              <div class="bank-field-label">Property</div>
+              <div class="bank-field-val">Survey 142/3B · Yelahanka · 1200 sq ft</div>
+            </div>
+            <div class="bank-field">
+              <div class="bank-field-label">DigiSampatti Report</div>
+              <div class="bank-field-val" style="color:#4caf50;">
+                ✓ Safety Score: 88/100 · VERIFIED CLEAN<br>
+                <span style="font-size:7px;color:#888;">All 7 portals · No mortgage · A Khata · Authentic DSC</span>
+              </div>
+            </div>
+            <div class="bank-field">
+              <div class="bank-field-label">Loan Amount</div>
+              <div class="bank-field-val">₹55,00,000</div>
+            </div>
+            <div style="position:relative;margin-top:6px;">
+              <div class="bank-approve">✅ LOAN APPROVED IN 4 HOURS</div>
+              <div style="font-size:7px;color:#888;text-align:center;margin-top:4px;">DigiSampatti report replaced 3-week lawyer verification</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S10: Safe property verification -->
+        <div class="app-scr" id="s10">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Survey 142/3B — Report</span>
+          </div>
+          <div class="app-body">
+            <div class="risk-wrap">
+              <div class="risk-ring safe">
+                <div class="risk-score-inner">
+                  <div class="risk-num">88</div>
+                  <div class="risk-unit">/100</div>
+                </div>
+              </div>
+              <div class="risk-label safe">SAFE TO BUY</div>
+            </div>
+            <div class="verdict safe" style="margin:0;">
+              <div class="verdict-title">✅ All 7 Portals Clean</div>
+              <div class="verdict-sub">Owner: Priya R (real owner) · No mortgage<br>A Khata · Authentic signatures · No court cases</div>
+            </div>
+            <div class="chip-grid" style="margin-top:5px;">
+              <div class="chip-btn"><div class="chip-icon">💰</div><div class="chip-label">Pay Advance ₹5L</div></div>
+              <div class="chip-btn"><div class="chip-icon">🔔</div><div class="chip-label">Track Mutation</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S11: Mutation tracking -->
+        <div class="app-scr" id="s11">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Mutation Tracker</span>
+            <span style="color:#ff9800;font-size:8px;font-weight:700;">IN PROGRESS</span>
+          </div>
+          <div class="app-body">
+            <div style="background:#ffffff06;border:1px solid #ffffff10;border-radius:8px;padding:8px;margin-bottom:8px;">
+              <div style="color:#aaa;font-size:7px;">Property · Survey 142/3B</div>
+              <div style="color:white;font-size:9px;font-weight:700;">Transfer: Priya R → Ramu's family</div>
+            </div>
+            <div class="mutation-track">
+              <div class="mut-step">
+                <div class="mut-line">
+                  <div class="mut-dot done"></div>
+                  <div class="mut-connector"></div>
+                </div>
+                <div><div class="mut-label" style="color:#4caf50;">✓ Sale Deed Registered</div><div class="mut-date">14-Jan-2026</div></div>
+              </div>
+              <div class="mut-step">
+                <div class="mut-line">
+                  <div class="mut-dot done"></div>
+                  <div class="mut-connector"></div>
+                </div>
+                <div><div class="mut-label" style="color:#4caf50;">✓ Mutation Application Filed</div><div class="mut-date">15-Jan-2026</div></div>
+              </div>
+              <div class="mut-step">
+                <div class="mut-line">
+                  <div class="mut-dot active"></div>
+                  <div class="mut-connector"></div>
+                </div>
+                <div><div class="mut-label" style="color:#ff9800;">⏳ Tahsildar Review</div><div class="mut-date">Est: 18-Jan-2026</div></div>
+              </div>
+              <div class="mut-step">
+                <div class="mut-line">
+                  <div class="mut-dot pending"></div>
+                  <div class="mut-connector"></div>
+                </div>
+                <div><div class="mut-label" style="color:#555;">Bhoomi Update</div><div class="mut-date">Pending</div></div>
+              </div>
+              <div class="mut-step">
+                <div class="mut-line">
+                  <div class="mut-dot pending"></div>
+                </div>
+                <div><div class="mut-label" style="color:#555;">New RTC Issued</div><div class="mut-date">Pending</div></div>
+              </div>
+            </div>
+            <div style="background:#ff980010;border:1px solid #ff980030;border-radius:8px;padding:7px;margin-top:4px;text-align:center;">
+              <div style="color:#ff9800;font-size:7px;">🔔 DigiSampatti will notify when Tahsildar signs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S12: Broker blacklisted -->
+        <div class="app-scr" id="s12">
+          <div class="app-bar">
+            <span class="bar-back">←</span>
+            <span class="bar-title">Fraud Map Update</span>
+          </div>
+          <div class="app-body">
+            <div class="blacklist-card">
+              <div class="bl-title">🚫 Broker Blacklisted — Fraud Map</div>
+              <div class="bl-row">Name: Rajiv G · Yelahanka, Bengaluru</div>
+              <div class="bl-row">Phone: +91-98XXXXXXXX</div>
+              <div class="bl-row">Crime: RTC Forgery (IPC 465 + 468)</div>
+              <div class="bl-row">Status: FIR registered · Under investigation</div>
+              <div class="bl-row">Victims who warned: 3 buyers via DS alert</div>
+            </div>
+            <div style="background:#ffffff06;border:1px solid #ffffff12;border-radius:8px;padding:8px;margin-top:6px;">
+              <div style="color:#aaa;font-size:8px;font-weight:700;margin-bottom:4px;">DigiSampatti Fraud Map Impact:</div>
+              <div style="font-size:7px;color:#ccc;line-height:1.8;">
+                🗺️ 147/2A flagged — red zone on map<br>
+                📢 3 future buyers auto-warned<br>
+                📊 Yelahanka fraud score updated<br>
+                🏛️ Karnataka REA notified
+              </div>
+            </div>
+            <div style="background:#4caf5012;border:1px solid #4caf5030;border-radius:8px;padding:7px;margin-top:5px;text-align:center;">
+              <div style="color:#4caf50;font-size:8px;font-weight:700;">Every fraud caught makes the next one impossible</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S13: Final impact -->
+        <div class="app-scr" id="s13">
+          <div class="splash" style="background:linear-gradient(180deg,#0a1628,#050508);">
+            <div class="splash-emoji" style="animation:countUp .5s ease;">🏠</div>
+            <div style="color:#4caf50;font-size:13px;font-weight:900;margin-bottom:4px;">PROPERTY SECURED</div>
+            <div class="final-stat" style="width:100%;margin-bottom:6px;">
+              <div class="final-num" style="color:#4caf50;">₹85 Lakh</div>
+              <div class="final-sub">protected from fraud</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;">
+              <div class="final-stat">
+                <div class="final-num" style="font-size:14px;">3</div>
+                <div class="final-sub">days total</div>
+              </div>
+              <div class="final-stat">
+                <div class="final-num" style="font-size:14px;">₹998</div>
+                <div class="final-sub">app cost</div>
+              </div>
+              <div class="final-stat">
+                <div class="final-num" style="font-size:14px;">7</div>
+                <div class="final-sub">portals checked</div>
+              </div>
+              <div class="final-stat">
+                <div class="final-num" style="font-size:14px;">0</div>
+                <div class="final-sub">office visits</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <div class="splash-ds" style="font-size:15px;">DigiSampatti</div>
+              <div style="font-size:8px;color:#888;">Making Karnataka property fraud impossible</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end phone -->
+
+    <!-- Progress bar -->
+    <div style="width:220px;height:3px;background:#1a1a2e;border-radius:2px;overflow:hidden;">
+      <div id="prog-fill" style="height:100%;background:linear-gradient(90deg,#6C63FF,#9c59ff);border-radius:2px;transition:width .4s ease;width:7.7%;"></div>
+    </div>
+
+  </div><!-- end phone-center -->
+
+  <!-- Right characters -->
+  <div class="char-side" id="right-panel">
+
+    <!-- Bank officer -->
+    <div class="char-card" id="ch-bank">
+      <div class="char-card-header">
+        <div class="char-emoji">🏦</div>
+        <div>
+          <div class="char-card-name" style="color:#90caf9;">HDFC Bank Officer</div>
+          <div class="char-card-role">Bengaluru North Branch</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        Earlier: 3-week lawyer verification for ₹55L loan.<br><br>
+        Now with DigiSampatti report:<br>
+        <span class="green">Approved in 4 hours.</span><br><br>
+        All 7 portals clean. Score 88/100.<br>
+        <span class="purple">Zero manual verification needed.</span>
+      </div>
+      <div class="char-status status-success">✅ LOAN APPROVED</div>
+    </div>
+
+    <!-- Tahsildar -->
+    <div class="char-card" id="ch-govt">
+      <div class="char-card-header">
+        <div class="char-emoji">🏛️</div>
+        <div>
+          <div class="char-card-name" style="color:#ef9a9a;">Sri Mahesh R</div>
+          <div class="char-card-role">Tahsildar, Yelahanka</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        Received forgery alert from DigiSampatti.<br><br>
+        Survey 147/2A: <span class="red">FROZEN.</span><br>
+        Broker: <span class="red">summoned.</span><br>
+        FIR: <span class="red">registered.</span><br><br>
+        <span class="green">This is exactly how the system should work.</span>
+      </div>
+      <div class="char-status status-warning">⚠ INVESTIGATION OPEN</div>
+    </div>
+
+    <!-- Broker arrested -->
+    <div class="char-card" id="ch-broker-end">
+      <div class="char-card-header">
+        <div class="char-emoji">🚔</div>
+        <div>
+          <div class="char-card-name" style="color:#f44336;">Rajiv — Broker</div>
+          <div class="char-card-role">Yelahanka</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        <span class="red">FIR registered: IPC 465, 468</span><br><br>
+        Attempted to sell forged RTC.<br>
+        CERSAI fraud: hidden SBI mortgage.<br><br>
+        <span class="red">Blacklisted on DigiSampatti fraud map.</span><br>
+        <span class="red">Karnataka REA license revoked.</span>
+      </div>
+      <div class="char-status status-danger">🚨 ARRESTED</div>
+    </div>
+
+    <!-- App summary -->
+    <div class="char-card" id="ch-summary">
+      <div class="char-card-header">
+        <div class="char-emoji">📱</div>
+        <div>
+          <div class="char-card-name" style="color:#6C63FF;">DigiSampatti</div>
+          <div class="char-card-role">Full journey complete</div>
+        </div>
+      </div>
+      <div class="char-card-bubble">
+        <span class="green">✓ Fraud caught — ₹85L saved</span><br>
+        <span class="green">✓ Lawyer connected in 1 tap</span><br>
+        <span class="green">✓ Govt notified automatically</span><br>
+        <span class="green">✓ Bank approved in 4 hours</span><br>
+        <span class="green">✓ Mutation tracked live</span><br>
+        <span class="green">✓ Fraud map updated</span><br><br>
+        Cost: <strong>₹998</strong>
+      </div>
+      <div class="char-status status-success">✅ MISSION COMPLETE</div>
+    </div>
+
+  </div>
+
+</div><!-- end main-stage -->
+
+<!-- Narration -->
+<div class="narr-bar">
+  <div class="narr-icon" id="narr-icon">🎬</div>
+  <div class="narr-text" id="narr-text">
+    <strong>Karnataka, 2025.</strong> Ramu's son sends ₹85 lakh from Dubai for a plot in Yelahanka. The broker says EC and RTC are clean. But <span class="red">the documents are forged.</span> The bank mortgage is hidden. DigiSampatti is about to catch what nobody else can see.
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn btn-secondary" id="btn-prev" onclick="go(-1)" disabled>← Back</button>
+  <span class="scene-counter" id="scene-ctr">1 / 13</span>
+  <button class="btn btn-primary" id="btn-next" onclick="go(1)">Next →</button>
+</div>
+<div style="color:#333;font-size:10px;margin-top:6px;text-align:center;">
+  Spacebar / Arrow keys · 13 scenes · All stakeholders
+</div>
+
+</div><!-- end cinema -->
+
+<script>
+const scenes = [
+  {
+    s:'s1', badge:'Scene 1 — The Problem (₹4,000 Cr Fraud)',
+    left:['ch-ramu'], right:[],
+    icon:'🎬',
+    narr:'<strong>Karnataka, 2025.</strong> ₹4,000 Cr is lost to property fraud every year. Forged RTCs, hidden bank mortgages, benami land. Ramu\'s son sends <strong>₹85 lakh from Dubai</strong> for a plot in Yelahanka. The broker assures him everything is clean. <span class="red">It is not.</span>',
+    progress: 7.7,
+  },
+  {
+    s:'s2', badge:'Scene 2 — What the Broker Shows',
+    left:['ch-broker'], right:[],
+    icon:'🤵',
+    narr:'Broker Rajiv shows an EC and RTC — both look clean. What he hides: <span class="red">the RTC owner name was changed from Ramaiah to Gopal</span> (criminal forgery). And SBI has a ₹42L active mortgage on this land — <span class="red">not visible on the EC but recorded in CERSAI.</span> Landeed would download this same RTC and show "clean".',
+    progress: 15.4,
+  },
+  {
+    s:'s3', badge:'Scene 3 — Priya Scans the Document',
+    left:['ch-ramu'], right:[],
+    icon:'📷',
+    narr:'Priya opens DigiSampatti and scans the physical RTC document. The camera reads the Bhoomi QR code embedded by the Tahsildar. This QR cannot be altered — it links to the government\'s own record. <strong>The AI also reads all Kannada + English text at 94% accuracy.</strong>',
+    progress: 23.1,
+  },
+  {
+    s:'s4', badge:'Scene 4 — AI OCR Extracts Data',
+    left:['ch-ramu'], right:[],
+    icon:'📖',
+    narr:'The AI extracts survey number, owner name, district, taluk, area from the document. <strong>It then takes the QR token</strong> and prepares to verify it against the official Bhoomi portal — the same portal the Tahsildar uses. The AI reads both Kannada script and English.',
+    progress: 30.8,
+  },
+  {
+    s:'s5', badge:'Scene 5 — 7 Portals Checked Simultaneously',
+    left:['ch-ramu'], right:[],
+    icon:'🔍',
+    narr:'DigiSampatti calls <strong>7 government portals simultaneously</strong> — Bhoomi QR, CERSAI (RBI bank registry), IGRS/KAVERI EC, eCourts by owner name, BBMP Khata, RERA Karnataka, and Benami IT Dept. This takes <strong>under 3 minutes.</strong> No lawyer can do this in less than 2 weeks.',
+    progress: 38.5,
+    onEnter: startPortalAnim,
+  },
+  {
+    s:'s6', badge:'Scene 6 — FORGERY DETECTED',
+    left:['ch-forgery_placeholder'], right:[],
+    icon:'🚨',
+    narr:'<strong>Two critical contradictions found:</strong> (1) Bhoomi QR says real owner is <em>Ramaiah K</em> — but the document says <em>Gopal S</em>. The name was forged. (2) CERSAI shows SBI has ₹42L active mortgage — but EC says "no encumbrances". <span class="red">EC contradicts the RBI bank registry. VERDICT: DO NOT BUY.</span>',
+    progress: 46.2,
+  },
+  {
+    s:'s7', badge:'Scene 7 — Lawyer Connected in 1 Tap',
+    left:['ch-lawyer'], right:[],
+    icon:'⚖️',
+    narr:'One tap — Adv. Kavitha Rao is connected. The DigiSampatti report is shared to her automatically. She sees exactly what happened. <strong>She files for an FIR under IPC 465 + 468 (forgery and forging documents for fraud).</strong> The Sub-Registrar is notified to freeze the property transfer.',
+    progress: 53.8,
+  },
+  {
+    s:'s8', badge:'Scene 8 — Government Official Acts',
+    left:[], right:['ch-govt'],
+    icon:'🏛️',
+    narr:'<strong>The Tahsildar of Yelahanka receives the DigiSampatti alert.</strong> Survey 147/2A is frozen immediately — no transfer can happen. Broker Rajiv is summoned. The Bhoomi record is flagged for audit. FIR is registered. <span class="green">This is the government feedback loop that stops fraud at the source.</span>',
+    progress: 61.5,
+  },
+  {
+    s:'s9', badge:'Scene 9 — Bank Approves Loan in 4 Hours',
+    left:[], right:['ch-bank'],
+    icon:'🏦',
+    narr:'Priya finds another clean property — Survey 142/3B. <strong>She applies for a ₹55L home loan at HDFC Bank.</strong> She attaches the DigiSampatti report (Safety Score 88/100, all 7 portals clean). The bank approves in <strong>4 hours</strong> instead of 3 weeks — no separate lawyer verification needed.',
+    progress: 69.2,
+  },
+  {
+    s:'s10', badge:'Scene 10 — Safe Property Verified',
+    left:['ch-priya'], right:[],
+    icon:'✅',
+    narr:'DigiSampatti verifies Survey 142/3B. <strong>Safety Score: 88/100. All 7 portals clean.</strong> No mortgage in CERSAI. A Khata confirmed by BBMP. Digital signatures authentic. No court cases under owner\'s name. Priya pays the advance through DigiSampatti — <strong>tamper-proof digital receipt generated.</strong>',
+    progress: 76.9,
+  },
+  {
+    s:'s11', badge:'Scene 11 — Mutation Tracked Live',
+    left:['ch-priya'], right:[],
+    icon:'🔔',
+    narr:'After the sale deed is registered, DigiSampatti tracks the mutation in real time. <strong>Every step — Tahsildar review, Bhoomi update, new RTC — is shown.</strong> When the Tahsildar signs, Priya gets an instant notification. No more wondering "has the name transferred?" or paying agents to check.',
+    progress: 84.6,
+  },
+  {
+    s:'s12', badge:'Scene 12 — Broker Blacklisted, Fraud Map Updated',
+    left:['ch-broker'], right:['ch-broker-end'],
+    icon:'🚔',
+    narr:'<strong>Broker Rajiv is arrested.</strong> His details are added to the DigiSampatti fraud map. Future buyers searching in Yelahanka are automatically warned. <strong>Survey 147/2A is marked red</strong> — no one else can be defrauded there. Every fraud caught makes the next one impossible.',
+    progress: 92.3,
+  },
+  {
+    s:'s13', badge:'Scene 13 — ₹85 Lakh Protected · 3 Days',
+    left:['ch-priya'], right:['ch-summary'],
+    icon:'🏠',
+    narr:'<strong>₹85 lakh protected. ₹998 spent. 3 days from fraud detection to safe purchase.</strong> Zero office visits. Zero bribes. The broker is in custody. The bank approved the loan. The mutation is tracked. The government was notified. <span class="green">DigiSampatti — making Karnataka property fraud impossible.</span>',
+    progress: 100,
+  },
+];
+
+// Build scene strip
+const strip = document.getElementById('scene-strip');
+scenes.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'scene-dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  strip.appendChild(d);
+});
+
+let cur = 0;
+let portalTimer = null;
+
+function go(dir) { goTo(cur + dir); }
+
+function goTo(n) {
+  if (n < 0 || n >= scenes.length) return;
+  if (portalTimer) { clearInterval(portalTimer); portalTimer = null; }
+
+  // Hide current screen
+  document.getElementById(scenes[cur].s).classList.remove('active');
+  // Update strip
+  strip.children[cur].className = 'scene-dot done';
+
+  cur = n;
+  const sc = scenes[cur];
+
+  // Show new screen
+  document.getElementById(sc.s).classList.add('active');
+
+  // Update badge
+  document.getElementById('scene-badge').textContent = sc.badge;
+  strip.children[cur].className = 'scene-dot active';
+
+  // Update left panel
+  document.querySelectorAll('#left-panel .char-card').forEach(el => el.classList.remove('active'));
+  (sc.left || []).forEach(id => {
+    if (id && id !== 'ch-forgery_placeholder') {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+  });
+
+  // Update right panel
+  document.querySelectorAll('#right-panel .char-card').forEach(el => el.classList.remove('active'));
+  (sc.right || []).forEach(id => {
+    if (id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+  });
+
+  // Narration
+  document.getElementById('narr-icon').textContent = sc.icon;
+  document.getElementById('narr-text').innerHTML = sc.narr;
+
+  // Progress
+  document.getElementById('prog-fill').style.width = sc.progress + '%';
+
+  // Counter
+  document.getElementById('scene-ctr').textContent = (cur + 1) + ' / ' + scenes.length;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur === scenes.length - 1;
+  document.getElementById('btn-next').textContent = cur === scenes.length - 1 ? '✓ Done' : 'Next →';
+
+  if (sc.onEnter) sc.onEnter();
+}
+
+function startPortalAnim() {
+  const portals = [
+    { id:'pr1', delay:600,  ok:false, status:'🚨 FORGERY — owner mismatch!', color:'#f44336' },
+    { id:'pr2', delay:1200, ok:false, status:'🏦 SBI mortgage ₹42L ACTIVE', color:'#f44336' },
+    { id:'pr3', delay:1800, ok:false, status:'⚠ EC contradicts CERSAI', color:'#ff9800' },
+    { id:'pr4', delay:2300, ok:true,  status:'✓ No active court cases', color:'#4caf50' },
+    { id:'pr5', delay:2700, ok:false, status:'⚠ B Khata — needs upgrade', color:'#ff9800' },
+    { id:'pr6', delay:3100, ok:true,  status:'✓ No RERA violations', color:'#4caf50' },
+    { id:'pr7', delay:3500, ok:true,  status:'✓ Not in Benami list', color:'#4caf50' },
+  ];
+
+  portals.forEach(p => {
+    setTimeout(() => {
+      const row = document.getElementById(p.id);
+      if (!row) return;
+      row.style.opacity = '1';
+      row.style.transition = 'opacity .3s';
+      const st = row.querySelector('.prow-status');
+      if (st) { st.textContent = p.status; st.style.color = p.color; }
+      const sp = row.querySelector('.spinner-sm');
+      if (sp) sp.outerHTML = p.ok
+        ? '<span style="color:#4caf50;font-size:11px;">✓</span>'
+        : '<span style="color:#f44336;font-size:11px;">✗</span>';
+    }, p.delay);
+  });
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowRight') { e.preventDefault(); go(1); }
+  if (e.code === 'ArrowLeft') go(-1);
+});
+</script>
+</body>
+</html>
