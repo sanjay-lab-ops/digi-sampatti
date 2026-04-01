@@ -5,852 +5,697 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DigiSampatti — The Story</title>
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: #000;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  overflow: hidden;
-  width: 100vw;
-  height: 100vh;
-  color: white;
-  cursor: default;
-  user-select: none;
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  width:100vw;height:100vh;overflow:hidden;
+  background:#000;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#fff;
+  cursor:none;
 }
 
-/* ── FILM STAGE ── */
-#stage {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
+/* ── STAGE ── */
+#stage{position:fixed;inset:0;background:#000;}
 
 /* ── SCENES ── */
-.scene {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.7s ease;
-  padding: 40px 60px;
-  text-align: center;
+.sc{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:60px;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease;
 }
-.scene.active { opacity: 1; }
+.sc.on{opacity:1;pointer-events:auto;}
 
-/* ── BACKGROUNDS ── */
-.bg-black { background: #000; }
-.bg-dark  { background: radial-gradient(ellipse at center, #0d0a1f 0%, #000 100%); }
-.bg-red   { background: radial-gradient(ellipse at center, #1a0505 0%, #000 100%); }
-.bg-green { background: radial-gradient(ellipse at center, #031208 0%, #000 100%); }
-.bg-blue  { background: radial-gradient(ellipse at center, #030d1a 0%, #000 100%); }
-.bg-gold  { background: radial-gradient(ellipse at center, #1a1200 0%, #000 100%); }
-.bg-purple{ background: radial-gradient(ellipse at center, #0e0a1f 0%, #000 100%); }
+/* ── ALWAYS-VISIBLE HUD ── */
+#hud{
+  position:fixed;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 28px;
+  z-index:500;
+}
+#hud-logo{font-size:13px;font-weight:900;color:rgba(108,99,255,.5);letter-spacing:1px;}
+#hud-money{
+  font-size:13px;font-weight:900;letter-spacing:1px;
+  color:#f44336;
+  opacity:0;transition:opacity .5s;
+}
+#hud-money.show{opacity:1;}
+#hud-scene{font-size:10px;color:#222;letter-spacing:2px;}
 
-/* Film grain overlay */
-#stage::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 100;
+/* ── BOTTOM TIMELINE ── */
+#bar{
+  position:fixed;bottom:0;left:0;right:0;height:2px;background:#111;z-index:500;
 }
+#bar-fill{height:100%;background:#6C63FF;width:0%;transition:width .25s linear;}
 
-/* ── TYPOGRAPHY ── */
-.overline {
-  font-size: 11px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: #666;
-  font-weight: 600;
-  margin-bottom: 16px;
+/* progress dots */
+#pdots{
+  position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:4px;z-index:500;
 }
-.overline.red   { color: #c62828; }
-.overline.green { color: #2e7d32; }
-.overline.blue  { color: #1565c0; }
-.overline.gold  { color: #b8860b; }
+.pd{width:3px;height:3px;border-radius:50%;background:#222;transition:.2s;}
+.pd.done{background:#333;}
+.pd.on{background:#6C63FF;width:12px;border-radius:2px;}
 
-.headline {
-  font-size: clamp(28px, 5vw, 64px);
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 20px;
-  letter-spacing: -1px;
+/* ── PAUSE OVERLAY ── */
+#pause-hint{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:11px;color:#333;letter-spacing:3px;text-transform:uppercase;
+  z-index:600;pointer-events:none;
+  opacity:0;transition:opacity .3s;
 }
-.headline.red   { color: #ef5350; }
-.headline.green { color: #66bb6a; }
-.headline.white { color: #ffffff; }
-.headline.dim   { color: #cccccc; }
-.headline.gold  { color: #ffd54f; }
+#pause-hint.show{opacity:1;}
 
-.subhead {
-  font-size: clamp(14px, 2vw, 22px);
-  color: #888;
-  line-height: 1.6;
-  max-width: 640px;
-  margin: 0 auto;
-  font-weight: 400;
-}
-.subhead strong { color: #ccc; }
-.subhead .hi { color: white; font-weight: 700; }
-.subhead .danger { color: #ef5350; font-weight: 700; }
-.subhead .safe { color: #66bb6a; font-weight: 700; }
-.subhead .accent { color: #9c8fff; font-weight: 700; }
+/* ── FLASH OVERLAYS ── */
+#flash-red{position:fixed;inset:0;background:rgba(244,67,54,0);pointer-events:none;z-index:400;}
+#flash-white{position:fixed;inset:0;background:rgba(255,255,255,0);pointer-events:none;z-index:400;}
 
-/* ── SCENE-SPECIFIC LAYOUTS ── */
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes zoomIn{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+@keyframes zoomBig{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes scanV{0%{top:10%}50%{top:80%}100%{top:10%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glowRed{0%,100%{text-shadow:0 0 20px rgba(244,67,54,.4)}50%{text-shadow:0 0 60px rgba(244,67,54,.9)}}
+@keyframes glowGreen{0%,100%{text-shadow:0 0 20px rgba(76,175,80,.4)}50%{text-shadow:0 0 60px rgba(76,175,80,.9)}}
+@keyframes countMoney{from{opacity:0;transform:scale(.5) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0}99%{opacity:0}}
+@keyframes typeReveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0% 0 0)}}
+@keyframes terminalIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-/* Stat block */
-.stat-row {
-  display: flex;
-  gap: 40px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 24px 0;
-}
-.stat-block { text-align: center; }
-.stat-num {
-  font-size: clamp(32px, 6vw, 80px);
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-.stat-label {
-  font-size: 11px;
-  color: #666;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
+/* ── ANIM HELPERS ── */
+.fu {animation:fadeUp .5s ease both;}
+.fi {animation:fadeIn .4s ease both;}
+.zi {animation:zoomIn .4s ease both;}
+.zb {animation:zoomBig .5s ease both;}
+.d1{animation-delay:.15s} .d2{animation-delay:.35s} .d3{animation-delay:.55s}
+.d4{animation-delay:.75s} .d5{animation-delay:1s}   .d6{animation-delay:1.3s}
 
-/* Character card — cinematic */
-.film-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 24px 28px;
-  max-width: 700px;
-  width: 100%;
-  text-align: left;
+/* ── TEXT STYLES ── */
+.kicker{
+  font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#333;
+  margin-bottom:18px;
 }
-.film-card-emoji { font-size: 48px; flex-shrink: 0; }
-.film-card-body {}
-.film-card-name { font-size: 13px; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; }
-.film-card-role { font-size: 11px; color: #555; margin-bottom: 12px; }
-.film-card-quote {
-  font-size: clamp(14px, 2vw, 18px);
-  color: #ccc;
-  line-height: 1.7;
-  font-style: italic;
-}
-.film-card-quote .hi { color: white; font-style: normal; font-weight: 700; }
-.film-card-quote .danger { color: #ef5350; font-style: normal; font-weight: 700; }
-.film-card-quote .safe  { color: #66bb6a; font-style: normal; font-weight: 700; }
+.kicker.red   {color:#7f1d1d;}
+.kicker.green {color:#14532d;}
+.kicker.blue  {color:#1e3a5f;}
+.kicker.purple{color:#3b0764;}
 
-/* Split screen */
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  max-width: 860px;
-  width: 100%;
-  margin: 20px 0;
+.big{
+  font-size:clamp(32px,6vw,80px);
+  font-weight:900;line-height:1.05;
+  letter-spacing:-2px;
+  text-align:center;
 }
-.split-panel {
-  border-radius: 12px;
-  padding: 20px;
-  text-align: left;
-}
-.split-panel.bad  { background: rgba(244,67,54,0.07); border: 1px solid rgba(244,67,54,0.25); }
-.split-panel.good { background: rgba(76,175,80,0.07); border: 1px solid rgba(76,175,80,0.25); }
-.split-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-.split-title.bad  { color: #ef5350; }
-.split-title.good { color: #66bb6a; }
-.split-item {
-  font-size: 13px;
-  color: #999;
-  line-height: 2;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.split-item .arrow { flex-shrink: 0; }
-.split-result {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 800;
-}
-.split-result.bad  { background: rgba(244,67,54,0.12); color: #ef5350; }
-.split-result.good { background: rgba(76,175,80,0.12); color: #66bb6a; }
+.big.red  {color:#ef4444;}
+.big.green{color:#4ade80;}
+.big.white{color:#fff;}
+.big.dim  {color:#9ca3af;}
+.big.gold {color:#fbbf24;}
 
-/* Phone prop */
-.phone-prop {
-  width: 180px;
-  height: 360px;
-  background: #0a0a12;
-  border: 2px solid #2a2a3a;
-  border-radius: 28px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 0 60px rgba(108,99,255,0.3), 0 0 120px rgba(108,99,255,0.1);
-  flex-shrink: 0;
+.mid{
+  font-size:clamp(16px,2.5vw,28px);
+  color:#6b7280;line-height:1.7;
+  text-align:center;max-width:680px;
 }
-.phone-prop .pnotch {
-  position: absolute;
-  top: 0; left: 50%; transform: translateX(-50%);
-  width: 50px; height: 12px;
-  background: #0a0a12;
-  border-radius: 0 0 8px 8px;
-  z-index: 10;
-}
-.phone-screen {
-  width: 100%; height: 100%;
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.ps-bar {
-  padding: 16px 10px 6px;
-  background: #111;
-  font-size: 8px; color: #6C63FF; font-weight: 800;
-}
-.ps-body { padding: 8px; flex: 1; overflow: hidden; }
+.mid strong{color:#d1d5db;}
+.mid .r{color:#ef4444;font-weight:700;}
+.mid .g{color:#4ade80;font-weight:700;}
+.mid .w{color:#fff;font-weight:700;}
+.mid .p{color:#a78bfa;font-weight:700;}
 
-/* Verdict box cinematic */
-.verdict-big {
-  padding: 28px 48px;
-  border-radius: 16px;
-  max-width: 640px;
-  width: 100%;
-}
-.verdict-big.danger { background: rgba(244,67,54,0.08); border: 2px solid rgba(244,67,54,0.3); }
-.verdict-big.safe   { background: rgba(76,175,80,0.08);  border: 2px solid rgba(76,175,80,0.3); }
-.verdict-big-title  { font-size: clamp(20px, 4vw, 40px); font-weight: 900; margin-bottom: 8px; }
-.verdict-big.danger .verdict-big-title { color: #ef5350; }
-.verdict-big.safe   .verdict-big-title { color: #66bb6a; }
-.verdict-big-sub    { font-size: 14px; color: #888; line-height: 1.7; }
+.small{font-size:13px;color:#374151;text-align:center;letter-spacing:1px;}
 
-/* Impact numbers scene */
-.impact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  max-width: 560px;
-  width: 100%;
-  margin: 20px 0;
-}
-.impact-cell {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-.impact-num { font-size: 36px; font-weight: 900; }
-.impact-label { font-size: 10px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-
-/* Portal grid */
-.portal-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  max-width: 720px;
-  width: 100%;
-  margin: 20px 0;
-}
-.portal-cell {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 14px 10px;
-  text-align: center;
-  font-size: 10px;
-  transition: all 0.4s ease;
-}
-.portal-cell .pc-icon { font-size: 20px; margin-bottom: 6px; }
-.portal-cell .pc-name { color: #666; font-size: 9px; font-weight: 700; letter-spacing: .5px; }
-.portal-cell .pc-status { font-size: 8px; margin-top: 4px; color: #444; }
-.portal-cell.checking { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.05); }
-.portal-cell.checking .pc-name { color: #9c8fff; }
-.portal-cell.ok { border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.06); }
-.portal-cell.ok .pc-name { color: #66bb6a; }
-.portal-cell.ok .pc-status { color: #4caf50; }
-.portal-cell.bad { border-color: rgba(244,67,54,0.5); background: rgba(244,67,54,0.08); }
-.portal-cell.bad .pc-name { color: #ef5350; }
-.portal-cell.bad .pc-status { color: #f44336; font-weight: 700; }
-.portal-cell.warn { border-color: rgba(255,152,0,0.4); background: rgba(255,152,0,0.06); }
-.portal-cell.warn .pc-name { color: #ffa726; }
-.portal-cell.warn .pc-status { color: #ff9800; }
-
-/* Scan animation */
-@keyframes scanV { 0%{top:15%} 50%{top:75%} 100%{top:15%} }
-@keyframes spin  { to{transform:rotate(360deg)} }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes zoomIn { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
-@keyframes shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
-@keyframes countUp { from{opacity:0;transform:scale(.6)} to{opacity:1;transform:scale(1)} }
-@keyframes glowGreen { 0%,100%{box-shadow:0 0 30px rgba(76,175,80,.3)} 50%{box-shadow:0 0 60px rgba(76,175,80,.6)} }
-@keyframes glowRed   { 0%,100%{box-shadow:0 0 30px rgba(244,67,54,.3)} 50%{box-shadow:0 0 60px rgba(244,67,54,.6)} }
-@keyframes flashRed  { 0%,100%{background:transparent} 30%,70%{background:rgba(244,67,54,.12)} }
-
-/* Timeline scene progress */
-#timeline {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: #111;
-  z-index: 200;
-}
-#timeline-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #6C63FF, #9c59ff);
-  transition: width 0.3s linear;
-  width: 0%;
+/* cliffhanger */
+.cliff{
+  font-size:clamp(12px,1.5vw,16px);
+  color:#4b5563;
+  margin-top:28px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  animation:pulse 1.5s ease infinite;
 }
 
-/* Controls */
-#controls {
-  position: fixed;
-  bottom: 12px;
-  right: 20px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  z-index: 300;
+/* ── QUOTE CARD ── */
+.qcard{
+  max-width:680px;width:100%;
+  text-align:left;padding:28px 32px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
 }
-.ctrl-btn {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(0,0,0,0.7);
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: .15s;
-  backdrop-filter: blur(10px);
+.qcard-who{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:18px;
 }
-.ctrl-btn:hover { background: rgba(108,99,255,0.3); border-color: #6C63FF; }
-.ctrl-btn.play-pause { width: 44px; height: 44px; font-size: 16px; }
-
-#scene-label {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  font-size: 10px;
-  color: #444;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  z-index: 300;
+.qcard-em{font-size:40px;}
+.qcard-name{font-size:12px;font-weight:800;letter-spacing:1px;}
+.qcard-role{font-size:10px;color:#4b5563;margin-top:2px;}
+.qcard-text{
+  font-size:clamp(15px,2vw,20px);
+  color:#9ca3af;line-height:1.8;
+  font-style:italic;
 }
+.qcard-text .hi{color:#fff;font-style:normal;font-weight:700;}
+.qcard-text .r{color:#ef4444;font-style:normal;font-weight:700;}
+.qcard-text .g{color:#4ade80;font-style:normal;font-weight:700;}
 
-/* Logo watermark */
-#watermark {
-  position: fixed;
-  top: 20px;
-  left: 28px;
-  font-size: 13px;
-  font-weight: 900;
-  color: rgba(108,99,255,0.5);
-  letter-spacing: 1px;
-  z-index: 300;
+/* ── REVEAL BOX ── */
+.rbox{
+  padding:20px 28px;border-radius:12px;
+  max-width:680px;width:100%;text-align:left;
 }
+.rbox.r{background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);}
+.rbox.g{background:rgba(74,222,128,.06);border:1.5px solid rgba(74,222,128,.2);}
+.rbox.p{background:rgba(167,139,250,.06);border:1.5px solid rgba(167,139,250,.2);}
+.rbox-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.rbox.r .rbox-title{color:#ef4444;}
+.rbox.g .rbox-title{color:#4ade80;}
+.rbox.p .rbox-title{color:#a78bfa;}
+.rbox-row{font-size:clamp(13px,1.8vw,17px);color:#6b7280;line-height:2;display:flex;gap:10px;}
+.rbox-row .v{color:#d1d5db;font-weight:700;}
 
-/* Tagline watermark */
-#tagline-wm {
-  position: fixed;
-  top: 24px;
-  right: 28px;
-  font-size: 10px;
-  color: #333;
-  letter-spacing: 1px;
-  z-index: 300;
+/* ── SPLIT ── */
+.split{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:16px;max-width:820px;width:100%;
 }
-
-/* FORGERY FLASH */
-#forgery-flash {
-  position: fixed;
-  inset: 0;
-  background: rgba(244,67,54,0);
-  pointer-events: none;
-  z-index: 150;
-  transition: background .15s;
+.sp{padding:22px;border-radius:12px;}
+.sp.bad {background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);}
+.sp.good{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.2);}
+.sp-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.sp.bad  .sp-title{color:#ef4444;}
+.sp.good .sp-title{color:#4ade80;}
+.sp-row{font-size:clamp(12px,1.5vw,15px);color:#4b5563;line-height:2.1;}
+.sp-row .v{font-weight:700;}
+.sp.bad  .sp-row .v{color:#ef4444;}
+.sp.good .sp-row .v{color:#4ade80;}
+.sp-verdict{
+  margin-top:14px;padding:10px 14px;border-radius:8px;
+  font-size:13px;font-weight:800;text-align:center;
 }
-#forgery-flash.flash { animation: flashRed 1.2s ease; }
+.sp.bad  .sp-verdict{background:rgba(239,68,68,.1);color:#ef4444;}
+.sp.good .sp-verdict{background:rgba(74,222,128,.1);color:#4ade80;}
 
-/* Dot indicators */
-#dots {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 5px;
-  z-index: 300;
+/* ── TERMINAL ── */
+.terminal{
+  background:#020c02;border:1px solid #0f3a0f;border-radius:10px;
+  padding:18px 22px;max-width:640px;width:100%;
+  font-family:'Courier New',monospace;
 }
-.dot {
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: #222;
-  transition: all .3s;
+.term-header{
+  display:flex;gap:6px;margin-bottom:14px;
+  align-items:center;
 }
-.dot.active { background: #6C63FF; width: 16px; border-radius: 2px; }
-.dot.done   { background: #444; }
-
-/* Spin element */
-.spin { animation: spin .8s linear infinite; display: inline-block; }
-
-/* Scene-specific animations */
-.animate-fadein  { animation: fadeUp .6s ease both; }
-.animate-zoom    { animation: zoomIn .5s ease both; }
-.animate-shake   { animation: shake .5s ease both; }
-.animate-count   { animation: countUp .5s ease both; }
-.animate-glowg   { animation: glowGreen 2s ease infinite; }
-.animate-glowr   { animation: glowRed 2s ease infinite; }
-
-/* Delay classes */
-.d1 { animation-delay: .1s; }
-.d2 { animation-delay: .25s; }
-.d3 { animation-delay: .45s; }
-.d4 { animation-delay: .65s; }
-.d5 { animation-delay: .85s; }
-.d6 { animation-delay: 1.05s; }
-.d7 { animation-delay: 1.3s; }
-
-/* ── FILM-SPECIFIC SCENE STYLES ── */
-
-/* Scene 1: Title card */
-#sc1 .logo-big {
-  font-size: clamp(40px, 8vw, 96px);
-  font-weight: 900;
-  color: #6C63FF;
-  letter-spacing: -2px;
-  text-shadow: 0 0 80px rgba(108,99,255,.5);
+.term-dot{width:10px;height:10px;border-radius:50%;}
+.term-title{font-size:10px;color:#1a3a1a;margin-left:6px;letter-spacing:1px;}
+.term-line{
+  font-size:12px;line-height:2;
+  animation:terminalIn .2s ease both;
 }
-#sc1 .tagline-big {
-  font-size: clamp(12px, 2vw, 18px);
-  color: #444;
-  letter-spacing: 6px;
-  text-transform: uppercase;
-  margin-top: 12px;
-}
-#sc1 .year {
-  font-size: 11px;
-  color: #333;
-  letter-spacing: 4px;
-  margin-bottom: 30px;
-}
+.term-line.ok  {color:#4ade80;}
+.term-line.bad {color:#ef4444;}
+.term-line.warn{color:#fbbf24;}
+.term-line.dim {color:#1f3a1f;}
+.term-line.active{color:#86efac;}
+.term-cursor{animation:blink .8s step-end infinite;color:#4ade80;}
 
-/* The crash / incident line */
-.incident-line {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  max-width: 600px;
-  padding: 16px 24px;
-  border-left: 3px solid #ef5350;
-  background: rgba(244,67,54,0.05);
-  border-radius: 0 8px 8px 0;
-  text-align: left;
+/* ── PHONE ── */
+.phone{
+  width:160px;height:320px;
+  background:#08080f;
+  border:2px solid #1a1a2e;border-radius:24px;
+  overflow:hidden;position:relative;
+  box-shadow:0 0 50px rgba(108,99,255,.25);
+  flex-shrink:0;
 }
-.incident-icon { font-size: 28px; flex-shrink: 0; }
-.incident-text { font-size: 14px; color: #999; line-height: 1.7; }
-.incident-text strong { color: #ef5350; }
-.incident-text em { color: #ccc; font-style: normal; }
+.phone .notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:44px;height:10px;background:#08080f;
+  border-radius:0 0 7px 7px;z-index:5;
+}
+.phone-screen{width:100%;height:100%;display:flex;flex-direction:column;}
+.ph-bar{padding:14px 8px 5px;font-size:7px;color:#6C63FF;font-weight:900;letter-spacing:.5px;}
+.ph-body{padding:6px 8px;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:5px;}
 
-/* Bank approval stamp */
-.stamp-box {
-  display: inline-block;
-  border: 4px solid #66bb6a;
-  border-radius: 12px;
-  padding: 14px 32px;
-  color: #66bb6a;
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: 4px;
-  transform: rotate(-6deg);
-  background: rgba(76,175,80,0.08);
-  animation: countUp .4s ease both;
+/* verdict ring */
+.vring{
+  width:84px;height:84px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.vring.safe{background:conic-gradient(#4ade80 0% 88%,#0f0f0f 88%);animation:glowGreen 2s ease infinite;}
+.vring::before{content:'';position:absolute;inset:8px;border-radius:50%;background:#08080f;}
+.vring-inner{position:relative;z-index:1;text-align:center;}
+.vring-num{font-size:18px;font-weight:900;}
+.vring-label{font-size:6px;color:#6b7280;}
+
+/* ── IMPACT GRID ── */
+.igrid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;max-width:640px;width:100%;
+}
+.icell{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:18px;text-align:center;
+}
+.icell-num{font-size:clamp(22px,3.5vw,36px);font-weight:900;}
+.icell-lbl{font-size:9px;color:#374151;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+
+/* ── VERDICT SLAM ── */
+.vslam{
+  padding:32px 56px;border-radius:16px;
+  text-align:center;max-width:680px;width:100%;
+}
+.vslam.stop{background:rgba(239,68,68,.07);border:2px solid rgba(239,68,68,.25);}
+.vslam.go  {background:rgba(74,222,128,.07);border:2px solid rgba(74,222,128,.25);}
+.vslam-big{font-size:clamp(28px,6vw,64px);font-weight:900;margin-bottom:10px;}
+.vslam.stop .vslam-big{color:#ef4444;animation:glowRed 2s ease infinite;}
+.vslam.go   .vslam-big{color:#4ade80;animation:glowGreen 2s ease infinite;}
+.vslam-sub{font-size:clamp(13px,1.8vw,18px);color:#6b7280;line-height:1.7;}
+
+/* bank stamp */
+.bstamp{
+  display:inline-block;
+  border:4px solid #4ade80;border-radius:10px;
+  padding:12px 28px;color:#4ade80;
+  font-size:clamp(18px,3vw,32px);font-weight:900;
+  letter-spacing:3px;transform:rotate(-5deg);
+  background:rgba(74,222,128,.07);
+  animation:zoomBig .4s .2s ease both;
 }
 </style>
 </head>
 <body>
 
-<div id="forgery-flash"></div>
-
-<div id="watermark">DigiSampatti</div>
-<div id="tagline-wm">Karnataka Property Intelligence</div>
-<div id="timeline"><div id="timeline-fill"></div></div>
-<div id="scene-label"></div>
-<div id="dots"></div>
-
-<div id="controls">
-  <button class="ctrl-btn" onclick="skip(-1)" title="Previous">◀</button>
-  <button class="ctrl-btn play-pause" id="pp-btn" onclick="togglePause()" title="Play / Pause">⏸</button>
-  <button class="ctrl-btn" onclick="skip(1)" title="Next">▶</button>
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-logo">DigiSampatti</div>
+  <div id="hud-money">₹85,00,000 AT RISK</div>
+  <div id="hud-scene"></div>
 </div>
 
+<!-- Flash overlays -->
+<div id="flash-red"></div>
+<div id="flash-white"></div>
+
+<!-- Pause hint -->
+<div id="pause-hint">PAUSED</div>
+
+<!-- Stage -->
 <div id="stage">
 
-<!-- ──────────────────────────────────────────────
-  SCENE 1 — TITLE
-────────────────────────────────────────────── -->
-<div class="scene bg-black active" id="sc1">
-  <div class="year animate-fadein">KARNATAKA · 2025</div>
-  <div class="logo-big animate-fadein d1">DigiSampatti</div>
-  <div class="tagline-big animate-fadein d2">The ₹85 Lakh Story</div>
-</div>
-
-<!-- ──────────────────────────────────────────────
-  SCENE 2 — THE PROBLEM (stat)
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc2">
-  <div class="overline red animate-fadein">The Problem</div>
-  <div class="headline red animate-fadein d1">₹4,000 Crore</div>
-  <div class="subhead animate-fadein d2">
-    lost to property fraud in Karnataka <strong>every single year.</strong><br>
-    Forged RTCs. Hidden bank mortgages. Fake e-Stamps. Benami land.<br><br>
-    <span class="danger">And nobody sees it coming.</span>
+<!-- ═══════════════════════════════════════
+  SC 01 — COLD OPEN
+═══════════════════════════════════════ -->
+<div class="sc on" id="sc01" style="background:#000;">
+  <div class="kicker fu" style="color:#1f2937;">Karnataka · 2025</div>
+  <div class="big white fu d1" style="font-size:clamp(18px,3vw,42px);letter-spacing:6px;font-weight:300;">
+    48 HOURS BEFORE
+  </div>
+  <div class="big white fu d2" style="font-size:clamp(32px,7vw,96px);letter-spacing:-3px;">
+    THE WIRE TRANSFER
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 3 — RAMU
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc3">
-  <div class="overline animate-fadein">Meet Ramu · Yelahanka, Bengaluru</div>
-  <div class="film-card animate-fadein d1">
-    <div class="film-card-emoji">🧑</div>
-    <div class="film-card-body">
-      <div class="film-card-name">RAMU, 58 · FARMER</div>
-      <div class="film-card-role">Yelahanka · His son works in Dubai</div>
-      <div class="film-card-quote">
-        "My son saved <span class="hi">₹85 lakh</span> working in Dubai for 9 years.<br>
-        He found a plot here. Broker says <span class="hi">EC clean, RTC clean, Khata clean.</span><br><br>
-        I have no way to know if he is lying."
+<!-- ═══════════════════════════════════════
+  SC 02 — MONEY AT STAKE
+═══════════════════════════════════════ -->
+<div class="sc" id="sc02" style="background:radial-gradient(ellipse at center,#1c0a0a,#000);">
+  <div class="kicker red fu">What was on the line</div>
+  <div class="big red fu d1" style="font-size:clamp(44px,10vw,120px);letter-spacing:-4px;animation:glowRed 2s 1s ease infinite,zoomBig .5s ease both;">
+    ₹85 LAKH
+  </div>
+  <div class="mid fu d2">
+    Ramu's son worked in <strong>Dubai for 9 years</strong> to save this.<br>
+    One property. One broker. <span class="r">Two lies.</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 03 — RAMU
+═══════════════════════════════════════ -->
+<div class="sc" id="sc03" style="background:radial-gradient(ellipse at 30% 50%,#0d0d1a,#000);">
+  <div class="qcard fu">
+    <div class="qcard-who">
+      <div class="qcard-em">🧑</div>
+      <div>
+        <div class="qcard-name">RAMU · 58 · FARMER</div>
+        <div class="qcard-role">Yelahanka, Bengaluru North</div>
       </div>
     </div>
+    <div class="qcard-text">
+      "My son is sending <span class="hi">₹85 lakh from Dubai</span> tomorrow.<br>
+      The broker showed us the RTC, EC, Khata.<br>
+      Everything looks <span class="hi">clean on paper.</span><br><br>
+      I just want to be sure we are not making a mistake."
+    </div>
   </div>
-  <div class="subhead animate-fadein d3" style="margin-top:16px;font-size:13px;">
-    Ramu doesn't know that the documents are <span class="danger">forged.</span>
-  </div>
+  <div class="cliff fu d3">He had no idea what the paper was hiding →</div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 4 — THE BROKER
-────────────────────────────────────────────── -->
-<div class="scene bg-red" id="sc4">
-  <div class="overline red animate-fadein">The Broker</div>
-  <div class="film-card animate-fadein d1" style="border-color:rgba(244,67,54,0.3);background:rgba(244,67,54,0.05);">
-    <div class="film-card-emoji">🤵</div>
-    <div class="film-card-body">
-      <div class="film-card-name" style="color:#ef5350;">RAJIV — BROKER</div>
-      <div class="film-card-role">Yelahanka · 11 years in property</div>
-      <div class="film-card-quote">
-        "Saaar, everything is 100% clean. EC, RTC, Khata — all I have.<br>
-        <span class="danger">Sign today only. Another buyer is coming tomorrow."</span>
+<!-- ═══════════════════════════════════════
+  SC 04 — THE BROKER (confident)
+═══════════════════════════════════════ -->
+<div class="sc" id="sc04" style="background:radial-gradient(ellipse at 70% 50%,#1c0505,#000);">
+  <div class="qcard fu" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.03);">
+    <div class="qcard-who">
+      <div class="qcard-em">🤵</div>
+      <div>
+        <div class="qcard-name" style="color:#ef4444;">RAJIV — BROKER</div>
+        <div class="qcard-role">Yelahanka · 11 years</div>
       </div>
     </div>
-  </div>
-  <div class="split animate-fadein d3" style="max-width:680px;">
-    <div class="incident-line" style="flex:1;">
-      <div class="incident-icon">📄</div>
-      <div class="incident-text">RTC shows owner: <strong>Gopal S</strong><br>Real owner in Bhoomi records: <em>Ramaiah K</em><br><strong>Owner name was forged.</strong></div>
-    </div>
-    <div class="incident-line" style="flex:1;">
-      <div class="incident-icon">🏦</div>
-      <div class="incident-text">EC says: "No encumbrances"<br>CERSAI (RBI registry): <strong>SBI mortgage ₹42 lakh ACTIVE</strong><br><strong>EC is hiding the bank loan.</strong></div>
+    <div class="qcard-text">
+      "Saaar, EC clean. RTC clean. Khata clean.<br>
+      <span class="r">Sign today only — another buyer is coming tomorrow."</span>
     </div>
   </div>
+  <div class="rbox r fu d2" style="margin-top:14px;">
+    <div class="rbox-title">What Rajiv didn't tell them</div>
+    <div class="rbox-row"><span>→</span><span class="v">RTC owner name was changed.</span> Real owner: Ramaiah K. Printed: Gopal S.</div>
+    <div class="rbox-row"><span>→</span><span class="v">SBI has a ₹42 lakh active mortgage</span> on this land. EC hid it.</div>
+  </div>
+  <div class="cliff fu d3">Priya knew something was off →</div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 5 — PRIYA OPENS THE APP
-────────────────────────────────────────────── -->
-<div class="scene bg-purple" id="sc5">
-  <div class="overline animate-fadein">Enter DigiSampatti</div>
-  <div style="display:flex;gap:40px;align-items:center;max-width:760px;width:100%;" class="animate-fadein d1">
-    <div class="phone-prop animate-zoom d2">
-      <div class="pnotch"></div>
+<!-- ═══════════════════════════════════════
+  SC 05 — SHE OPENED THE APP
+═══════════════════════════════════════ -->
+<div class="sc" id="sc05" style="background:radial-gradient(ellipse at center,#0a0a1f,#000);">
+  <div class="kicker purple fu">24 hours before the wire transfer</div>
+  <div class="big white fu d1">"Let me just check one thing."</div>
+  <div class="mid fu d2" style="margin-top:16px;">
+    Priya opened <span class="p">DigiSampatti</span>.<br>
+    She pointed her camera at the RTC document.<br><br>
+    <strong>The AI read every line. Even the Kannada.</strong><br>
+    And then it found something the broker thought was hidden —
+  </div>
+  <div class="cliff fu d3">the QR code in the corner →</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 06 — SCAN
+═══════════════════════════════════════ -->
+<div class="sc" id="sc06" style="background:#000;">
+  <div style="display:flex;gap:48px;align-items:center;max-width:760px;width:100%;">
+    <!-- Phone -->
+    <div class="phone zi d1">
+      <div class="notch"></div>
       <div class="phone-screen">
-        <div class="ps-bar">DigiSampatti</div>
-        <div class="ps-body">
-          <!-- mini camera UI -->
-          <div style="background:#030303;border-radius:8px;height:120px;position:relative;overflow:hidden;margin-bottom:6px;">
-            <div style="position:absolute;width:110px;height:70px;left:50%;top:50%;transform:translate(-50%,-50%);border:1.5px solid #6C63FF;border-radius:3px;"></div>
-            <div style="position:absolute;left:50%;transform:translateX(-50%);width:110px;height:2px;background:linear-gradient(90deg,transparent,#6C63FF,transparent);animation:scanV 2s linear infinite;top:30%;"></div>
-            <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;color:#555;font-size:7px;">Scanning RTC document...</div>
+        <div class="ph-bar">📷 Scanning Document</div>
+        <div class="ph-body" style="padding:0;">
+          <div style="flex:1;background:#030303;position:relative;overflow:hidden;">
+            <!-- doc -->
+            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:130px;height:80px;background:#f0ead0;border-radius:3px;padding:6px;">
+              <div style="color:#8B0000;font-size:5px;font-weight:900;text-align:center;border-bottom:1px solid #ccc;padding-bottom:2px;margin-bottom:3px;">ಭೂಮಿ RTC</div>
+              <div style="height:3px;background:#aaa;border-radius:1px;margin-bottom:2px;width:90%;"></div>
+              <div style="height:3px;background:#aaa;border-radius:1px;margin-bottom:2px;width:70%;"></div>
+              <div style="height:3px;background:#aaa;border-radius:1px;margin-bottom:2px;width:85%;"></div>
+              <!-- QR -->
+              <div style="position:absolute;right:5px;bottom:5px;width:18px;height:18px;background:white;border:1px solid #888;display:grid;grid-template-columns:repeat(3,5px);gap:1px;padding:2px;">
+                <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div>
+                <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div>
+                <div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div>
+              </div>
+            </div>
+            <!-- frame -->
+            <div style="position:absolute;width:140px;height:90px;left:50%;top:50%;transform:translate(-50%,-50%);border:1.5px solid #6C63FF;border-radius:3px;"></div>
+            <!-- scan line -->
+            <div style="position:absolute;left:calc(50% - 70px);width:140px;height:1.5px;background:linear-gradient(90deg,transparent,#6C63FF,transparent);animation:scanV 1.8s linear infinite;top:20%;"></div>
+            <div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#6C63FF;font-size:6px;font-weight:800;letter-spacing:1px;">READING QR CODE</div>
           </div>
-          <div style="background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:6px;padding:7px;">
-            <div style="color:#9c8fff;font-size:8px;font-weight:800;margin-bottom:3px;">📖 AI Reading Document</div>
-            <div style="color:#777;font-size:7px;">Survey: 147/2A · Yelahanka</div>
-            <div style="color:#777;font-size:7px;">Owner: Gopal S (printed)</div>
-            <div style="color:#777;font-size:7px;">QR Token: BHM2024XXXX ✓</div>
-          </div>
-          <div style="margin-top:6px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);border-radius:6px;padding:5px 7px;text-align:center;">
-            <div style="color:#4caf50;font-size:8px;font-weight:800;">Now checking 7 portals...</div>
+          <div style="padding:6px 8px;background:#4ade8010;border-top:1px solid #4ade8020;">
+            <div style="color:#4ade80;font-size:7px;font-weight:800;">✓ QR TOKEN FOUND</div>
+            <div style="color:#555;font-size:6px;margin-top:1px;">BHM-2024-XXXXX · Calling Bhoomi portal...</div>
           </div>
         </div>
       </div>
     </div>
-    <div style="flex:1;text-align:left;">
-      <div class="film-card-emoji" style="margin-bottom:10px;">👩</div>
-      <div class="film-card-name" style="margin-bottom:4px;font-size:13px;">PRIYA · DUBAI NRI</div>
-      <div class="film-card-role" style="color:#666;font-size:11px;margin-bottom:14px;">Ramu's daughter-in-law</div>
-      <div class="film-card-quote" style="font-size:14px;line-height:1.8;">
-        She points her phone camera at the RTC.<br>
-        DigiSampatti reads the document — <span style="color:#9c8fff;font-style:normal;font-weight:700;">every line, even in Kannada.</span><br><br>
-        It extracts the QR code embedded by the Tahsildar.<br>
-        <span style="color:#9c8fff;font-style:normal;font-weight:700;">That QR cannot be forged.</span>
+    <div style="flex:1;">
+      <div class="kicker fu" style="color:#4b5563;">The QR on the document</div>
+      <div class="big white fu d1" style="font-size:clamp(20px,3vw,36px);text-align:left;letter-spacing:-1px;">
+        That QR was put there<br>by the <span style="color:#a78bfa;">Tahsildar's office.</span>
+      </div>
+      <div class="mid fu d2" style="text-align:left;margin-top:12px;font-size:clamp(13px,1.5vw,17px);">
+        It links directly to the government's own record.<br>
+        <span class="w">It cannot be altered.</span><br>
+        It cannot be printed over.<br><br>
+        The broker had no idea DigiSampatti would scan it.
       </div>
     </div>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 6 — 7 PORTALS CHECKING
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc6">
-  <div class="overline animate-fadein">7 Government Portals · Simultaneously</div>
-  <div class="headline white animate-fadein d1" style="font-size:clamp(20px,3vw,36px);margin-bottom:4px;">
-    What no broker, no lawyer, no other app does.
+<!-- ═══════════════════════════════════════
+  SC 07 — PORTALS LOADING (terminal)
+═══════════════════════════════════════ -->
+<div class="sc" id="sc07" style="background:#000;">
+  <div class="kicker fu" style="color:#0f3a0f;letter-spacing:3px;">Checking 7 government portals simultaneously</div>
+  <div class="terminal fu d1">
+    <div class="term-header">
+      <div class="term-dot" style="background:#ff5f57;"></div>
+      <div class="term-dot" style="background:#febc2e;"></div>
+      <div class="term-dot" style="background:#28c840;"></div>
+      <div class="term-title">DIGISAMPATTI · PORTAL VERIFICATION ENGINE</div>
+    </div>
+    <div class="term-line active" id="tl1">→ Connecting to land.kar.nic.in (Bhoomi)...<span class="term-cursor">_</span></div>
+    <div class="term-line dim"   id="tl2">→ Querying CERSAI (RBI mortgage registry)...</div>
+    <div class="term-line dim"   id="tl3">→ Verifying IGRS/KAVERI EC...</div>
+    <div class="term-line dim"   id="tl4">→ Searching eCourts by owner name...</div>
+    <div class="term-line dim"   id="tl5">→ Checking BBMP e-Aasthi (Khata)...</div>
+    <div class="term-line dim"   id="tl6">→ RERA Karnataka lookup...</div>
+    <div class="term-line dim"   id="tl7">→ Benami IT Dept check...</div>
   </div>
-  <div class="portal-grid animate-fadein d2" id="portal-grid">
-    <div class="portal-cell" id="pc1">
-      <div class="pc-icon">🌾</div>
-      <div class="pc-name">BHOOMI</div>
-      <div class="pc-status">QR Verify...</div>
+  <div class="cliff fu d2" style="font-family:'Courier New',monospace;color:#1f3a1f;">BHOOMI RESPONSE INCOMING →</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 08 — BHOOMI RESPONDS (THE MOMENT)
+═══════════════════════════════════════ -->
+<div class="sc" id="sc08" style="background:#000;">
+  <div class="terminal fu" style="max-width:680px;">
+    <div class="term-header">
+      <div class="term-dot" style="background:#ff5f57;"></div>
+      <div class="term-dot" style="background:#febc2e;"></div>
+      <div class="term-dot" style="background:#28c840;"></div>
+      <div class="term-title">BHOOMI · land.kar.nic.in · QR VERIFY</div>
     </div>
-    <div class="portal-cell" id="pc2">
-      <div class="pc-icon">🏦</div>
-      <div class="pc-name">CERSAI</div>
-      <div class="pc-status">Mortgages...</div>
-    </div>
-    <div class="portal-cell" id="pc3">
-      <div class="pc-icon">📜</div>
-      <div class="pc-name">IGRS/KAVERI</div>
-      <div class="pc-status">EC Verify...</div>
-    </div>
-    <div class="portal-cell" id="pc4">
-      <div class="pc-icon">🏛️</div>
-      <div class="pc-name">eCOURTS</div>
-      <div class="pc-status">Cases...</div>
-    </div>
-    <div class="portal-cell" id="pc5">
-      <div class="pc-icon">🏘️</div>
-      <div class="pc-name">BBMP</div>
-      <div class="pc-status">Khata...</div>
-    </div>
-    <div class="portal-cell" id="pc6">
-      <div class="pc-icon">🏗️</div>
-      <div class="pc-name">RERA KA</div>
-      <div class="pc-status">RERA...</div>
-    </div>
-    <div class="portal-cell" id="pc7">
-      <div class="pc-icon">💼</div>
-      <div class="pc-name">BENAMI IT</div>
-      <div class="pc-status">Benami...</div>
-    </div>
-    <div class="portal-cell checking" id="pc8">
-      <div class="pc-icon">🔐</div>
-      <div class="pc-name">e-STAMP</div>
-      <div class="pc-status">SHCIL...</div>
-    </div>
+    <div class="term-line ok fu">✓ QR token verified. Record found.</div>
+    <div class="term-line active fu d1">→ Survey No: 147/2A · Yelahanka</div>
+    <div class="term-line active fu d2">→ Taluk: Yelahanka · District: Bengaluru North</div>
+    <div class="term-line active fu d3">→ Area: 1200 sq ft</div>
+    <div class="term-line active fu d4" style="animation-delay:.75s;">→ Owner on QR record: <span style="color:#fff;font-weight:900;">RAMAIAH K</span></div>
+    <div class="term-line dim fu d5" style="animation-delay:1s;">.</div>
+    <div class="term-line dim fu d6" style="animation-delay:1.3s;">.</div>
+    <div class="term-line bad fu" style="animation-delay:1.8s;font-size:14px;font-weight:900;">⚠  DOCUMENT SAYS: GOPAL S</div>
+    <div class="term-line bad fu" style="animation-delay:2.2s;font-size:14px;font-weight:900;">⚠  BHOOMI QR SAYS: RAMAIAH K</div>
+    <div class="term-line bad fu" style="animation-delay:2.6s;font-size:16px;font-weight:900;letter-spacing:2px;">MISMATCH DETECTED.</div>
   </div>
-  <div class="subhead animate-fadein d3" style="font-size:12px;">
-    Three minutes. That's all it takes.
+  <div class="cliff fu d3" style="animation-delay:3s;color:#7f1d1d;">Something was wrong. Very wrong. →</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 09 — FORGERY
+═══════════════════════════════════════ -->
+<div class="sc" id="sc09" style="background:radial-gradient(ellipse at center,#200000,#000);">
+  <div class="kicker red fu" style="font-size:10px;letter-spacing:6px;">The app confirmed it</div>
+  <div class="big red fu d1" style="font-size:clamp(36px,8vw,100px);letter-spacing:-3px;animation:glowRed 1.5s ease infinite,shake .5s .5s ease both;">
+    🚨 FORGERY
+  </div>
+  <div class="rbox r fu d2" style="margin-top:16px;">
+    <div class="rbox-title">IPC Section 465 — Criminal Forgery</div>
+    <div class="rbox-row"><span>→ Printed on document:</span><span class="v">&nbsp;Owner = Gopal S</span></div>
+    <div class="rbox-row"><span>→ Bhoomi QR portal:</span><span class="v" style="color:#ef4444;">&nbsp;Owner = Ramaiah K</span></div>
+    <div class="rbox-row"><span>→ Verdict:</span><span class="v" style="color:#ef4444;">&nbsp;Owner name was ALTERED. Criminal forgery.</span></div>
+  </div>
+  <div class="mid fu d3" style="font-size:14px;margin-top:12px;color:#4b5563;">
+    The broker had sold a property whose owner was <span class="r">not the actual owner.</span>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 7 — FORGERY DETECTED
-────────────────────────────────────────────── -->
-<div class="scene bg-red" id="sc7">
-  <div class="overline red animate-fadein">Bhoomi QR says something different</div>
-  <div class="verdict-big danger animate-shake d1" style="animation:shake .5s ease both,glowRed 2s 1s ease infinite;">
-    <div class="verdict-big-title">🚨 FORGERY DETECTED</div>
-    <div class="verdict-big-sub">
-      Printed on document: <strong style="color:white;">Owner = Gopal S</strong><br>
-      Bhoomi QR portal says: <strong style="color:white;">Owner = Ramaiah K</strong><br><br>
-      The owner name was <strong style="color:#ef5350;">ALTERED.</strong> This is criminal forgery under <strong style="color:#ef5350;">IPC Section 465</strong> — punishable with 2 years imprisonment.
-    </div>
+<!-- ═══════════════════════════════════════
+  SC 10 — THEN CERSAI SPOKE
+═══════════════════════════════════════ -->
+<div class="sc" id="sc10" style="background:radial-gradient(ellipse at center,#150500,#000);">
+  <div class="kicker red fu">Then came the second blow</div>
+  <div class="big white fu d1" style="font-size:clamp(20px,3.5vw,44px);">
+    The EC said <span style="color:#ef4444;">"No loans."</span>
   </div>
-  <div class="subhead animate-fadein d3" style="margin-top:16px;font-size:13px;">
-    <span class="danger">No broker, no lawyer, no other app would have caught this.</span><br>
-    DigiSampatti caught it in 90 seconds.
+  <div class="big white fu d2" style="font-size:clamp(20px,3.5vw,44px);margin-top:6px;">
+    CERSAI said <span style="color:#ef4444;">SBI. ₹42 lakh. Active.</span>
+  </div>
+  <div class="split fu d3" style="margin-top:20px;">
+    <div class="sp bad">
+      <div class="sp-title">📜 What EC told everyone</div>
+      <div class="sp-row">→ <span class="v">"No encumbrances found"</span></div>
+      <div class="sp-row">→ <span class="v">"No loans on this property"</span></div>
+      <div class="sp-row">→ <span class="v">"Clear title"</span></div>
+      <div class="sp-verdict">EC WAS HIDING THE TRUTH</div>
+    </div>
+    <div class="sp bad">
+      <div class="sp-title">🏦 What CERSAI (RBI) knew</div>
+      <div class="sp-row">→ <span class="v">SBI Loan: ₹42,00,000</span></div>
+      <div class="sp-row">→ <span class="v">Disbursed: 14 Mar 2023</span></div>
+      <div class="sp-row">→ <span class="v">Status: ACTIVE. Not discharged.</span></div>
+      <div class="sp-verdict">BANK CAN SEIZE THIS LAND ANYTIME</div>
+    </div>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 8 — HIDDEN MORTGAGE / EC vs CERSAI
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc8">
-  <div class="overline red animate-fadein">Then came the second blow</div>
-  <div class="headline white animate-fadein d1" style="font-size:clamp(18px,3vw,32px);margin-bottom:16px;">
-    The EC said "clean." <span style="color:#ef5350;">CERSAI told the truth.</span>
-  </div>
-  <div class="split animate-fadein d2">
-    <div class="split-panel bad">
-      <div class="split-title bad">📜 EC (IGRS/KAVERI) says</div>
-      <div class="split-item"><span class="arrow">→</span>"No encumbrances on this property"</div>
-      <div class="split-item"><span class="arrow">→</span>"No loans recorded"</div>
-      <div class="split-item"><span class="arrow">→</span>"Clear title"</div>
-      <div class="split-result bad">✗ EC IS HIDING THE TRUTH</div>
-    </div>
-    <div class="split-panel bad">
-      <div class="split-title bad">🏦 CERSAI (RBI Registry) says</div>
-      <div class="split-item"><span class="arrow">→</span>SBI Bank: Loan ₹42,00,000</div>
-      <div class="split-item"><span class="arrow">→</span>Disbursed: 14 Mar 2023</div>
-      <div class="split-item"><span class="arrow">→</span>Status: <strong style="color:#ef5350;">ACTIVE · Not discharged</strong></div>
-      <div class="split-result bad">✗ MORTGAGE EXISTS · EC LIED</div>
+<!-- ═══════════════════════════════════════
+  SC 11 — DO NOT BUY
+═══════════════════════════════════════ -->
+<div class="sc" id="sc11" style="background:#000;">
+  <div class="vslam stop zi">
+    <div class="vslam-big">🛑 DO NOT BUY</div>
+    <div class="vslam-sub">
+      2 critical issues. Forged owner name. Hidden ₹42L bank debt.<br>
+      Buying this property means buying <strong style="color:#d1d5db;">someone else's fraud</strong> and a loan you didn't take.
     </div>
   </div>
-  <div class="subhead animate-fadein d3" style="font-size:13px;margin-top:4px;">
-    If Ramu bought this property, <span class="danger">SBI could seize it at any time</span> for the unpaid ₹42 lakh.
+  <div class="mid fu d2" style="margin-top:20px;font-size:clamp(13px,1.6vw,17px);color:#374151;">
+    The wire transfer was <span style="color:#6b7280;">22 hours away.</span><br>
+    <span style="color:#d1d5db;font-weight:700;">DigiSampatti found it first.</span>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 9 — DO NOT BUY
-────────────────────────────────────────────── -->
-<div class="scene bg-black" id="sc9">
-  <div class="overline red animate-fadein">DigiSampatti Verdict</div>
-  <div class="verdict-big danger animate-zoom d1" style="animation:zoomIn .5s ease both,glowRed 2s 1s ease infinite;padding:36px 60px;">
-    <div class="verdict-big-title" style="font-size:clamp(28px,6vw,64px);">🛑 DO NOT BUY</div>
-    <div class="verdict-big-sub" style="font-size:15px;margin-top:12px;">
-      2 critical issues. This property cannot be legally purchased.<br>
-      Buying it means buying a <strong style="color:#ef5350;">fraud</strong> and a <strong style="color:#ef5350;">₹42 lakh debt.</strong>
-    </div>
-  </div>
-  <div class="subhead animate-fadein d3" style="margin-top:16px;font-size:13px;color:#444;">
-    ₹85 lakh saved. In under 3 minutes.
-  </div>
-</div>
-
-<!-- ──────────────────────────────────────────────
-  SCENE 10 — LAWYER IN 1 TAP
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc10">
-  <div class="overline animate-fadein">One tap. Expert help.</div>
-  <div style="display:flex;gap:32px;align-items:center;max-width:760px;width:100%;" class="animate-fadein d1">
-    <div class="phone-prop animate-zoom d2">
-      <div class="pnotch"></div>
+<!-- ═══════════════════════════════════════
+  SC 12 — LAWYER IN 1 TAP
+═══════════════════════════════════════ -->
+<div class="sc" id="sc12" style="background:radial-gradient(ellipse at center,#0a0a1f,#000);">
+  <div class="kicker purple fu">One tap. Expert connected.</div>
+  <div style="display:flex;gap:36px;align-items:center;max-width:740px;width:100%;">
+    <div class="phone zi d1" style="box-shadow:0 0 40px rgba(167,139,250,.2);">
+      <div class="notch"></div>
       <div class="phone-screen">
-        <div class="ps-bar">Expert Consultation</div>
-        <div class="ps-body">
-          <div style="background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.3);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <div style="font-size:22px;">⚖️</div>
+        <div class="ph-bar" style="color:#a78bfa;">Expert · Live</div>
+        <div class="ph-body">
+          <div style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:7px;padding:7px;display:flex;align-items:center;gap:7px;">
+            <div style="font-size:20px;">⚖️</div>
             <div>
-              <div style="color:white;font-size:8px;font-weight:800;">Adv. Kavitha Rao</div>
-              <div style="color:#888;font-size:7px;">Property Law · 12 yrs</div>
-              <div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
-                <div style="width:5px;height:5px;background:#4caf50;border-radius:50%;animation:pulse 1.2s infinite;"></div>
-                <div style="color:#4caf50;font-size:7px;font-weight:800;">LIVE · 04:17</div>
+              <div style="color:white;font-size:7px;font-weight:800;">Adv. Kavitha Rao</div>
+              <div style="color:#6b7280;font-size:6px;">Property Law · 12 yrs</div>
+              <div style="display:flex;align-items:center;gap:3px;margin-top:2px;">
+                <div style="width:4px;height:4px;background:#4ade80;border-radius:50%;animation:pulse 1.2s infinite;"></div>
+                <div style="color:#4ade80;font-size:6px;font-weight:800;">LIVE 04:23</div>
               </div>
             </div>
           </div>
-          <div style="background:#ffffff06;border:1px solid #ffffff10;border-radius:6px;padding:7px;margin-bottom:5px;">
-            <div style="color:#aaa;font-size:7px;font-weight:700;margin-bottom:3px;">Report shared ↑</div>
-            <div style="color:#f44336;font-size:7px;">🚨 Forgery (IPC 465) · CRITICAL</div>
-            <div style="color:#f44336;font-size:7px;">🏦 CERSAI mortgage · CRITICAL</div>
+          <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:6px;font-size:7px;line-height:1.8;">
+            <div style="color:#ef4444;">🚨 IPC 465 Forgery · CRITICAL</div>
+            <div style="color:#ef4444;">🏦 CERSAI Mortgage · CRITICAL</div>
           </div>
-          <div style="background:#4caf5010;border:1px solid #4caf5030;border-radius:6px;padding:6px;">
-            <div style="color:#4caf50;font-size:7px;font-weight:700;">Actions filed:</div>
-            <div style="color:#888;font-size:7px;line-height:1.7;">✓ FIR: Yelahanka PS<br>✓ Tahsildar notified<br>✓ Sub-Registrar: stop transfer</div>
+          <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:6px;padding:6px;font-size:6px;color:#4ade80;line-height:1.9;">
+            ✓ FIR filed · Yelahanka PS<br>
+            ✓ Tahsildar notified<br>
+            ✓ Transfer frozen
           </div>
         </div>
       </div>
     </div>
-    <div style="flex:1;text-align:left;">
-      <div class="film-card-quote" style="font-size:15px;line-height:1.9;color:#999;">
-        Adv. Kavitha Rao sees the DigiSampatti report the moment she connects.<br><br>
-        She files an FIR for <span style="color:#ef5350;font-style:normal;font-weight:700;">IPC 465 + 468</span> — forgery and fraud.<br><br>
-        The Sub-Registrar is notified. <span style="color:white;font-style:normal;font-weight:700;">Property transfer is frozen.</span><br><br>
-        All of this — in one phone call.
+    <div style="flex:1;">
+      <div class="qcard-text fu d1" style="font-size:clamp(14px,2vw,20px);color:#9ca3af;line-height:1.9;">
+        Adv. Kavitha Rao saw the full report the moment she connected.<br><br>
+        FIR filed: <span style="color:#ef4444;font-style:normal;font-weight:700;">IPC 465 + 468.</span><br>
+        Property transfer: <span style="color:#d1d5db;font-style:normal;font-weight:700;">frozen.</span><br>
+        Broker: <span style="color:#ef4444;font-style:normal;font-weight:700;">summoned.</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 11 — GOVERNMENT ACTS
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc11">
-  <div class="overline animate-fadein">The government reacts</div>
-  <div class="film-card animate-fadein d1" style="border-color:rgba(239,154,154,0.3);background:rgba(183,28,28,0.04);">
-    <div class="film-card-emoji">🏛️</div>
-    <div class="film-card-body">
-      <div class="film-card-name" style="color:#ef9a9a;">SRI MAHESH R · TAHSILDAR, YELAHANKA</div>
-      <div class="film-card-role">Government of Karnataka</div>
-      <div class="film-card-quote">
-        "I received the DigiSampatti forgery alert at 11:34 AM.<br><br>
-        By 1:00 PM — Survey 147/2A was <span class="danger">frozen.</span> Broker summoned. FIR registered.<br><br>
-        This is exactly how the system should work."
+<!-- ═══════════════════════════════════════
+  SC 13 — GOVERNMENT ACTS
+═══════════════════════════════════════ -->
+<div class="sc" id="sc13" style="background:radial-gradient(ellipse at center,#1a0505,#000);">
+  <div class="qcard fu" style="border-color:rgba(239,68,68,.15);background:rgba(183,28,28,.03);">
+    <div class="qcard-who">
+      <div class="qcard-em">🏛️</div>
+      <div>
+        <div class="qcard-name" style="color:#fca5a5;">SRI MAHESH R · TAHSILDAR, YELAHANKA</div>
+        <div class="qcard-role">Government of Karnataka</div>
       </div>
     </div>
+    <div class="qcard-text">
+      "DigiSampatti alert received: <span class="r">11:34 AM.</span><br><br>
+      By <span class="hi">1:00 PM</span> — Survey 147/2A was frozen. FIR registered.<br>
+      Broker Rajiv: summoned for interrogation.<br><br>
+      <span class="r">This is the feedback loop the system needed.</span>"
+    </div>
   </div>
-  <div class="subhead animate-fadein d3" style="margin-top:14px;font-size:13px;">
-    DigiSampatti creates a <span style="color:white;">direct feedback loop</span> from citizen to government — something no lawyer or broker can do.
+  <div class="cliff fu d2" style="color:#4b5563;">The broker didn't know it yet. But it was over. →</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 14 — BROKER CAUGHT
+═══════════════════════════════════════ -->
+<div class="sc" id="sc14" style="background:radial-gradient(ellipse at center,#1c0000,#000);">
+  <div class="kicker red fu">48 hours later</div>
+  <div class="qcard fu d1" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);">
+    <div class="qcard-who">
+      <div class="qcard-em">🚔</div>
+      <div>
+        <div class="qcard-name" style="color:#ef4444;">RAJIV — ARRESTED</div>
+        <div class="qcard-role">FIR: IPC 465 + 468 · Forgery & Fraud</div>
+      </div>
+    </div>
+    <div class="qcard-text" style="color:#6b7280;">
+      He had forged an RTC and hidden a ₹42L bank mortgage for years.<br><br>
+      Blacklisted on DigiSampatti's fraud map.<br>
+      <span class="r">3 future buyers in Yelahanka auto-warned.</span><br>
+      Karnataka REA licence: revoked.
+    </div>
+  </div>
+  <div class="small fu d2" style="margin-top:14px;color:#1f2937;">Every fraud caught makes the next one impossible.</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+  SC 15 — THREE DAYS LATER
+═══════════════════════════════════════ -->
+<div class="sc" id="sc15" style="background:radial-gradient(ellipse at center,#031208,#000);">
+  <div class="kicker green fu" style="color:#14532d;">Three days later</div>
+  <div class="big green fu d1" style="letter-spacing:-2px;">
+    Survey 142/3B.
+  </div>
+  <div class="big white fu d2" style="letter-spacing:-2px;margin-top:4px;">
+    A different plot.
+  </div>
+  <div class="mid fu d3" style="margin-top:16px;color:#6b7280;">
+    Priya scanned it. <span style="color:#4ade80;font-weight:700;">3 minutes.</span><br>
+    All 7 portals: <span style="color:#4ade80;font-weight:700;">clean.</span><br>
+    Digital signatures: <span style="color:#4ade80;font-weight:700;">authentic.</span><br>
+    No mortgage. No cases. A Khata. Real owner.
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 12 — BROKER CAUGHT
-────────────────────────────────────────────── -->
-<div class="scene bg-red" id="sc12">
-  <div class="overline red animate-fadein">The broker's end</div>
-  <div class="film-card animate-fadein d1" style="border-color:rgba(244,67,54,0.4);background:rgba(244,67,54,0.06);">
-    <div class="film-card-emoji">🚔</div>
-    <div class="film-card-body">
-      <div class="film-card-name" style="color:#ef5350;">RAJIV — BROKER · ARRESTED</div>
-      <div class="film-card-role">FIR: IPC 465 · IPC 468 · Karnataka REA</div>
-      <div class="film-card-quote" style="color:#888;">
-        Broker Rajiv attempted to sell a property with a forged RTC and a hidden SBI mortgage.<br><br>
-        He is now blacklisted on the DigiSampatti fraud map.<br>
-        <span class="danger">Three future buyers in Yelahanka were auto-warned.</span><br><br>
-        His Karnataka REA licence: revoked.
-      </div>
-    </div>
-  </div>
-  <div class="subhead animate-fadein d3" style="margin-top:14px;font-size:13px;color:#555;">
-    Every fraud caught makes the next one impossible.
-  </div>
-</div>
-
-<!-- ──────────────────────────────────────────────
-  SCENE 13 — SAFE PROPERTY FOUND
-────────────────────────────────────────────── -->
-<div class="scene bg-green" id="sc13">
-  <div class="overline green animate-fadein">Three days later</div>
-  <div class="headline green animate-fadein d1">Survey 142/3B · SAFE TO BUY</div>
-  <div style="display:flex;gap:32px;align-items:center;max-width:760px;width:100%;" class="animate-fadein d2">
-    <div class="phone-prop animate-zoom d3" style="box-shadow:0 0 60px rgba(76,175,80,0.4);">
-      <div class="pnotch"></div>
+<!-- ═══════════════════════════════════════
+  SC 16 — SAFE TO BUY
+═══════════════════════════════════════ -->
+<div class="sc" id="sc16" style="background:radial-gradient(ellipse at center,#031208,#000);">
+  <div style="display:flex;gap:40px;align-items:center;max-width:740px;width:100%;">
+    <div class="phone zi d1" style="box-shadow:0 0 50px rgba(74,222,128,.25);">
+      <div class="notch"></div>
       <div class="phone-screen">
-        <div class="ps-bar" style="color:#4caf50;">Safety Report</div>
-        <div class="ps-body">
-          <div style="display:flex;flex-direction:column;align-items:center;padding:8px 0;">
-            <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(#4caf50 0% 88%,#ffffff10 88%);display:flex;align-items:center;justify-content:center;position:relative;animation:glowGreen 2s ease infinite;margin-bottom:6px;">
-              <div style="position:absolute;inset:8px;background:#0d0d1a;border-radius:50%;"></div>
-              <div style="position:relative;z-index:1;text-align:center;">
-                <div style="font-size:20px;font-weight:900;color:white;">88</div>
-                <div style="font-size:6px;color:#888;">/100</div>
-              </div>
+        <div class="ph-bar" style="color:#4ade80;">Safety Report</div>
+        <div class="ph-body" style="align-items:center;justify-content:center;">
+          <div class="vring safe" style="margin-bottom:8px;">
+            <div class="vring-inner">
+              <div class="vring-num" style="color:#4ade80;">88</div>
+              <div class="vring-label">/100</div>
             </div>
-            <div style="color:#4caf50;font-size:9px;font-weight:800;margin-bottom:8px;">SAFE TO BUY</div>
           </div>
-          <div style="font-size:7px;line-height:1.9;color:#777;padding:0 2px;">
+          <div style="color:#4ade80;font-size:8px;font-weight:800;margin-bottom:8px;">SAFE TO BUY</div>
+          <div style="font-size:7px;color:#1f4a1f;line-height:2;text-align:left;width:100%;">
             ✅ Bhoomi QR: Authentic<br>
             ✅ CERSAI: No mortgage<br>
-            ✅ IGRS EC: Clean<br>
+            ✅ EC: Clean<br>
             ✅ eCourts: No cases<br>
             ✅ BBMP: A Khata<br>
             ✅ e-Stamp: Genuine<br>
@@ -859,273 +704,221 @@ body {
         </div>
       </div>
     </div>
-    <div style="flex:1;text-align:left;">
-      <div class="film-card-quote" style="font-size:15px;line-height:2;color:#999;">
-        Priya found a new property.<br>
-        DigiSampatti verified it in <span style="color:white;font-style:normal;font-weight:700;">3 minutes.</span><br><br>
-        All 7 portals clean. Score: <span style="color:#66bb6a;font-style:normal;font-weight:700;">88/100.</span><br>
-        Digital signatures: authentic.<br>
-        No court cases. No hidden debt.<br><br>
-        <span style="color:#66bb6a;font-style:normal;font-weight:700;">She paid the advance. Digitally. With a tamper-proof receipt.</span>
+    <div style="flex:1;">
+      <div class="vslam go fu d1" style="padding:20px 24px;">
+        <div class="vslam-big" style="font-size:clamp(22px,4vw,48px);">✅ SAFE TO BUY</div>
+        <div class="vslam-sub">Score 88/100. All 7 portals verified.<br>Paid advance digitally — tamper-proof receipt.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 14 — BANK APPROVES
-────────────────────────────────────────────── -->
-<div class="scene bg-blue" id="sc14">
-  <div class="overline blue animate-fadein">Then the bank saw the report</div>
-  <div class="film-card animate-fadein d1" style="border-color:rgba(100,181,246,0.3);background:rgba(21,101,192,0.05);">
-    <div class="film-card-emoji">🏦</div>
-    <div class="film-card-body">
-      <div class="film-card-name" style="color:#90caf9;">HDFC BANK · LOAN OFFICER</div>
-      <div class="film-card-role">Bengaluru North Branch</div>
-      <div class="film-card-quote">
-        "Normally we need 3 weeks of lawyer verification for a ₹55 lakh loan.<br><br>
-        Priya submitted the DigiSampatti report — Safety Score 88/100, all 7 portals verified.<br><br>
-        <span style="color:#66bb6a;font-style:normal;font-weight:700;">We approved in 4 hours.</span>"
+<!-- ═══════════════════════════════════════
+  SC 17 — BANK APPROVES
+═══════════════════════════════════════ -->
+<div class="sc" id="sc17" style="background:radial-gradient(ellipse at center,#030d1a,#000);">
+  <div class="qcard fu" style="border-color:rgba(96,165,250,.2);background:rgba(30,58,138,.03);">
+    <div class="qcard-who">
+      <div class="qcard-em">🏦</div>
+      <div>
+        <div class="qcard-name" style="color:#93c5fd;">HDFC BANK · LOAN OFFICER</div>
+        <div class="qcard-role">Bengaluru North</div>
       </div>
     </div>
+    <div class="qcard-text">
+      "Normally: 3-week lawyer verification for ₹55 lakh loan.<br><br>
+      Priya submitted the DigiSampatti report.<br>
+      Score 88/100. All 7 portals clean. Authentic signatures.<br><br>
+      <span class="g">We approved in 4 hours.</span>"
+    </div>
   </div>
-  <div class="animate-fadein d3" style="margin-top:16px;">
-    <div class="stamp-box">LOAN APPROVED ✓</div>
+  <div class="fu d2" style="margin-top:20px;">
+    <div class="bstamp">LOAN APPROVED ✓</div>
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 15 — THE NUMBERS
-────────────────────────────────────────────── -->
-<div class="scene bg-black" id="sc15">
-  <div class="overline animate-fadein">What DigiSampatti did</div>
-  <div class="impact-grid animate-fadein d1">
-    <div class="impact-cell" style="border-color:rgba(76,175,80,0.3);">
-      <div class="impact-num" style="color:#66bb6a;">₹85L</div>
-      <div class="impact-label">Protected</div>
+<!-- ═══════════════════════════════════════
+  SC 18 — THE NUMBERS
+═══════════════════════════════════════ -->
+<div class="sc" id="sc18" style="background:#000;">
+  <div class="kicker fu" style="color:#1f2937;">What just happened</div>
+  <div class="igrid fu d1">
+    <div class="icell" style="border-color:rgba(74,222,128,.2);">
+      <div class="icell-num" style="color:#4ade80;">₹85L</div>
+      <div class="icell-lbl">Saved</div>
     </div>
-    <div class="impact-cell" style="border-color:rgba(108,99,255,0.3);">
-      <div class="impact-num" style="color:#9c8fff;">3</div>
-      <div class="impact-label">Days total</div>
+    <div class="icell" style="border-color:rgba(167,139,250,.2);">
+      <div class="icell-num" style="color:#a78bfa;">3</div>
+      <div class="icell-lbl">Days total</div>
     </div>
-    <div class="impact-cell" style="border-color:rgba(255,193,7,0.3);">
-      <div class="impact-num" style="color:#ffd54f;">₹998</div>
-      <div class="impact-label">App cost</div>
+    <div class="icell" style="border-color:rgba(251,191,36,.2);">
+      <div class="icell-num" style="color:#fbbf24;">₹998</div>
+      <div class="icell-lbl">App cost</div>
     </div>
-    <div class="impact-cell" style="border-color:rgba(76,175,80,0.3);">
-      <div class="impact-num" style="color:#66bb6a;">0</div>
-      <div class="impact-label">Office visits</div>
+    <div class="icell" style="border-color:rgba(74,222,128,.2);">
+      <div class="icell-num" style="color:#4ade80;">7</div>
+      <div class="icell-lbl">Portals checked</div>
     </div>
-    <div class="impact-cell" style="border-color:rgba(244,67,54,0.3);">
-      <div class="impact-num" style="color:#ef5350;">7</div>
-      <div class="impact-label">Portals checked</div>
+    <div class="icell" style="border-color:rgba(239,68,68,.2);">
+      <div class="icell-num" style="color:#ef4444;">0</div>
+      <div class="icell-lbl">Office visits</div>
     </div>
-    <div class="impact-cell" style="border-color:rgba(76,175,80,0.3);">
-      <div class="impact-num" style="color:#66bb6a;">1</div>
-      <div class="impact-label">Broker arrested</div>
+    <div class="icell" style="border-color:rgba(74,222,128,.2);">
+      <div class="icell-num" style="color:#4ade80;">8,500×</div>
+      <div class="icell-lbl">ROI</div>
     </div>
   </div>
-  <div class="subhead animate-fadein d3" style="font-size:13px;margin-top:4px;color:#444;">
-    Traditional process: 60 days · ₹50,000 in fees · 12 office visits · Still no guarantee.
-  </div>
-</div>
-
-<!-- ──────────────────────────────────────────────
-  SCENE 16 — WHO BENEFITS
-────────────────────────────────────────────── -->
-<div class="scene bg-dark" id="sc16">
-  <div class="overline animate-fadein">Everyone wins. Except fraudsters.</div>
-  <div class="split animate-fadein d1" style="grid-template-columns:1fr 1fr 1fr;max-width:900px;">
-    <div class="split-panel good">
-      <div class="split-title good">🧑 Citizens</div>
-      <div class="split-item"><span class="arrow">→</span>₹85L saved from fraud</div>
-      <div class="split-item"><span class="arrow">→</span>3 days not 60</div>
-      <div class="split-item"><span class="arrow">→</span>Zero office visits</div>
-      <div class="split-item"><span class="arrow">→</span>Expert in 1 tap</div>
-    </div>
-    <div class="split-panel good">
-      <div class="split-title good">🏦 Banks</div>
-      <div class="split-item"><span class="arrow">→</span>Loan approved in 4h</div>
-      <div class="split-item"><span class="arrow">→</span>Zero NPA risk</div>
-      <div class="split-item"><span class="arrow">→</span>No fake collateral</div>
-      <div class="split-item"><span class="arrow">→</span>API integration</div>
-    </div>
-    <div class="split-panel good">
-      <div class="split-title good">🏛️ Government</div>
-      <div class="split-item"><span class="arrow">→</span>Fraud alerts in real time</div>
-      <div class="split-item"><span class="arrow">→</span>Tahsildar notified</div>
-      <div class="split-item"><span class="arrow">→</span>Stamp duty on clean sales</div>
-      <div class="split-item"><span class="arrow">→</span>No corrupt middlemen</div>
-    </div>
+  <div class="small fu d2" style="margin-top:14px;color:#1f2937;">
+    Traditional: 60 days · ₹50,000 · 12 office visits · still no guarantee.
   </div>
 </div>
 
-<!-- ──────────────────────────────────────────────
-  SCENE 17 — CLOSING
-────────────────────────────────────────────── -->
-<div class="scene bg-black" id="sc17">
-  <div class="overline animate-fadein" style="color:#333;">Karnataka · 2025</div>
-  <div class="logo-big animate-fadein d1" style="font-size:clamp(36px,8vw,96px);text-shadow:0 0 100px rgba(108,99,255,.4);">DigiSampatti</div>
-  <div class="animate-fadein d2" style="font-size:clamp(14px,2vw,22px);color:#555;letter-spacing:3px;margin-top:8px;text-transform:uppercase;">Making property fraud impossible</div>
-  <div class="animate-fadein d3" style="margin-top:32px;">
-    <div style="display:flex;gap:40px;justify-content:center;flex-wrap:wrap;">
-      <div style="text-align:center;">
-        <div style="font-size:11px;color:#333;letter-spacing:2px;margin-bottom:4px;">SCAN ANY PROPERTY</div>
-        <div style="font-size:14px;color:#6C63FF;font-weight:700;">₹998</div>
-      </div>
-      <div style="width:1px;background:#1a1a1a;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:11px;color:#333;letter-spacing:2px;margin-bottom:4px;">AVERAGE FRAUD PREVENTED</div>
-        <div style="font-size:14px;color:#6C63FF;font-weight:700;">₹85 Lakh</div>
-      </div>
-      <div style="width:1px;background:#1a1a1a;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:11px;color:#333;letter-spacing:2px;margin-bottom:4px;">ROI FOR BUYER</div>
-        <div style="font-size:14px;color:#6C63FF;font-weight:700;">8,500×</div>
-      </div>
+<!-- ═══════════════════════════════════════
+  SC 19 — CLOSING
+═══════════════════════════════════════ -->
+<div class="sc" id="sc19" style="background:#000;">
+  <div class="kicker fu" style="color:#1f2937;letter-spacing:4px;">Karnataka's property intelligence platform</div>
+  <div class="fu d1" style="font-size:clamp(40px,9vw,110px);font-weight:900;color:#6C63FF;letter-spacing:-3px;text-shadow:0 0 100px rgba(108,99,255,.4);">
+    DigiSampatti
+  </div>
+  <div class="fu d2" style="font-size:clamp(12px,1.8vw,20px);color:#1f2937;letter-spacing:5px;text-transform:uppercase;margin-top:8px;">
+    Making property fraud impossible
+  </div>
+  <div class="fu d3" style="display:flex;gap:40px;margin-top:36px;flex-wrap:wrap;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:11px;color:#111;letter-spacing:2px;margin-bottom:5px;">SCAN ANY PROPERTY</div>
+      <div style="font-size:16px;color:#6C63FF;font-weight:800;">₹998</div>
+    </div>
+    <div style="width:1px;background:#111;"></div>
+    <div style="text-align:center;">
+      <div style="font-size:11px;color:#111;letter-spacing:2px;margin-bottom:5px;">FRAUD PREVENTED</div>
+      <div style="font-size:16px;color:#6C63FF;font-weight:800;">₹85 Lakh avg.</div>
+    </div>
+    <div style="width:1px;background:#111;"></div>
+    <div style="text-align:center;">
+      <div style="font-size:11px;color:#111;letter-spacing:2px;margin-bottom:5px;">PORTALS VERIFIED</div>
+      <div style="font-size:16px;color:#6C63FF;font-weight:800;">7 simultaneously</div>
     </div>
   </div>
 </div>
 
 </div><!-- end stage -->
+<!-- progress dots + timeline -->
+<div id="pdots"></div>
+<div id="bar"><div id="bar-fill"></div></div>
 
 <script>
-// ── Scene definitions ──
-const scenes = [
-  { id:'sc1',  label:'01 — Title',           duration:3500 },
-  { id:'sc2',  label:'02 — The Problem',      duration:5500 },
-  { id:'sc3',  label:'03 — Meet Ramu',        duration:6000 },
-  { id:'sc4',  label:'04 — The Broker',       duration:7000 },
-  { id:'sc5',  label:'05 — App Scan',         duration:6500 },
-  { id:'sc6',  label:'06 — 7 Portals',        duration:7000, onEnter: animatePortals },
-  { id:'sc7',  label:'07 — Forgery Alert',    duration:6000, onEnter: triggerForgery },
-  { id:'sc8',  label:'08 — EC vs CERSAI',     duration:6500 },
-  { id:'sc9',  label:'09 — Do Not Buy',       duration:4500 },
-  { id:'sc10', label:'10 — Lawyer in 1 Tap',  duration:6500 },
-  { id:'sc11', label:'11 — Government Acts',  duration:5500 },
-  { id:'sc12', label:'12 — Broker Caught',    duration:5500 },
-  { id:'sc13', label:'13 — Safe Property',    duration:6500 },
-  { id:'sc14', label:'14 — Bank Approves',    duration:5500 },
-  { id:'sc15', label:'15 — The Numbers',      duration:5500 },
-  { id:'sc16', label:'16 — Who Benefits',     duration:6500 },
-  { id:'sc17', label:'17 — Closing',          duration:5000 },
-];
+const IDS = ['sc01','sc02','sc03','sc04','sc05','sc06','sc07','sc08',
+             'sc09','sc10','sc11','sc12','sc13','sc14','sc15','sc16',
+             'sc17','sc18','sc19'];
 
-let cur = 0;
-let paused = false;
-let timer = null;
-let startTime = null;
-let elapsed = 0;
+// Duration per scene (ms)
+const DUR = [3000,4500,6000,6500,5500,6000,5500,7000,
+             5500,6500,5000,6000,5500,5000,5000,5500,
+             5500,5500,5000];
+
+const MONEY_SCENES = [1,2,3,4,5,6,7,8,9,10]; // 0-indexed — show ₹ HUD
+const LABELS = ['01','02','03','04','05','06','07','08',
+                '09','10','11','12','13','14','15','16',
+                '17','18','19'];
+
+let cur = 0, paused = false, t = null;
 
 // Build dots
-const dotsEl = document.getElementById('dots');
-scenes.forEach((_, i) => {
+const pdots = document.getElementById('pdots');
+IDS.forEach((_,i)=>{
   const d = document.createElement('div');
-  d.className = 'dot' + (i === 0 ? ' active' : '');
-  d.onclick = () => { clearTimeout(timer); goTo(i); };
-  dotsEl.appendChild(d);
+  d.className='pd'+(i===0?' on':'');
+  d.onclick=()=>{clearTimeout(t);goTo(i);};
+  pdots.appendChild(d);
 });
 
-function goTo(n) {
-  if (n < 0) n = 0;
-  if (n >= scenes.length) {
-    // End — loop back to start after pause
-    setTimeout(() => goTo(0), 2000);
-    return;
-  }
+function goTo(n){
+  if(n<0||n>=IDS.length) { if(n>=IDS.length){ setTimeout(()=>goTo(0),2500); } return; }
 
-  // Deactivate current
-  document.getElementById(scenes[cur].id).classList.remove('active');
-  dotsEl.children[cur].className = 'dot done';
+  // hide current
+  document.getElementById(IDS[cur]).classList.remove('on');
+  pdots.children[cur].className='pd done';
 
-  cur = n;
-  const sc = scenes[cur];
+  cur=n;
 
-  // Activate new
-  document.getElementById(sc.id).classList.add('active');
-  dotsEl.children[cur].className = 'dot active';
-  document.getElementById('scene-label').textContent = sc.label;
+  // show next
+  const el=document.getElementById(IDS[cur]);
+  el.classList.add('on');
+  // re-trigger animations by cloning children (simple approach: remove/add class)
+  el.querySelectorAll('.fu,.fi,.zi,.zb').forEach(c=>{
+    c.style.animation='none';
+    void c.offsetWidth;
+    c.style.animation='';
+  });
 
-  // Timeline fill
-  const pct = (cur / (scenes.length - 1)) * 100;
-  document.getElementById('timeline-fill').style.width = pct + '%';
+  pdots.children[cur].className='pd on';
+  document.getElementById('hud-scene').textContent=LABELS[cur]+' / 19';
+  document.getElementById('bar-fill').style.width=((cur/(IDS.length-1))*100)+'%';
 
-  // On-enter callback
-  if (sc.onEnter) sc.onEnter();
+  const hm=document.getElementById('hud-money');
+  if(MONEY_SCENES.includes(cur)) hm.classList.add('show'); else hm.classList.remove('show');
 
-  // Auto-advance
-  if (!paused) scheduleNext(sc.duration);
+  // Scene callbacks
+  if(IDS[cur]==='sc07') schedTerminal();
+  if(IDS[cur]==='sc09') doForgeryFlash();
+
+  if(!paused) t=setTimeout(()=>goTo(cur+1), DUR[cur]);
 }
 
-function scheduleNext(ms) {
-  clearTimeout(timer);
-  timer = setTimeout(() => goTo(cur + 1), ms);
-}
-
-function togglePause() {
-  paused = !paused;
-  document.getElementById('pp-btn').textContent = paused ? '▶' : '⏸';
-  if (!paused) {
-    scheduleNext(scenes[cur].duration);
-  } else {
-    clearTimeout(timer);
-  }
-}
-
-function skip(dir) {
-  clearTimeout(timer);
-  goTo(cur + dir);
-}
-
-// ── Portal animation ──
-function animatePortals() {
-  const updates = [
-    { id:'pc1', delay:400,  cls:'bad',  status:'🚨 FORGERY' },
-    { id:'pc2', delay:900,  cls:'bad',  status:'🏦 ₹42L ACTIVE' },
-    { id:'pc3', delay:1300, cls:'warn', status:'⚠ Contradicts CERSAI' },
-    { id:'pc4', delay:1700, cls:'ok',   status:'✓ No cases' },
-    { id:'pc5', delay:2100, cls:'ok',   status:'✓ B Khata' },
-    { id:'pc6', delay:2400, cls:'ok',   status:'✓ Clean' },
-    { id:'pc7', delay:2700, cls:'ok',   status:'✓ Not listed' },
-    { id:'pc8', delay:3000, cls:'ok',   status:'✓ Genuine' },
+function schedTerminal(){
+  const lines=[
+    {id:'tl1',cls:'ok',   text:'✓ Bhoomi connected · QR token found',   delay:600},
+    {id:'tl2',cls:'active',text:'→ CERSAI querying...',                  delay:1000},
+    {id:'tl3',cls:'active',text:'→ KAVERI EC verifying...',              delay:1400},
+    {id:'tl4',cls:'active',text:'→ eCourts searching: "Gopal S"...',     delay:1800},
+    {id:'tl5',cls:'active',text:'→ BBMP e-Aasthi checking...',           delay:2200},
+    {id:'tl6',cls:'ok',    text:'✓ RERA: No violations',                 delay:2600},
+    {id:'tl7',cls:'ok',    text:'✓ Benami: Not listed',                  delay:3000},
   ];
-  // Reset first
-  document.querySelectorAll('.portal-cell').forEach(el => {
-    el.className = 'portal-cell checking';
-  });
-  updates.forEach(u => {
-    setTimeout(() => {
-      const el = document.getElementById(u.id);
-      if (!el) return;
-      el.className = 'portal-cell ' + u.cls;
-      el.querySelector('.pc-status').textContent = u.status;
-    }, u.delay);
+  lines.forEach(l=>{
+    setTimeout(()=>{
+      const el=document.getElementById(l.id);
+      if(!el) return;
+      el.className='term-line '+l.cls;
+      el.innerHTML=l.text;
+    },l.delay);
   });
 }
 
-// ── Forgery flash ──
-function triggerForgery() {
-  const flash = document.getElementById('forgery-flash');
-  flash.classList.remove('flash');
-  void flash.offsetWidth; // reflow
-  flash.classList.add('flash');
+function doForgeryFlash(){
+  const r=document.getElementById('flash-red');
+  const w=document.getElementById('flash-white');
+  // white flash first
+  w.style.transition='none';
+  w.style.background='rgba(255,255,255,.35)';
+  setTimeout(()=>{ w.style.transition='background .6s ease'; w.style.background='rgba(255,255,255,0)'; },80);
+  // red glow after
+  setTimeout(()=>{
+    r.style.transition='none';
+    r.style.background='rgba(244,67,54,.25)';
+    setTimeout(()=>{ r.style.transition='background 1.2s ease'; r.style.background='rgba(244,67,54,0)'; },100);
+  },300);
 }
 
-// Keyboard
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
-  if (e.code === 'ArrowRight') { clearTimeout(timer); goTo(cur + 1); }
-  if (e.code === 'ArrowLeft')  { clearTimeout(timer); goTo(cur - 1); }
+function togglePause(){
+  paused=!paused;
+  const ph=document.getElementById('pause-hint');
+  if(paused){ clearTimeout(t); ph.classList.add('show'); }
+  else       { ph.classList.remove('show'); t=setTimeout(()=>goTo(cur+1),DUR[cur]); }
+}
+
+// keyboard & click
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();togglePause();}
+  if(e.code==='ArrowRight'){clearTimeout(t);goTo(cur+1);}
+  if(e.code==='ArrowLeft') {clearTimeout(t);goTo(cur-1);}
+});
+document.getElementById('stage').addEventListener('click',e=>{
+  if(e.target.closest('#pdots')||e.target.closest('#hud')) return;
+  clearTimeout(t); goTo(cur+1);
 });
 
-// Click anywhere to advance (except controls/dots)
-document.getElementById('stage').addEventListener('click', e => {
-  if (e.target.closest('#controls') || e.target.closest('#dots')) return;
-  clearTimeout(timer);
-  goTo(cur + 1);
-});
-
-// Start
 goTo(0);
 </script>
 </body>
