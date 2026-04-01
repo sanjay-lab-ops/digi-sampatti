@@ -10,6 +10,7 @@ import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/services/camera_service.dart';
 import 'package:digi_sampatti/core/services/gps_service.dart';
+import 'package:digi_sampatti/core/services/ocr_service.dart';
 
 class CameraScanScreen extends ConsumerStatefulWidget {
   const CameraScanScreen({super.key});
@@ -21,15 +22,19 @@ class CameraScanScreen extends ConsumerStatefulWidget {
 class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
   final _cameraService = CameraService();
   final _gpsService = GpsService();
+  final _ocrService = OcrService();
   bool _isInitialized = false;
   bool _isCapturing = false;
+  bool _isRunningOcr = false;
   GpsLocation? _currentLocation;
   String? _captureError;
+  OcrResult? _ocrResult;
 
   @override
   void initState() {
     super.initState();
     _initialize();
+    _ocrService.initialize();
   }
 
   Future<void> _initialize() async {
@@ -59,19 +64,29 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       final freshLocation = await _gpsService.getCurrentLocation();
       final location = freshLocation ?? _currentLocation;
 
+      // Run OCR in background while showing preview
+      setState(() { _isRunningOcr = true; });
+      OcrResult ocrResult = const OcrResult();
+      _ocrService.extractFromDocument(photoPath).then((result) {
+        if (mounted) setState(() { _ocrResult = result; _isRunningOcr = false; });
+      });
+
       final scan = PropertyScan(
         id: const Uuid().v4(),
         photoPath: photoPath,
         location: location,
         scanMethod: ScanMethod.camera,
         scannedAt: DateTime.now(),
+        // Pre-fill from OCR if available
+        surveyNumber: ocrResult.surveyNumber,
+        ownerName: ocrResult.ownerName,
       );
 
       ref.read(currentScanProvider.notifier).state = scan;
       ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
       if (mounted) {
-        // Show GPS-stamped preview with Dishank option
+        // Show GPS-stamped preview with OCR result + Dishank option
         await _showPhotoPreview(context, photoPath, location, scan);
       }
     } finally {
@@ -101,6 +116,13 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             'longitude': location?.longitude,
             'address': location?.address,
             'photoPath': photoPath,
+            // Pass OCR results so manual_search can pre-fill the form
+            'ocrSurveyNumber': _ocrResult?.surveyNumber,
+            'ocrOwnerName': _ocrResult?.ownerName,
+            'ocrTaluk': _ocrResult?.taluk,
+            'ocrDistrict': _ocrResult?.district,
+            'ocrDocumentType': _ocrResult?.documentType,
+            'ocrConfidence': _ocrResult?.confidence,
           });
         },
       ),
@@ -138,6 +160,71 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             top: 16, left: 16, right: 16,
             child: _GpsOverlay(location: _currentLocation),
           ),
+
+          // OCR status overlay (shown while reading document)
+          if (_isRunningOcr)
+            Positioned(
+              top: 70, left: 16, right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 14, height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.greenAccent,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Reading document...',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // OCR result banner (shown after OCR completes with data)
+          if (!_isRunningOcr && _ocrResult != null && _ocrResult!.hasUsefulData)
+            Positioned(
+              top: 70, left: 16, right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade900.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.greenAccent, width: 1),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.auto_fix_high,
+                          color: Colors.greenAccent, size: 14),
+                      const SizedBox(width: 6),
+                      const Text('Document scanned',
+                          style: TextStyle(
+                              color: Colors.greenAccent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold)),
+                    ]),
+                    if (_ocrResult!.surveyNumber != null)
+                      Text('Survey No: ${_ocrResult!.surveyNumber}',
+                          style: const TextStyle(color: Colors.white, fontSize: 11)),
+                    if (_ocrResult!.ownerName != null)
+                      Text('Owner: ${_ocrResult!.ownerName}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ),
 
           // Capture Grid Lines
           CustomPaint(

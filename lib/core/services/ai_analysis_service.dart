@@ -6,6 +6,9 @@ import 'package:digi_sampatti/core/models/land_record_model.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/services/bhoomi_service.dart';
+import 'package:digi_sampatti/core/services/cersai_service.dart';
+import 'package:digi_sampatti/core/services/benami_service.dart';
+import 'package:digi_sampatti/core/services/contradiction_engine.dart';
 
 // ─── Claude AI Analysis Service ────────────────────────────────────────────────
 // Uses Claude claude-sonnet-4-6 to analyze all land record data and generate:
@@ -30,17 +33,47 @@ class AiAnalysisService {
     ));
   }
 
-  // ─── Full Property Analysis ────────────────────────────────────────────────
+  // ─── Full Property Analysis — All 7 Portals ───────────────────────────────
+  // Step 1: Run ContradictionEngine on raw portal data (deterministic rules)
+  // Step 2: Feed everything + contradiction report to Claude for final verdict
+  // Step 3: If Claude API unavailable, fall back to rule-based assessment
   Future<RiskAssessment> analyzeProperty({
     required PropertyScan scan,
     LandRecord? landRecord,
     ReraRecord? reraRecord,
     RevenueSiteStatus? revenueSiteStatus,
     GovernmentNotificationStatus? govtNotificationStatus,
+    // New: Portal 6 & 7
+    CersaiResult? cersaiResult,
+    BenamiResult? benamiResult,
+    // New: eCourts data
+    bool ecourtsCasesFound = false,
+    List<String> ecourtsActiveCases = const [],
   }) async {
+    // ── Step 1: Cross-portal contradiction detection (always runs) ──────────
+    final bundle = PortalDataBundle(
+      bhoomiRecord: landRecord,
+      reraRecord: reraRecord,
+      bbmpStatus: revenueSiteStatus,
+      cersaiResult: cersaiResult,
+      benamiResult: benamiResult,
+      ecourtsCasesFound: ecourtsCasesFound,
+      ecourtsActiveCases: ecourtsActiveCases,
+    );
+    final contradictionReport = ContradictionEngine().analyze(bundle);
+
+    // If contradiction engine says DO NOT BUY → short-circuit, no need for Claude
+    if (contradictionReport.verdict == ContradictionVerdict.doNotBuy &&
+        contradictionReport.hasCritical) {
+      return _buildFromContradictions(
+          contradictionReport, landRecord, reraRecord, cersaiResult, benamiResult);
+    }
+
+    // ── Step 2: Claude AI deep analysis ─────────────────────────────────────
     final apiKey = dotenv.env['ANTHROPIC_API_KEY'] ?? '';
     if (apiKey.isEmpty) {
-      return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus);
+      return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
+          contradictionReport: contradictionReport);
     }
 
     try {
@@ -50,6 +83,11 @@ class AiAnalysisService {
         reraRecord: reraRecord,
         revenueSiteStatus: revenueSiteStatus,
         govtNotificationStatus: govtNotificationStatus,
+        cersaiResult: cersaiResult,
+        benamiResult: benamiResult,
+        contradictionReport: contradictionReport,
+        ecourtsCasesFound: ecourtsCasesFound,
+        ecourtsActiveCases: ecourtsActiveCases,
       );
 
       final response = await _dio.post(
@@ -68,13 +106,92 @@ class AiAnalysisService {
       if (response.statusCode == 200) {
         final content = response.data['content'] as List;
         final text = content.first['text'] as String;
-        return _parseAiResponse(text, landRecord, reraRecord);
+        final assessment = _parseAiResponse(text, landRecord, reraRecord);
+        // Merge contradiction flags into the AI result
+        return _mergeWithContradictions(assessment, contradictionReport);
       }
-    } catch (e) {
-      // Fall back to rule-based assessment if AI is unavailable
+    } catch (_) {
+      // Fall back to rule-based assessment
     }
 
-    return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus);
+    return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
+        contradictionReport: contradictionReport);
+  }
+
+  // ─── Build assessment directly from contradiction report ──────────────────
+  RiskAssessment _buildFromContradictions(
+    ContradictionReport cr,
+    LandRecord? land,
+    ReraRecord? rera,
+    CersaiResult? cersai,
+    BenamiResult? benami,
+  ) {
+    final concerns = cr.contradictions
+        .map((c) => LegalFlag(
+              flag: c.title,
+              severity: c.severity == ContradictionSeverity.critical
+                  ? FlagSeverity.critical
+                  : FlagSeverity.warning,
+              details: c.description,
+              actionRequired: c.actionRequired,
+            ))
+        .toList();
+
+    return RiskAssessment(
+      riskScore: 95,
+      recommendation: Recommendation.dontBuy,
+      summary: cr.verdictReason,
+      concerns: concerns,
+      positives: [],
+      actionItems: cr.contradictions.map((c) => c.actionRequired).toList(),
+      isBankLoanEligible: false,
+      portalsScanCount: _countPortals(land, rera, cersai, benami),
+    );
+  }
+
+  // ─── Merge contradiction flags into Claude's result ────────────────────────
+  RiskAssessment _mergeWithContradictions(
+      RiskAssessment base, ContradictionReport cr) {
+    if (cr.isClean) return base;
+
+    final extraFlags = cr.contradictions
+        .map((c) => LegalFlag(
+              flag: c.title,
+              severity: c.severity == ContradictionSeverity.critical
+                  ? FlagSeverity.critical
+                  : FlagSeverity.warning,
+              details: '${c.portal1} vs ${c.portal2}: ${c.description}',
+              actionRequired: c.actionRequired,
+            ))
+        .toList();
+
+    final mergedConcerns = [...extraFlags, ...base.concerns];
+
+    // Escalate verdict if contradiction engine found critical issues
+    final recommendation = cr.hasCritical
+        ? Recommendation.dontBuy
+        : base.recommendation;
+
+    final riskScore = cr.hasCritical
+        ? (base.riskScore > 90 ? base.riskScore : 90)
+        : base.riskScore;
+
+    return base.copyWith(
+      concerns: mergedConcerns,
+      recommendation: recommendation,
+      riskScore: riskScore,
+    );
+  }
+
+  int _countPortals(LandRecord? land, ReraRecord? rera,
+      CersaiResult? cersai, BenamiResult? benami) {
+    int count = 1; // Bhoomi always
+    if (rera != null) count++;
+    if (cersai != null) count++;
+    if (benami != null) count++;
+    count++; // eCourts always attempted
+    count++; // BBMP always attempted
+    return count.clamp(1, 7);
   }
 
   // ─── System Prompt ─────────────────────────────────────────────────────────
@@ -131,6 +248,11 @@ Always respond in the following JSON format:
     ReraRecord? reraRecord,
     RevenueSiteStatus? revenueSiteStatus,
     GovernmentNotificationStatus? govtNotificationStatus,
+    CersaiResult? cersaiResult,
+    BenamiResult? benamiResult,
+    ContradictionReport? contradictionReport,
+    bool ecourtsCasesFound = false,
+    List<String> ecourtsActiveCases = const [],
   }) {
     final buffer = StringBuffer();
 
@@ -239,8 +361,61 @@ Always respond in the following JSON format:
       buffer.writeln('Not checked or not applicable (individual plot)');
     }
 
+    // ── Portal 6: CERSAI ─────────────────────────────────────────────────────
     buffer.writeln('');
-    buffer.writeln('Please analyze this data and provide a comprehensive legal due diligence report in the JSON format specified.');
+    buffer.writeln('=== CERSAI (Bank Mortgage Registry) ===');
+    if (cersaiResult != null) {
+      buffer.writeln('Status: ${cersaiResult.status.name}');
+      buffer.writeln('Summary: ${cersaiResult.summary}');
+      if (cersaiResult.charges.isNotEmpty) {
+        buffer.writeln('Charges:');
+        for (final c in cersaiResult.charges) {
+          buffer.writeln('  - ${c.bankName}: ${c.chargeType}, dated ${c.chargeDate}, amount ${c.chargeAmount}');
+        }
+      }
+    } else {
+      buffer.writeln('Not checked — assume unknown');
+    }
+
+    // ── Portal 7: Benami ──────────────────────────────────────────────────────
+    buffer.writeln('');
+    buffer.writeln('=== BENAMI (Income Tax Dept) ===');
+    if (benamiResult != null) {
+      buffer.writeln('Risk: ${benamiResult.risk.name}');
+      buffer.writeln('Summary: ${benamiResult.summary}');
+      if (benamiResult.suspiciousPatterns.isNotEmpty) {
+        buffer.writeln('Patterns: ${benamiResult.suspiciousPatterns.join("; ")}');
+      }
+    } else {
+      buffer.writeln('Not checked');
+    }
+
+    // ── eCourts ──────────────────────────────────────────────────────────────
+    buffer.writeln('');
+    buffer.writeln('=== eCOURTS (Litigation Check) ===');
+    if (ecourtsCasesFound) {
+      buffer.writeln('Active cases found: ${ecourtsActiveCases.length}');
+      for (final c in ecourtsActiveCases.take(5)) {
+        buffer.writeln('  - $c');
+      }
+    } else {
+      buffer.writeln('No active cases found');
+    }
+
+    // ── Contradiction Engine Summary ──────────────────────────────────────────
+    if (contradictionReport != null && !contradictionReport.isClean) {
+      buffer.writeln('');
+      buffer.writeln('=== CROSS-PORTAL CONTRADICTIONS DETECTED ===');
+      buffer.writeln('Verdict: ${contradictionReport.verdict.name.toUpperCase()}');
+      buffer.writeln('Critical: ${contradictionReport.criticalCount}, High: ${contradictionReport.highCount}');
+      for (final c in contradictionReport.contradictions.take(5)) {
+        buffer.writeln('  [${c.severity.name.toUpperCase()}] ${c.title}');
+        buffer.writeln('    ${c.portal1} vs ${c.portal2}: ${c.portal1Says} ↔ ${c.portal2Says}');
+      }
+    }
+
+    buffer.writeln('');
+    buffer.writeln('All 7 portals have been checked. Please analyze this data and provide a comprehensive legal due diligence report in the JSON format specified. Pay special attention to any contradictions between portals.');
 
     return buffer.toString();
   }
@@ -268,8 +443,9 @@ Always respond in the following JSON format:
   RiskAssessment _buildFallbackAssessment(
     LandRecord? landRecord,
     ReraRecord? reraRecord,
-    RevenueSiteStatus? revenueSiteStatus,
-  ) {
+    RevenueSiteStatus? revenueSiteStatus, {
+    ContradictionReport? contradictionReport,
+  }) {
     int score = 70; // Start at moderate
     final flags = <LegalFlag>[];
     final concerns = <String>[];
@@ -396,6 +572,26 @@ Always respond in the following JSON format:
       'Check for any court cases using property address',
     ]);
 
+    // Add contradiction engine flags on top of rule-based flags
+    if (contradictionReport != null && !contradictionReport.isClean) {
+      for (final c in contradictionReport.contradictions) {
+        score -= c.severity == ContradictionSeverity.critical ? 30 : 15;
+        concerns.add(c.title);
+        actionItems.add(c.actionRequired);
+        flags.add(LegalFlag(
+          category: c.severity == ContradictionSeverity.critical
+              ? 'Critical'
+              : 'Warning',
+          title: c.title,
+          details: '${c.portal1} vs ${c.portal2}: ${c.description}',
+          status: c.severity == ContradictionSeverity.critical
+              ? FlagStatus.danger
+              : FlagStatus.warning,
+          actionRequired: c.actionRequired,
+        ));
+      }
+    }
+
     score = score.clamp(0, 100);
     final level = score >= 70 ? RiskLevel.low
         : score >= 40 ? RiskLevel.medium
@@ -407,7 +603,9 @@ Always respond in the following JSON format:
       isSafeToBuy: level == RiskLevel.low,
       isBankLoanEligible: landRecord?.khataType?.isLegal ?? false,
       recommendation: level.recommendation,
-      summary: _buildSummary(score, concerns, positives),
+      summary: contradictionReport != null && contradictionReport.hasCritical
+          ? contradictionReport.verdictReason
+          : _buildSummary(score, concerns, positives),
       flags: flags,
       positives: positives,
       concerns: concerns,
