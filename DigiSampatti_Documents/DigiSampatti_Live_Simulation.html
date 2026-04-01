@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DigiSampatti — Live App Simulation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:radial-gradient(ellipse at center,#0d1117 0%,#020408 100%);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;
+}
+
+/* ── Phone Shell ── */
+.phone-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.phone{
+  width:340px;height:700px;
+  background:#0d0d0d;
+  border-radius:44px;
+  border:2.5px solid #2a2a2a;
+  box-shadow:
+    0 0 0 1px #111,
+    0 30px 80px rgba(0,0,0,0.9),
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 60px rgba(0,200,100,0.06);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.phone::before{/* notch */
+  content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:90px;height:6px;background:#1a1a1a;border-radius:3px;z-index:200;
+}
+.phone-screen{flex:1;position:relative;overflow:hidden;}
+
+/* ── Status Bar ── */
+.sbar{
+  height:32px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:10px;font-weight:600;color:#888;
+  position:absolute;top:0;left:0;right:0;z-index:100;
+}
+
+/* ── App Screens ── */
+.app-screen{
+  position:absolute;inset:0;
+  opacity:0;transform:translateX(100%);
+  transition:all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+  pointer-events:none;
+}
+.app-screen.active{opacity:1;transform:translateX(0);pointer-events:all;}
+.app-screen.exit{opacity:0;transform:translateX(-80px);}
+
+/* ── App Bar ── */
+.app-bar{
+  height:54px;display:flex;align-items:center;padding:0 16px;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;
+}
+.back-btn{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.07);
+  display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
+.app-bar-title{font-size:15px;font-weight:700;color:#fff;flex:1;}
+.app-bar-sub{font-size:10px;color:#666;margin-top:1px;}
+
+/* ── HOME SCREEN ── */
+#home{background:linear-gradient(160deg,#0a0f1e 0%,#060a12 100%);}
+.home-hero{padding:32px 20px 16px;text-align:center;}
+.home-logo{
+  width:72px;height:72px;border-radius:22px;margin:0 auto 14px;
+  background:linear-gradient(135deg,#00c853,#1565c0);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  box-shadow:0 0 40px rgba(0,200,83,0.3);
+}
+.home-title{font-size:22px;font-weight:900;color:#fff;}
+.home-sub{font-size:11px;color:#4caf50;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.home-tagline{font-size:12px;color:#666;margin-top:8px;line-height:1.5;}
+
+.scan-card{
+  margin:16px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(0,200,83,0.1),rgba(21,101,192,0.1));
+  border:1px solid rgba(0,200,83,0.25);
+  padding:18px;cursor:pointer;transition:all 0.2s;
+}
+.scan-card:hover{transform:scale(1.01);border-color:rgba(0,200,83,0.5);}
+.scan-card-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:4px;}
+.scan-card-sub{font-size:11px;color:#888;margin-bottom:14px;}
+.scan-methods{display:flex;gap:8px;}
+.scan-method{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:10px 6px;text-align:center;}
+.sm-icon{font-size:20px;margin-bottom:4px;}
+.sm-label{font-size:9px;color:#aaa;line-height:1.3;}
+
+.quick-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 16px 16px;}
+.qs-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:10px;text-align:center;}
+.qs-num{font-size:18px;font-weight:800;color:#4caf50;}
+.qs-label{font-size:9px;color:#666;margin-top:2px;}
+
+/* ── CAMERA SCREEN ── */
+#camera{background:#000;}
+.cam-view{
+  flex:1;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0a1a0a 0%,#001005 50%,#0a1a0a 100%);
+}
+/* Simulated camera grain */
+.cam-view::before{
+  content:'';position:absolute;inset:0;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:1;
+}
+.cam-grid{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.cam-grid-line{position:absolute;background:rgba(255,255,255,0.08);}
+.scan-frame{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);
+  width:220px;height:150px;z-index:10;
+}
+.sf-corner{position:absolute;width:20px;height:20px;border-color:#00e676;border-style:solid;}
+.sf-tl{top:0;left:0;border-width:2px 0 0 2px;}
+.sf-tr{top:0;right:0;border-width:2px 2px 0 0;}
+.sf-bl{bottom:0;left:0;border-width:0 0 2px 2px;}
+.sf-br{bottom:0;right:0;border-width:0 2px 2px 0;}
+
+/* Simulated document in camera */
+.sim-doc{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);
+  width:200px;height:130px;background:#fffde7;border-radius:3px;
+  padding:10px;box-shadow:0 4px 20px rgba(0,0,0,0.6);z-index:5;
+  opacity:0;transition:opacity 0.8s;
+}
+.sim-doc.show{opacity:1;}
+.doc-header{font-size:7px;font-weight:800;color:#333;text-align:center;
+  border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:5px;font-family:monospace;}
+.doc-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.doc-key{font-size:7px;color:#666;font-family:monospace;}
+.doc-val{font-size:7px;font-weight:700;color:#333;font-family:monospace;}
+.doc-highlight{background:#ffcc02;padding:1px 3px;border-radius:2px;}
+.doc-seal{position:absolute;bottom:8px;right:10px;width:28px;height:28px;
+  border:2px solid #c0392b;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:8px;color:#c0392b;transform:rotate(-15deg);}
+
+.scan-line{
+  position:absolute;left:0;right:0;height:2px;z-index:15;
+  background:linear-gradient(90deg,transparent 0%,#00e676 40%,#00ff88 50%,#00e676 60%,transparent 100%);
+  box-shadow:0 0 12px #00e676,0 0 4px #fff;
+  animation:scanSweep 1.8s ease-in-out infinite;
+  opacity:0;
+}
+.scan-line.active{opacity:1;}
+@keyframes scanSweep{
+  0%{top:30%;}50%{top:70%;}100%{top:30%;}
+}
+
+.gps-chip{
+  position:absolute;top:14px;left:12px;right:12px;z-index:20;
+  background:rgba(0,0,0,0.75);border:1px solid rgba(0,230,118,0.4);border-radius:8px;
+  padding:6px 10px;display:flex;align-items:center;gap:8px;
+}
+.gps-dot{width:7px;height:7px;background:#00e676;border-radius:50%;animation:gpsBlink 1s infinite;flex-shrink:0;}
+@keyframes gpsBlink{0%,100%{opacity:1;box-shadow:0 0 6px #00e676;}50%{opacity:0.3;box-shadow:none;}}
+.gps-txt{font-size:9px;color:#fff;font-family:monospace;flex:1;}
+.gps-acc{font-size:9px;color:#666;}
+
+.ocr-result{
+  position:absolute;bottom:10px;left:10px;right:10px;z-index:20;
+  background:rgba(0,0,0,0.9);border:1px solid #00e676;border-radius:10px;padding:10px 12px;
+  opacity:0;transform:translateY(10px);transition:all 0.4s ease;
+}
+.ocr-result.show{opacity:1;transform:translateY(0);}
+.ocr-title{font-size:10px;color:#00e676;font-weight:800;display:flex;align-items:center;gap:5px;margin-bottom:6px;}
+.ocr-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.ocr-key{font-size:9px;color:#666;}
+.ocr-val{font-size:9px;color:#fff;font-weight:700;font-family:monospace;}
+
+.cam-bottom{
+  height:96px;background:rgba(0,0,0,0.95);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+}
+.cam-hint{font-size:10px;color:#555;text-align:center;max-width:80px;line-height:1.4;}
+.shutter-btn{
+  width:64px;height:64px;border-radius:50%;border:3px solid #fff;
+  background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;transition:transform 0.1s;
+}
+.shutter-btn:active{transform:scale(0.93);}
+.shutter-btn.captured{background:#00c853;border-color:#00c853;}
+
+/* ── SCANNING SCREEN ── */
+#scanning{background:#0d1117;}
+.scan-header{padding:16px 16px 10px;}
+.scan-h-title{font-size:16px;font-weight:800;color:#fff;}
+.scan-h-sub{font-size:10px;color:#8b949e;margin-top:2px;}
+.survey-tag{
+  display:inline-flex;align-items:center;gap:6px;margin-top:8px;
+  background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);
+  border-radius:12px;padding:4px 12px;font-size:10px;color:#4caf50;font-weight:700;
+}
+.portals-wrap{padding:10px 14px;flex:1;overflow:hidden;}
+.portal-item{
+  display:flex;align-items:center;gap:10px;
+  background:#161b22;border:1px solid #21262d;border-radius:12px;
+  padding:10px 12px;margin-bottom:8px;
+  opacity:0;transform:translateX(-16px);transition:all 0.35s ease;
+}
+.portal-item.show{opacity:1;transform:translateX(0);}
+.p-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.p-info{flex:1;}
+.p-name{font-size:11px;font-weight:700;color:#e6edf3;}
+.p-desc{font-size:9px;color:#8b949e;margin-top:1px;}
+.p-status{font-size:9px;font-weight:800;padding:3px 9px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.ps-scanning{background:rgba(255,200,0,0.1);color:#ffd700;}
+.ps-ok{background:rgba(0,200,83,0.12);color:#00c853;}
+.ps-warn{background:rgba(255,100,0,0.1);color:#ff7043;}
+.ps-danger{background:rgba(244,67,54,0.12);color:#f44336;}
+@keyframes scanPulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+.ps-scanning{animation:scanPulse 0.7s infinite;}
+
+.spinner{
+  width:10px;height:10px;border:1.5px solid rgba(255,200,0,0.2);border-top-color:#ffd700;
+  border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:4px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.overall-progress{
+  margin:8px 14px;background:rgba(255,255,255,0.04);border-radius:6px;height:4px;overflow:hidden;
+}
+.op-bar{height:100%;background:linear-gradient(90deg,#00c853,#1565c0);width:0%;transition:width 0.5s ease;border-radius:6px;}
+
+/* ── VERDICT SCREEN ── */
+#verdict{background:#0d0000;display:flex;flex-direction:column;}
+.v-header{
+  padding:20px 18px 14px;
+  background:linear-gradient(135deg,#2d0000,#1a0000);
+  border-bottom:1px solid rgba(244,67,54,0.2);
+}
+.v-tag{font-size:10px;font-weight:700;color:#f44336;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.v-portals-used{font-size:10px;color:#555;margin-top:4px;}
+
+.v-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;}
+.verdict-circle{
+  width:120px;height:120px;border-radius:50%;
+  border:3px solid #f44336;
+  background:radial-gradient(circle,rgba(244,67,54,0.12) 0%,transparent 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:vcircle 2s infinite;margin-bottom:14px;
+}
+@keyframes vcircle{0%,100%{box-shadow:0 0 20px rgba(244,67,54,0.3);}50%{box-shadow:0 0 50px rgba(244,67,54,0.6);}}
+.vc-emoji{font-size:38px;}
+.vc-text{font-size:11px;font-weight:800;color:#f44336;margin-top:3px;letter-spacing:1px;}
+.v-score{
+  background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);
+  border-radius:20px;padding:5px 18px;font-size:12px;font-weight:700;color:#f44336;margin-bottom:10px;
+}
+.v-reason{font-size:11px;color:#ef9a9a;text-align:center;line-height:1.6;margin-bottom:14px;padding:0 6px;}
+.v-contradiction{
+  width:100%;background:rgba(244,67,54,0.07);border:1px solid rgba(244,67,54,0.25);
+  border-radius:12px;padding:12px;margin-bottom:10px;
+}
+.vc-head{font-size:10px;font-weight:700;color:#ef5350;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.vc-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.vc-portal{font-size:9px;color:#888;padding:2px 7px;background:rgba(255,255,255,0.05);border-radius:6px;}
+.vc-says{font-size:10px;color:#fff;}
+.vs-badge{font-size:8px;font-weight:800;color:#f44336;background:rgba(244,67,54,0.15);padding:2px 5px;border-radius:4px;}
+.v-actions{width:100%;background:rgba(255,152,0,0.07);border:1px solid rgba(255,152,0,0.25);border-radius:12px;padding:12px;}
+.va-title{font-size:10px;font-weight:700;color:#ffb74d;margin-bottom:7px;}
+.va-item{display:flex;gap:6px;font-size:10px;color:#ffe0b2;margin-bottom:5px;line-height:1.4;}
+.va-num{width:15px;height:15px;border-radius:50%;background:rgba(255,152,0,0.2);color:#ffb74d;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+/* ── SAFE VERDICT ── */
+#safe-verdict{background:#001a08;display:flex;flex-direction:column;}
+.sv-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;}
+.safe-circle{
+  width:110px;height:110px;border-radius:50%;
+  border:3px solid #00c853;
+  background:radial-gradient(circle,rgba(0,200,83,0.12) 0%,transparent 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:scircle 2.5s infinite;margin-bottom:12px;
+}
+@keyframes scircle{0%,100%{box-shadow:0 0 20px rgba(0,200,83,0.3);}50%{box-shadow:0 0 50px rgba(0,200,83,0.6);}}
+.sc-emoji{font-size:36px;}
+.sc-text{font-size:11px;font-weight:800;color:#00c853;margin-top:3px;letter-spacing:1px;}
+.portals-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;margin-bottom:12px;}
+.pg-item{background:rgba(0,200,83,0.07);border:1px solid rgba(0,200,83,0.2);border-radius:8px;
+  padding:7px 10px;display:flex;align-items:center;gap:7px;font-size:10px;color:#a5d6a7;}
+.pg-check{color:#00c853;font-size:11px;flex-shrink:0;}
+.continue-btn{
+  width:100%;background:linear-gradient(135deg,#00c853,#1565c0);border:none;border-radius:13px;
+  padding:13px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;margin-bottom:8px;
+}
+.expert-row{
+  width:100%;background:rgba(21,101,192,0.1);border:1px solid rgba(21,101,192,0.3);
+  border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;
+}
+.exp-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#0d47a1);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.exp-info{flex:1;}
+.exp-name{font-size:11px;font-weight:700;color:#90caf9;}
+.exp-role{font-size:9px;color:#64b5f6;}
+.exp-btn{background:#1565c0;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:700;}
+
+/* ── EXPERT SCREEN ── */
+#expert{background:#04080f;display:flex;flex-direction:column;}
+.video-call{
+  flex:1;background:linear-gradient(135deg,#0d1b35,#081228);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.vc-avatar-big{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#0d47a1);
+  display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:10px;
+  border:3px solid rgba(21,101,192,0.5);box-shadow:0 0 30px rgba(21,101,192,0.3);}
+.vc-name-big{font-size:15px;font-weight:700;color:#fff;}
+.vc-role-big{font-size:10px;color:#64b5f6;margin-top:2px;margin-bottom:14px;}
+.call-timer{font-size:12px;color:#4caf50;font-family:monospace;margin-bottom:20px;}
+.speaking-waves{display:flex;gap:4px;align-items:flex-end;height:24px;margin-bottom:16px;}
+.wave-bar{width:4px;background:#1565c0;border-radius:2px;animation:waveAnim 0.8s ease-in-out infinite;}
+.wave-bar:nth-child(1){height:6px;animation-delay:0s;}
+.wave-bar:nth-child(2){height:14px;animation-delay:0.1s;}
+.wave-bar:nth-child(3){height:20px;animation-delay:0.2s;}
+.wave-bar:nth-child(4){height:14px;animation-delay:0.3s;}
+.wave-bar:nth-child(5){height:8px;animation-delay:0.4s;}
+@keyframes waveAnim{0%,100%{transform:scaleY(0.5);}50%{transform:scaleY(1);}}
+.vc-bubble{
+  background:rgba(21,101,192,0.15);border:1px solid rgba(21,101,192,0.3);
+  border-radius:14px 14px 14px 4px;padding:10px 14px;margin:0 16px;
+  font-size:11px;color:#90caf9;line-height:1.6;text-align:center;
+}
+.vc-you{
+  position:absolute;bottom:70px;right:12px;width:70px;height:95px;
+  background:#1a1a2e;border:2px solid rgba(21,101,192,0.4);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.vc-controls{height:60px;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;gap:20px;}
+.vc-btn{width:42px;height:42px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+.vc-btn.mute{background:rgba(255,255,255,0.1);}
+.vc-btn.end{background:#f44336;}
+.vc-btn.cam{background:rgba(255,255,255,0.1);}
+
+/* ── JOURNEY SCREEN ── */
+#journey{background:#06070f;display:flex;flex-direction:column;}
+.j-steps{flex:1;padding:12px 14px;overflow:hidden;}
+.j-step{
+  display:flex;gap:10px;margin-bottom:10px;
+  opacity:0;transform:translateY(8px);transition:all 0.4s ease;
+}
+.j-step.show{opacity:1;transform:translateY(0);}
+.j-left{display:flex;flex-direction:column;align-items:center;}
+.j-num{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;
+}
+.j-line{width:2px;flex:1;min-height:16px;margin:3px auto;}
+.j-content{flex:1;padding-top:3px;}
+.j-title{font-size:12px;font-weight:700;}
+.j-desc{font-size:10px;color:#666;margin-top:2px;}
+.j-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:4px;}
+.j-done .j-num{background:rgba(0,200,83,0.2);color:#00c853;}
+.j-done .j-title{color:#a5d6a7;}
+.j-done .j-line{background:rgba(0,200,83,0.2);}
+.j-done .j-tag{background:rgba(0,200,83,0.1);color:#00c853;}
+.j-active .j-num{background:rgba(21,101,192,0.3);color:#64b5f6;box-shadow:0 0 12px rgba(21,101,192,0.4);}
+.j-active .j-title{color:#90caf9;}
+.j-active .j-line{background:rgba(21,101,192,0.2);}
+.j-active .j-tag{background:rgba(21,101,192,0.15);color:#64b5f6;}
+.j-pending .j-num{background:rgba(255,255,255,0.05);color:#444;}
+.j-pending .j-title{color:#444;}
+.j-pending .j-line{background:rgba(255,255,255,0.05);}
+.j-pending .j-tag{background:rgba(255,255,255,0.05);color:#444;}
+
+/* ── MUTATION TRACKER ── */
+#mutation{background:#0a060f;display:flex;flex-direction:column;}
+.mut-body{flex:1;padding:12px 14px;}
+.mut-status-card{
+  background:rgba(21,101,192,0.1);border:1px solid rgba(21,101,192,0.3);
+  border-radius:14px;padding:14px;margin-bottom:12px;
+}
+.mut-prop{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;}
+.mut-survey{font-size:10px;color:#666;margin-bottom:10px;}
+.mut-steps{display:flex;flex-direction:column;gap:7px;}
+.mut-step{display:flex;align-items:center;gap:10px;}
+.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ms-line{width:2px;height:16px;margin-left:4px;flex-shrink:0;}
+.ms-label{font-size:10px;flex:1;}
+.ms-date{font-size:9px;color:#666;}
+.ms-dot.done{background:#00c853;box-shadow:0 0 8px #00c853;}
+.ms-dot.active{background:#1565c0;box-shadow:0 0 8px #1565c0;animation:dotPulse 1.2s infinite;}
+.ms-dot.pending{background:#333;}
+.ms-line.done{background:rgba(0,200,83,0.3);}
+.ms-line.active{background:rgba(21,101,192,0.3);}
+.ms-line.pending{background:rgba(255,255,255,0.07);}
+.ms-label.done{color:#a5d6a7;}
+.ms-label.active{color:#90caf9;font-weight:700;}
+.ms-label.pending{color:#444;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 8px #1565c0;}50%{box-shadow:0 0 16px #1565c0,0 0 4px #fff;}}
+.notif-card{
+  background:rgba(0,200,83,0.07);border:1px solid rgba(0,200,83,0.2);border-radius:12px;padding:12px;
+}
+.notif-title{font-size:11px;font-weight:700;color:#4caf50;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.notif-item{font-size:10px;color:#a5d6a7;margin-bottom:4px;padding:6px;background:rgba(0,200,83,0.06);border-radius:8px;}
+
+/* ── NARRATOR BAR ── */
+.narrator{
+  position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  background:rgba(10,10,20,0.95);border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:8px 18px;font-size:12px;color:#ddd;
+  white-space:nowrap;z-index:200;
+  transition:opacity 0.3s;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  max-width:500px;white-space:normal;text-align:center;
+}
+
+/* ── PROGRESS ── */
+.prog-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:200;}
+.pdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.12);cursor:pointer;transition:all 0.3s;}
+.pdot.on{background:#00c853;width:20px;border-radius:4px;}
+
+/* ── CONTROLS ── */
+.ctrl-wrap{position:fixed;bottom:44px;right:20px;display:flex;flex-direction:column;gap:6px;z-index:200;}
+.cbtn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+  padding:7px 14px;font-size:11px;color:#fff;cursor:pointer;transition:background 0.2s;white-space:nowrap;}
+.cbtn:hover{background:rgba(255,255,255,0.15);}
+.cbtn.play{background:#00c853;border-color:#00c853;color:#000;font-weight:700;}
+
+/* ── FLASH EFFECT ── */
+.flash{position:fixed;inset:0;background:#fff;z-index:1000;opacity:0;pointer-events:none;transition:opacity 0.15s;}
+
+/* ── OUTSIDE LABELS ── */
+.side-label{
+  position:fixed;z-index:150;
+  background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:10px 14px;max-width:180px;
+  opacity:0;transition:opacity 0.5s ease;pointer-events:none;
+}
+.side-label.show{opacity:1;}
+.sl-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;}
+.sl-body{font-size:10px;color:#888;line-height:1.5;}
+#sl-left{right:calc(50% + 195px);}
+#sl-right{left:calc(50% + 195px);}
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-screen">
+
+      <!-- ══ HOME ══ -->
+      <div class="app-screen active" id="home">
+        <div class="sbar"><span>9:41</span><span style="color:#4caf50;">DigiSampatti</span><span>5G ▐▐</span></div>
+        <div style="overflow-y:auto;height:100%;padding-top:32px;">
+          <div class="home-hero">
+            <div class="home-logo">🏛️</div>
+            <div class="home-title">DigiSampatti</div>
+            <div class="home-sub">ಡಿಜಿ ಸಂಪತ್ತಿ</div>
+            <div class="home-tagline">India's first 7-portal property<br>verification intelligence</div>
+          </div>
+          <div class="scan-card" onclick="sim_goTo(1)">
+            <div class="scan-card-title">🔍 Verify a Property</div>
+            <div class="scan-card-sub">Check all 7 government portals in under 4 minutes</div>
+            <div class="scan-methods">
+              <div class="scan-method"><div class="sm-icon">📷</div><div class="sm-label">Scan<br>Document</div></div>
+              <div class="scan-method"><div class="sm-icon">📍</div><div class="sm-label">GPS<br>Locate</div></div>
+              <div class="scan-method"><div class="sm-icon">⌨️</div><div class="sm-label">Enter<br>Survey No.</div></div>
+            </div>
+          </div>
+          <div class="quick-stats">
+            <div class="qs-card"><div class="qs-num">7</div><div class="qs-label">Portals checked</div></div>
+            <div class="qs-card"><div class="qs-num">4min</div><div class="qs-label">Full verify</div></div>
+            <div class="qs-card"><div class="qs-num">₹499</div><div class="qs-label">Full report</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CAMERA ══ -->
+      <div class="app-screen" id="camera">
+        <div class="sbar" style="background:#000;color:#aaa;"><span>9:42</span><span>📷 Scan Property</span><span>5G</span></div>
+        <div class="cam-view" id="cam-view">
+          <!-- Grid lines -->
+          <div class="cam-grid">
+            <div class="cam-grid-line" style="left:33%;top:0;bottom:0;width:1px;"></div>
+            <div class="cam-grid-line" style="left:66%;top:0;bottom:0;width:1px;"></div>
+            <div class="cam-grid-line" style="top:33%;left:0;right:0;height:1px;"></div>
+            <div class="cam-grid-line" style="top:66%;left:0;right:0;height:1px;"></div>
+          </div>
+          <!-- GPS chip -->
+          <div class="gps-chip">
+            <div class="gps-dot"></div>
+            <div class="gps-txt">12.9716°N  77.5946°E</div>
+            <div class="gps-acc">±4m</div>
+          </div>
+          <!-- Scan frame corners -->
+          <div class="scan-frame">
+            <div class="sf-corner sf-tl"></div>
+            <div class="sf-corner sf-tr"></div>
+            <div class="sf-corner sf-bl"></div>
+            <div class="sf-corner sf-br"></div>
+          </div>
+          <!-- Simulated document -->
+          <div class="sim-doc" id="sim-doc">
+            <div class="doc-header">RECORD OF TENANCY (RTC) — BHOOMI</div>
+            <div class="doc-row"><span class="doc-key">ಸ.ನಂ / Survey No</span><span class="doc-val doc-highlight">245/2A</span></div>
+            <div class="doc-row"><span class="doc-key">ಮಾಲೀಕರು / Owner</span><span class="doc-val">Ramu Gowda</span></div>
+            <div class="doc-row"><span class="doc-key">ತಾಲೂಕ / Taluk</span><span class="doc-val">Yelahanka</span></div>
+            <div class="doc-row"><span class="doc-key">ಭೂಮಿ / Area</span><span class="doc-val">0.75 Acres</span></div>
+            <div class="doc-row"><span class="doc-key">ಖಾತ / Khata</span><span class="doc-val">A-14723</span></div>
+            <div class="doc-seal">ಸರ್ಕಾರ</div>
+          </div>
+          <!-- Scan line -->
+          <div class="scan-line" id="scan-line"></div>
+          <!-- OCR result -->
+          <div class="ocr-result" id="ocr-result">
+            <div class="ocr-title">⚡ Document Read</div>
+            <div class="ocr-row"><span class="ocr-key">Survey No</span><span class="ocr-val">245/2A</span></div>
+            <div class="ocr-row"><span class="ocr-key">Owner</span><span class="ocr-val">Ramu Gowda</span></div>
+            <div class="ocr-row"><span class="ocr-key">Taluk · District</span><span class="ocr-val">Yelahanka · BBMP</span></div>
+            <div class="ocr-row"><span class="ocr-key">Confidence</span><span class="ocr-val" style="color:#00c853;">94%</span></div>
+          </div>
+        </div>
+        <div class="cam-bottom">
+          <div class="cam-hint">Gallery</div>
+          <div class="shutter-btn" id="shutter" onclick="capturePhoto()">📷</div>
+          <div class="cam-hint">Flash<br>Off</div>
+        </div>
+      </div>
+
+      <!-- ══ SCANNING ══ -->
+      <div class="app-screen" id="scanning">
+        <div class="sbar" style="background:#0d1117;color:#8b949e;"><span>9:42</span><span>Verifying...</span><span>5G</span></div>
+        <div class="scan-header">
+          <div class="scan-h-title">Checking All 7 Portals</div>
+          <div class="scan-h-sub">Reading all government databases simultaneously</div>
+          <div class="survey-tag">🔍 Survey No: 245/2A · Yelahanka · BBMP</div>
+        </div>
+        <div class="overall-progress"><div class="op-bar" id="op-bar"></div></div>
+        <div class="portals-wrap" id="portals-wrap">
+          <div class="portal-item" id="pi1">
+            <div class="p-icon" style="background:rgba(0,150,255,0.1);">🏛️</div>
+            <div class="p-info"><div class="p-name">Bhoomi (RTC)</div><div class="p-desc">Owner · Area · Khata · Mutations</div></div>
+            <div class="p-status ps-scanning" id="ps1"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi2">
+            <div class="p-icon" style="background:rgba(76,175,80,0.1);">📜</div>
+            <div class="p-info"><div class="p-name">IGRS / KAVERI</div><div class="p-desc">Encumbrance Certificate (EC)</div></div>
+            <div class="p-status ps-scanning" id="ps2"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi3">
+            <div class="p-icon" style="background:rgba(255,152,0,0.1);">🏗️</div>
+            <div class="p-info"><div class="p-name">RERA Karnataka</div><div class="p-desc">Project registration · Complaints</div></div>
+            <div class="p-status ps-scanning" id="ps3"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi4">
+            <div class="p-icon" style="background:rgba(100,100,255,0.1);">🏙️</div>
+            <div class="p-info"><div class="p-name">BBMP / BDA</div><div class="p-desc">Khata type · Tax · Building plan</div></div>
+            <div class="p-status ps-scanning" id="ps4"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi5">
+            <div class="p-icon" style="background:rgba(156,39,176,0.1);">⚖️</div>
+            <div class="p-info"><div class="p-name">eCourts</div><div class="p-desc">Reverse lookup by owner name</div></div>
+            <div class="p-status ps-scanning" id="ps5"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi6">
+            <div class="p-icon" style="background:rgba(244,67,54,0.1);">🏦</div>
+            <div class="p-info"><div class="p-name">CERSAI</div><div class="p-desc">RBI bank mortgage registry</div></div>
+            <div class="p-status ps-scanning" id="ps6"><span class="spinner"></span>Reading</div>
+          </div>
+          <div class="portal-item" id="pi7">
+            <div class="p-icon" style="background:rgba(255,100,0,0.1);">🚨</div>
+            <div class="p-info"><div class="p-name">Benami (IT Dept)</div><div class="p-desc">Income Tax enforcement check</div></div>
+            <div class="p-status ps-scanning" id="ps7"><span class="spinner"></span>Reading</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ VERDICT (DO NOT BUY) ══ -->
+      <div class="app-screen" id="verdict">
+        <div class="sbar" style="background:#1a0000;color:#ef9a9a;"><span>9:42</span><span>⚠ Analysis Complete</span><span>5G</span></div>
+        <div class="v-header">
+          <div class="v-tag">⚡ CROSS-PORTAL CONTRADICTION DETECTED</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;">AI Risk Verdict — Survey No. 245/2A</div>
+          <div class="v-portals-used">7 portals checked · 2 critical contradictions found</div>
+        </div>
+        <div class="v-body">
+          <div class="verdict-circle">
+            <div class="vc-emoji">🚫</div>
+            <div class="vc-text">DO NOT BUY</div>
+          </div>
+          <div class="v-score">Risk Score: 94 / 100</div>
+          <div class="v-reason">Hidden bank mortgage found. EC and CERSAI contradict each other. Active court case.</div>
+          <div class="v-contradiction">
+            <div class="vc-head">⚡ Critical Contradiction</div>
+            <div class="vc-row">
+              <div class="vc-portal">IGRS / EC</div>
+              <div class="vc-says" style="color:#aaa;">No loans found</div>
+            </div>
+            <div class="vc-row" style="margin-left:8px;"><span class="vs-badge">VS</span></div>
+            <div class="vc-row">
+              <div class="vc-portal">CERSAI (RBI)</div>
+              <div class="vc-says" style="color:#f44336;font-weight:700;">SBI mortgage ₹42L active</div>
+            </div>
+          </div>
+          <div class="v-actions">
+            <div class="va-title">📋 Do This Now</div>
+            <div class="va-item"><div class="va-num">1</div>Do NOT pay advance. Not even ₹1.</div>
+            <div class="va-item"><div class="va-num">2</div>Call SBI branch — verify mortgage status.</div>
+            <div class="va-item"><div class="va-num">3</div>Demand NOC in writing before any payment.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SAFE VERDICT ══ -->
+      <div class="app-screen" id="safe-verdict">
+        <div class="sbar" style="background:#001a08;color:#a5d6a7;"><span>9:44</span><span>✓ Analysis Complete</span><span>5G</span></div>
+        <div style="padding:10px 14px 0;flex-shrink:0;">
+          <div style="font-size:10px;color:#4caf50;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Different Property — Survey No. 301/3B</div>
+        </div>
+        <div class="sv-body">
+          <div class="safe-circle">
+            <div class="sc-emoji">✅</div>
+            <div class="sc-text">SAFE TO BUY</div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#4caf50;margin-bottom:10px;">Risk Score: 12 / 100 — All 7 portals clear</div>
+          <div class="portals-grid">
+            <div class="pg-item"><span class="pg-check">✓</span>Bhoomi A Khata</div>
+            <div class="pg-item"><span class="pg-check">✓</span>EC clean 30 yr</div>
+            <div class="pg-item"><span class="pg-check">✓</span>No court cases</div>
+            <div class="pg-item"><span class="pg-check">✓</span>CERSAI clear</div>
+            <div class="pg-item"><span class="pg-check">✓</span>No Benami flag</div>
+            <div class="pg-item"><span class="pg-check">✓</span>BDA approved</div>
+          </div>
+          <button class="continue-btn" onclick="sim_goTo(5)">→ Continue to Buying Journey</button>
+          <div class="expert-row" onclick="sim_goTo(6)">
+            <div class="exp-av">👨‍⚖️</div>
+            <div class="exp-info">
+              <div class="exp-name">Adv. Suresh Kumar</div>
+              <div class="exp-role">Revenue Inspector · 22yr exp · Expert Council</div>
+            </div>
+            <button class="exp-btn">Call ₹499</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ JOURNEY ══ -->
+      <div class="app-screen" id="journey">
+        <div class="sbar" style="background:#06070f;color:#7986cb;"><span>9:45</span><span>Buying Journey</span><span>5G</span></div>
+        <div class="app-bar" style="background:#0d0e1f;border-color:rgba(100,100,255,0.1);">
+          <div>
+            <div class="app-bar-title">🗺️ Full Buying Journey</div>
+            <div class="app-bar-sub">Survey 301/3B · Bengaluru North</div>
+          </div>
+        </div>
+        <div class="j-steps" id="j-steps">
+          <div class="j-step j-done" id="jj1">
+            <div class="j-left"><div class="j-num">1</div><div class="j-line"></div></div>
+            <div class="j-content"><div class="j-title">Pre-Advance Verification</div><div class="j-desc">7 portals checked · SAFE verdict</div><div class="j-tag">✓ Done · 4 min · ₹499</div></div>
+          </div>
+          <div class="j-step j-done" id="jj2">
+            <div class="j-left"><div class="j-num">2</div><div class="j-line"></div></div>
+            <div class="j-content"><div class="j-title">Expert Legal Opinion</div><div class="j-desc">Adv. Suresh confirmed title clean</div><div class="j-tag">✓ Done · 30 min · ₹499</div></div>
+          </div>
+          <div class="j-step j-active" id="jj3">
+            <div class="j-left"><div class="j-num">3</div><div class="j-line"></div></div>
+            <div class="j-content"><div class="j-title">Stamp Duty Calculator</div><div class="j-desc">Circle rate loaded · Exact amount</div><div class="j-tag">In progress · Free</div></div>
+          </div>
+          <div class="j-step j-pending" id="jj4">
+            <div class="j-left"><div class="j-num">4</div><div class="j-line"></div></div>
+            <div class="j-content"><div class="j-title">Bank Loan Application</div><div class="j-desc">DigiSampatti report pre-accepted · SBI</div><div class="j-tag">Pending · Digital</div></div>
+          </div>
+          <div class="j-step j-pending" id="jj5">
+            <div class="j-left"><div class="j-num">5</div><div class="j-line"></div></div>
+            <div class="j-content"><div class="j-title">SRO Registration</div><div class="j-desc">Only physical step — 45 min visit</div><div class="j-tag">Pending · 🏢 Physical only</div></div>
+          </div>
+          <div class="j-step j-pending" id="jj6">
+            <div class="j-left"><div class="j-num">6</div></div>
+            <div class="j-content"><div class="j-title">Mutation Tracker</div><div class="j-desc">Push notification when Bhoomi updates</div><div class="j-tag">Auto · Digital</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EXPERT CALL ══ -->
+      <div class="app-screen" id="expert">
+        <div class="sbar" style="background:#04080f;color:#64b5f6;"><span>9:43</span><span>Expert Consultation</span><span>5G</span></div>
+        <div class="video-call">
+          <div class="vc-avatar-big">👨‍⚖️</div>
+          <div class="vc-name-big">Adv. Suresh Kumar</div>
+          <div class="vc-role-big">Revenue Inspector (Retd.) · Yelahanka Division</div>
+          <div class="call-timer" id="call-timer">00:00</div>
+          <div class="speaking-waves">
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+          <div class="vc-bubble">"CERSAI shows the SBI mortgage was taken in 2021. The seller never disclosed it. Do NOT pay advance. Ask for NOC from SBI branch manager directly."</div>
+          <div class="vc-you">👤</div>
+        </div>
+        <div class="vc-controls">
+          <button class="vc-btn mute">🔇</button>
+          <button class="vc-btn cam">📷</button>
+          <button class="vc-btn end">📵</button>
+        </div>
+      </div>
+
+      <!-- ══ MUTATION TRACKER ══ -->
+      <div class="app-screen" id="mutation">
+        <div class="sbar" style="background:#0a060f;color:#7986cb;"><span>9:50</span><span>Mutation Tracker</span><span>5G</span></div>
+        <div class="app-bar" style="background:#100a1f;border-color:rgba(100,50,200,0.1);">
+          <div>
+            <div class="app-bar-title">📍 Mutation Status</div>
+            <div class="app-bar-sub">Auto-updates when Bhoomi changes</div>
+          </div>
+        </div>
+        <div class="mut-body">
+          <div class="mut-status-card">
+            <div class="mut-prop">Survey No. 301/3B — Yelahanka</div>
+            <div class="mut-survey">Mutation Application No: MUT/2024/YLH/04821</div>
+            <div class="mut-steps">
+              <div class="mut-step">
+                <div class="ms-dot done"></div>
+                <div style="display:flex;flex-direction:column;flex:1;margin-left:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span class="ms-label done">Application Submitted</span>
+                    <span class="ms-date">12 Jan 2025</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:4px;"><div class="ms-line done" style="height:14px;width:2px;background:rgba(0,200,83,0.3);margin-left:0;"></div></div>
+              <div class="mut-step">
+                <div class="ms-dot done"></div>
+                <div style="display:flex;flex-direction:column;flex:1;margin-left:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span class="ms-label done">Documents Verified</span>
+                    <span class="ms-date">18 Jan 2025</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:4px;"><div class="ms-line done" style="height:14px;width:2px;background:rgba(0,200,83,0.3);"></div></div>
+              <div class="mut-step">
+                <div class="ms-dot done"></div>
+                <div style="display:flex;flex-direction:column;flex:1;margin-left:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span class="ms-label done">Tahsildar Review</span>
+                    <span class="ms-date">24 Jan 2025</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:4px;"><div class="ms-line active" style="height:14px;width:2px;background:rgba(21,101,192,0.3);"></div></div>
+              <div class="mut-step">
+                <div class="ms-dot active"></div>
+                <div style="display:flex;flex-direction:column;flex:1;margin-left:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span class="ms-label active">⏳ RTC Updating — In Progress</span>
+                    <span class="ms-date">Today</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:4px;"><div class="ms-line pending" style="height:14px;width:2px;background:rgba(255,255,255,0.06);"></div></div>
+              <div class="mut-step">
+                <div class="ms-dot pending"></div>
+                <div style="display:flex;flex-direction:column;flex:1;margin-left:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span class="ms-label pending">Mutation Complete</span>
+                    <span class="ms-date">Est. 3 days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="notif-card">
+            <div class="notif-title">🔔 Push Notifications Active</div>
+            <div class="notif-item">📬 Jan 18 — "Your documents have been verified by the Tahsildar office."</div>
+            <div class="notif-item">📬 Jan 24 — "Tahsildar has reviewed and approved. RTC update in progress."</div>
+            <div class="notif-item" style="background:rgba(21,101,192,0.1);color:#90caf9;">⏳ Waiting — "You'll be notified the moment your name appears in Bhoomi RTC."</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /phone-screen -->
+  </div><!-- /phone -->
+</div><!-- /phone-wrap -->
+
+<!-- ── Side Labels ── -->
+<div class="side-label" id="sl-left"><div class="sl-title"></div><div class="sl-body"></div></div>
+<div class="side-label" id="sl-right"><div class="sl-title"></div><div class="sl-body"></div></div>
+
+<!-- Flash effect -->
+<div class="flash" id="flash"></div>
+
+<!-- Narrator -->
+<div class="narrator" id="narrator">Welcome to DigiSampatti — watch the full live simulation</div>
+
+<!-- Progress -->
+<div class="prog-wrap" id="pw"></div>
+
+<!-- Controls -->
+<div class="ctrl-wrap">
+  <button class="cbtn play" id="pbtn" onclick="toggleAuto()">▶ Auto Play</button>
+  <button class="cbtn" onclick="simPrev()">← Back</button>
+  <button class="cbtn" onclick="simNext()">Next →</button>
+</div>
+
+<script>
+// ═══ SIMULATION STEPS ═══
+// Each step = one micro-action in the flow
+const STEPS = [
+  // 0 - HOME
+  { screen:'home', narrator:'Priya opens DigiSampatti to verify a plot in Yelahanka before paying advance.', dur:3000,
+    left:null, right:{title:'Step 1',body:'Open the app. No login needed. Search starts here.'} },
+
+  // 1 - CAMERA opens
+  { screen:'camera', narrator:'She taps "Scan Document" and points the camera at the broker\'s RTC paper.', dur:2500,
+    left:{title:'Camera + GPS',body:'GPS auto-captures location coordinates simultaneously.'}, right:null,
+    onEnter: ()=>{ document.getElementById('sim-doc').classList.add('show'); } },
+
+  // 2 - Scan line activates
+  { screen:'camera', narrator:'DigiSampatti scans the document — extracting text using Anthropic Vision AI.', dur:2500,
+    left:null, right:{title:'OCR Reading',body:'Survey number, owner name, taluk — all auto-extracted from the paper.'},
+    onEnter: ()=>{ document.getElementById('scan-line').classList.add('active'); } },
+
+  // 3 - OCR result appears
+  { screen:'camera', narrator:'Survey No. 245/2A · Owner: Ramu Gowda · Taluk: Yelahanka — extracted in 3 seconds.', dur:2800,
+    left:{title:'94% Confidence',body:'Kannada + English mixed documents read accurately.'}, right:null,
+    onEnter: ()=>{ document.getElementById('ocr-result').classList.add('show'); } },
+
+  // 4 - Shutter flash
+  { screen:'camera', narrator:'Photo captured with GPS stamp. Now querying all 7 government portals.', dur:1500,
+    left:null, right:null,
+    onEnter: ()=>{
+      document.getElementById('shutter').classList.add('captured');
+      const fl = document.getElementById('flash');
+      fl.style.opacity='0.7';
+      setTimeout(()=>{ fl.style.opacity='0'; },150);
+    }},
+
+  // 5 - SCANNING - portals appear
+  { screen:'scanning', narrator:'All 7 portals queried simultaneously — not one by one. Total time: under 90 seconds.', dur:1200,
+    left:{title:'7 Portals at Once',body:'Bhoomi, IGRS, RERA, BBMP, eCourts, CERSAI, Benami — parallel queries.'},
+    right:null,
+    onEnter: ()=>{
+      const ids=['pi1','pi2','pi3','pi4','pi5','pi6','pi7'];
+      ids.forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('show'),i*220));
+    }},
+
+  // 6 - Bhoomi returns OK
+  { screen:'scanning', narrator:'Bhoomi: Owner confirmed — Ramu Gowda. A Khata. 0.75 acres. No government acquisition.', dur:1800,
+    left:null, right:{title:'Portal 1 — Bhoomi',body:'Owner record, area, khata type, mutation history confirmed.'},
+    onEnter: ()=>{
+      setPortalStatus(1,'ok','✓ A Khata');
+      setProgress(14);
+    }},
+
+  // 7 - IGRS/KAVERI
+  { screen:'scanning', narrator:'IGRS / KAVERI: Encumbrance Certificate shows no registered loans. EC appears clean.', dur:1800,
+    left:{title:'Portal 2 — IGRS',body:'EC covers transactions registered at Sub-Registrar. But CERSAI is separate — coming next.'},
+    right:null,
+    onEnter: ()=>{ setPortalStatus(2,'ok','✓ EC Clean'); setProgress(28); }},
+
+  // 8 - RERA
+  { screen:'scanning', narrator:'RERA Karnataka: Individual plot — RERA not applicable. Noted.', dur:1500,
+    left:null, right:null,
+    onEnter: ()=>{ setPortalStatus(3,'ok','✓ N/A'); setProgress(42); }},
+
+  // 9 - BBMP
+  { screen:'scanning', narrator:'BBMP: B Khata detected. Wait — Bhoomi said A Khata but BBMP shows B? Contradiction flagged.', dur:2200,
+    left:{title:'⚠ Khata Mismatch',body:'Bhoomi says A Khata. BBMP says property is a revenue site. Needs investigation.'},
+    right:null,
+    onEnter: ()=>{ setPortalStatus(4,'warn','⚠ B Khata'); setProgress(56); }},
+
+  // 10 - eCourts
+  { screen:'scanning', narrator:'eCourts reverse lookup: Owner name "Ramu Gowda" + Yelahanka district. Case found!', dur:2200,
+    left:null, right:{title:'⚖️ eCourts',body:'No direct survey search. DigiSampatti uses owner name from Bhoomi → reverse lookup on eCourts.'},
+    onEnter: ()=>{ setPortalStatus(5,'danger','🔴 Case Found'); setProgress(70); }},
+
+  // 11 - CERSAI
+  { screen:'scanning', narrator:'CERSAI — RBI bank registry. Active SBI mortgage ₹42 lakhs. EC said clean. This is a contradiction.', dur:2500,
+    left:{title:'💥 Critical Find',body:'EC (IGRS) says no loans. CERSAI (RBI) says active SBI mortgage. Both true. Both from different systems.'},
+    right:null,
+    onEnter: ()=>{ setPortalStatus(6,'danger','🔴 SBI Lien!'); setProgress(84); }},
+
+  // 12 - Benami
+  { screen:'scanning', narrator:'Benami portal: No IT Department enforcement action found. Clear.', dur:1500,
+    left:null, right:null,
+    onEnter: ()=>{ setPortalStatus(7,'ok','✓ Clear'); setProgress(100); }},
+
+  // 13 - VERDICT
+  { screen:'verdict', narrator:'DO NOT BUY. 2 critical contradictions. Hidden SBI mortgage ₹42L. Active court case. Risk: 94/100.', dur:5000,
+    left:{title:'🚫 DO NOT BUY',body:'EC says clean. CERSAI says ₹42L mortgage. This contradiction is invisible without both portals.'},
+    right:{title:'Expert Council',body:'Tap to call a Revenue Inspector who will explain what to do next — ₹499.'}},
+
+  // 14 - EXPERT CALL
+  { screen:'expert', narrator:'Priya taps "Call Expert". Connected to Adv. Suresh Kumar — Revenue Inspector with 22 years experience.', dur:1500,
+    left:{title:'Video Call · ₹499',body:'Expert Council: 20 retired Karnataka Revenue Inspectors, lawyers, bank officers.'},
+    right:null,
+    onEnter: ()=>{ startCallTimer(); }},
+
+  // 15 - Expert speaks
+  { screen:'expert', narrator:'"Do not pay. That SBI mortgage from 2021 — the seller never disclosed it. Demand NOC from SBI branch manager directly."', dur:4000,
+    left:null, right:{title:'Same as Anthropic',body:'DigiSampatti trains AI using real domain experts — like Anthropic hired 20 analysts to train Claude.'}},
+
+  // 16 - SAFE PROPERTY
+  { screen:'safe-verdict', narrator:'Priya checks a different plot — Survey 301/3B. All 7 portals green. SAFE TO BUY. Risk: 12/100.', dur:4000,
+    left:{title:'SAFE verdict',body:'All 7 portals consistent. No contradictions. A Khata. EC clean 30 years. No CERSAI charge.'},
+    right:{title:'Bank loan ready',body:'DigiSampatti report pre-accepted by SBI and HDFC for home loan processing.'}},
+
+  // 17 - JOURNEY
+  { screen:'journey', narrator:'Full buying journey starts. Steps 1 and 2 already done. Stamp duty and bank loan next — all in-app.', dur:4000,
+    left:{title:'8 steps, 0 office visits',body:'Only SRO registration requires physical presence — law mandates biometric signature.'},
+    right:{title:'Mutation tracker',body:'After registration, mutation application filed in-app. Status tracked automatically.'},
+    onEnter: ()=>{
+      const steps=['jj1','jj2','jj3','jj4','jj5','jj6'];
+      steps.forEach((id,i)=>setTimeout(()=>{ const el=document.getElementById(id); if(el)el.classList.add('show'); },i*350));
+    }},
+
+  // 18 - MUTATION TRACKER
+  { screen:'mutation', narrator:'After registration, mutation applied in-app. Real-time status. Push notification when Bhoomi updates owner name.', dur:5000,
+    left:{title:'No office visits',body:'Was: 4 trips to Tahsildar over 3 months. Now: apply in 5 min, track from phone.'},
+    right:{title:'Auto-pull',body:'When Bhoomi updates, DigiSampatti pulls new RTC immediately and notifies buyer.'}},
+];
+
+let cur=0, auto=false, timer=null, callInterval=null;
+
+// Build dots
+const pw=document.getElementById('pw');
+const screenIds=['home','camera','scanning','verdict','safe-verdict','journey','expert','mutation'];
+// One dot per unique screen
+const uniqueScreens=[...new Set(STEPS.map(s=>s.screen))];
+uniqueScreens.forEach((_,i)=>{
+  const d=document.createElement('div');d.className='pdot';pw.appendChild(d);
+});
+
+function setNarrator(txt){ document.getElementById('narrator').textContent=txt; }
+
+function setPortalStatus(idx,type,txt){
+  const el=document.getElementById('ps'+idx);
+  if(!el)return;
+  el.className='p-status';
+  if(type==='ok')    el.className+=' ps-ok';
+  else if(type==='warn') el.className+=' ps-warn';
+  else if(type==='danger') el.className+=' ps-danger';
+  el.textContent=txt;
+}
+
+function setProgress(pct){
+  const bar=document.getElementById('op-bar');
+  if(bar) bar.style.width=pct+'%';
+}
+
+function showSideLabel(side,data){
+  const el=document.getElementById('sl-'+side);
+  if(!data){ el.classList.remove('show'); return; }
+  el.querySelector('.sl-title').textContent=data.title;
+  el.querySelector('.sl-body').textContent=data.body;
+  el.classList.add('show');
+}
+
+let currentScreen='home';
+function showScreen(id){
+  if(id===currentScreen)return;
+  const prev=document.getElementById(currentScreen);
+  const next=document.getElementById(id);
+  if(prev){ prev.classList.add('exit'); setTimeout(()=>prev.classList.remove('active','exit'),400); }
+  if(next){ setTimeout(()=>next.classList.add('active'),50); }
+  currentScreen=id;
+}
+
+function runStep(idx){
+  if(idx<0)idx=0;
+  if(idx>=STEPS.length)idx=0;
+  cur=idx;
+  const step=STEPS[cur];
+
+  showScreen(step.screen);
+  setNarrator(step.narrator);
+  if(step.left) showSideLabel('left',step.left); else showSideLabel('left',null);
+  if(step.right) showSideLabel('right',step.right); else showSideLabel('right',null);
+
+  // Update progress dots
+  const screenIdx=uniqueScreens.indexOf(step.screen);
+  document.querySelectorAll('.pdot').forEach((d,i)=>{
+    d.classList.toggle('on',i===screenIdx);
+  });
+
+  if(step.onEnter) setTimeout(()=>step.onEnter(),200);
+}
+
+function simNext(){ runStep(cur+1); if(auto)sched(); }
+function simPrev(){ runStep(cur-1); if(auto){clearTimeout(timer);sched();} }
+
+function sim_goTo(screenIdx){
+  const stepIdx=STEPS.findIndex(s=>s.screen===uniqueScreens[screenIdx]);
+  if(stepIdx>=0) runStep(stepIdx);
+}
+
+function toggleAuto(){
+  auto=!auto;
+  document.getElementById('pbtn').textContent=auto?'⏸ Pause':'▶ Auto Play';
+  if(auto)sched(); else clearTimeout(timer);
+}
+
+function sched(){
+  clearTimeout(timer);
+  timer=setTimeout(()=>{ simNext(); },STEPS[cur].dur);
+}
+
+function capturePhoto(){
+  const fl=document.getElementById('flash');
+  fl.style.transition='opacity 0.05s';
+  fl.style.opacity='0.9';
+  setTimeout(()=>{ fl.style.opacity='0'; fl.style.transition='opacity 0.3s'; },80);
+  document.getElementById('shutter').classList.add('captured');
+  setTimeout(()=>runStep(5),400);
+}
+
+let callSec=0;
+function startCallTimer(){
+  callSec=0;
+  clearInterval(callInterval);
+  callInterval=setInterval(()=>{
+    callSec++;
+    const m=Math.floor(callSec/60).toString().padStart(2,'0');
+    const s=(callSec%60).toString().padStart(2,'0');
+    const el=document.getElementById('call-timer');
+    if(el)el.textContent=m+':'+s;
+  },1000);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){simNext();}
+  else if(e.key==='ArrowLeft'){simPrev();}
+  else if(e.key==='p'||e.key==='P'){toggleAuto();}
+});
+
+runStep(0);
+</script>
+</body>
+</html>

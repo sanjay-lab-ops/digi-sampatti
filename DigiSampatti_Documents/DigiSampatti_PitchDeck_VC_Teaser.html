@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiSampatti — Investor Teaser</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0A0A; color: #222; }
+  .slide {
+    width: 100%; max-width: 920px; margin: 20px auto;
+    background: white; border-radius: 14px; padding: 56px 68px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.25);
+    page-break-after: always; min-height: 520px;
+  }
+  .cover {
+    background: linear-gradient(160deg, #0A0A0A 0%, #1A1A2E 40%, #16213E 100%);
+    color: white; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 620px; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,180,100,0.1) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+  }
+  .cover h1 { font-size: 64px; font-weight: 900; letter-spacing: -2px; color: white; margin-bottom: 4px; z-index:1; }
+  .cover .kannada { font-size: 26px; color: #00C853; margin-bottom: 18px; z-index:1; }
+  .cover .tagline { font-size: 21px; color: rgba(255,255,255,0.85); max-width: 620px; line-height: 1.65; margin-bottom: 22px; z-index:1; font-weight: 300; }
+  .cover .sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 28px; z-index:1; letter-spacing: 2px; text-transform: uppercase; }
+  .cover .badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; z-index:1; }
+  .badge-dark  { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.75); padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .badge-green { background: rgba(0,200,83,0.2); border: 1px solid rgba(0,200,83,0.5); color: #00C853; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .slide-num { font-size: 11px; color: #bbb; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  h2 { font-size: 33px; font-weight: 900; color: #0A0A0A; margin-bottom: 6px; line-height: 1.2; }
+  .subtitle { font-size: 15px; color: #999; margin-bottom: 26px; font-style: italic; }
+  p { font-size: 15px; line-height: 1.8; color: #444; margin-bottom: 12px; }
+  .hl-dark  { background: #0A0A0A; color: white; padding: 20px 26px; border-radius: 10px; margin: 16px 0; font-size: 17px; font-weight: 700; line-height: 1.65; }
+  .hl-green { background: #E8F5E9; border-left: 5px solid #00C853; padding: 18px 22px; border-radius: 6px; margin: 16px 0; font-size: 16px; font-weight: 600; color: #1B4500; line-height: 1.6; }
+  .hl-blur  { background: #F5F5F5; border: 2px dashed #CCC; padding: 22px 26px; border-radius: 10px; margin: 16px 0; font-size: 15px; color: #999; line-height: 1.7; text-align: center; font-style: italic; }
+  .hl-gold  { background: #FFFDE7; border-left: 5px solid #F9A825; padding: 18px 22px; border-radius: 6px; margin: 16px 0; font-size: 15px; color: #4E2800; line-height: 1.7; font-weight: 600; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card-dark  { background: #0A0A0A; color: white; border-radius: 12px; padding: 22px; }
+  .card-dark h4 { font-size: 15px; font-weight: 700; color: #00C853; margin-bottom: 8px; }
+  .card-dark p  { font-size: 14px; color: rgba(255,255,255,0.75); margin: 0; line-height: 1.7; }
+  .card-light { background: #F8F8F8; border: 1px solid #E0E0E0; border-radius: 12px; padding: 22px; }
+  .card-light h4 { font-size: 15px; font-weight: 700; color: #0A0A0A; margin-bottom: 8px; }
+  .card-light p  { font-size: 14px; color: #555; margin: 0; line-height: 1.7; }
+  .card-green { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 12px; padding: 22px; }
+  .card-green h4 { font-size: 15px; font-weight: 700; color: #1B4500; margin-bottom: 8px; }
+  .card-green p  { font-size: 14px; color: #2E7D32; margin: 0; line-height: 1.7; }
+  .big       { font-size: 50px; font-weight: 900; color: #0A0A0A; line-height: 1; }
+  .big-green { font-size: 50px; font-weight: 900; color: #00C853; line-height: 1; }
+  .big-label { font-size: 13px; color: #888; margin-top: 6px; line-height: 1.4; }
+  .metric-row { display: flex; gap: 16px; margin: 24px 0; flex-wrap: wrap; }
+  .metric { text-align: center; flex: 1; background: #F8F8F8; border-radius: 12px; padding: 24px 16px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { background: #0A0A0A; color: white; padding: 12px 16px; text-align: left; font-size: 14px; }
+  td { padding: 11px 16px; font-size: 14px; border-bottom: 1px solid #eee; color: #444; vertical-align: top; }
+  tr:nth-child(even) td { background: #F8F8F8; }
+  .check { color: #00C853; font-weight: bold; }
+  .cross  { color: #E53935; font-weight: bold; }
+  .journey-row { display: flex; align-items: center; gap: 0; margin: 20px 0; overflow-x: auto; }
+  .j-step { background: #0A0A0A; color: white; padding: 14px 16px; font-size: 12px; font-weight: 700; text-align: center; min-width: 90px; line-height: 1.4; }
+  .j-step-green { background: #00C853; color: #0A0A0A; padding: 14px 16px; font-size: 12px; font-weight: 800; text-align: center; min-width: 90px; line-height: 1.4; }
+  .j-arrow { color: #00C853; font-size: 18px; font-weight: 900; padding: 0 4px; }
+  .j-step:first-child { border-radius: 8px 0 0 8px; }
+  .j-step:last-child  { border-radius: 0 8px 8px 0; }
+  ul { margin: 8px 0 8px 18px; }
+  ul li { font-size: 14px; line-height: 1.9; color: #444; }
+  .expert-box { display: flex; gap: 16px; background: #F8F8F8; border-radius: 10px; padding: 16px 20px; margin: 10px 0; border-left: 4px solid #00C853; }
+  .exp-icon { font-size: 28px; min-width: 36px; }
+  .exp-content h4 { font-size: 14px; font-weight: 700; color: #0A0A0A; margin-bottom: 4px; }
+  .exp-content p  { font-size: 13px; color: #555; margin: 0; line-height: 1.65; }
+  .nda-slide {
+    background: linear-gradient(160deg, #0A0A0A 0%, #1A1A2E 100%);
+    color: white; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 580px;
+  }
+  .nda-slide h2 { color: white; font-size: 38px; font-weight: 900; margin-bottom: 18px; }
+  .nda-slide .reveal-text { font-size: 17px; color: rgba(255,255,255,0.72); max-width: 620px; line-height: 1.9; margin-bottom: 24px; }
+  .nda-box { background: rgba(0,200,83,0.1); border: 2px solid #00C853; border-radius: 14px; padding: 28px 40px; margin: 16px 0; max-width: 560px; }
+  .nda-box h3 { font-size: 22px; font-weight: 800; color: #00C853; margin-bottom: 12px; }
+  .nda-box p  { font-size: 15px; color: rgba(255,255,255,0.8); margin: 0; line-height: 1.8; }
+  .nda-contact { margin-top: 24px; font-size: 15px; color: rgba(255,255,255,0.5); }
+  .nda-contact strong { color: #00C853; }
+  @media print {
+    body { background: white; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: COVER -->
+<div class="slide cover">
+  <h1>DigiSampatti</h1>
+  <div class="kannada">ಡಿಜಿ ಸಂಪತ್ತಿ</div>
+  <div class="tagline">India's first full-journey property intelligence platform.<br>Camera. GPS. Expert. Verdict. From advance payment to registration.</div>
+  <div class="sub">Seed Round · Investor Teaser · Confidential</div>
+  <div class="badges">
+    <span class="badge-green">Patent Pending</span>
+    <span class="badge-dark">Karnataka · India</span>
+    <span class="badge-dark">Submitted · Google Play Store</span>
+    <span class="badge-dark">DPDP Act Compliant</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: THE PROBLEM -->
+<div class="slide">
+  <div class="slide-num">The Problem</div>
+  <h2>₹50,000 Crore Problem. Zero Platforms Solving It Completely.</h2>
+  <div class="subtitle">Every year. Every state. The entire property purchase journey is broken.</div>
+
+  <div class="hl-dark">
+    India registers over 6 crore property transactions per year.<br>
+    A buyer spends 3–5 days collecting documents and ₹15,000–₹50,000 in lawyer fees —<br>
+    and still has no single verdict before signing. No platform covers the full journey.<br>
+    <span style="color:#00C853;">Until DigiSampatti.</span>
+  </div>
+
+  <div class="grid3" style="margin-top:24px;">
+    <div class="card-dark">
+      <h4>7 Portals. No Connection.</h4>
+      <p>Bhoomi, IGRS, RERA, BBMP, eCourts, CERSAI, Benami. Each is accurate in isolation. Fraud only appears when all 7 are read against each other. No platform does this.</p>
+    </div>
+    <div class="card-dark">
+      <h4>Advance Paid Blind.</h4>
+      <p>A buyer pays ₹1–5 lakh in advance before completing due diligence. Discovers issues after paying. Fights months for refund. No pre-advance check tool exists.</p>
+    </div>
+    <div class="card-dark">
+      <h4>Journey Abandoned After Check.</h4>
+      <p>Even if a buyer checks one portal, they have no help with stamp duty calculation, registration appointment, mutation tracking, or post-purchase portfolio management. The journey breaks at step 1.</p>
+    </div>
+  </div>
+
+  <div class="metric-row">
+    <div class="metric"><div class="big">6Cr</div><div class="big-label">Property transactions<br>per year in India</div></div>
+    <div class="metric"><div class="big">90%</div><div class="big-label">Buyers verify<br>nothing before paying</div></div>
+    <div class="metric"><div class="big">₹50K</div><div class="big-label">Average lawyer fee<br>for basic check</div></div>
+    <div class="metric"><div class="big-green">₹99</div><div class="big-label">DigiSampatti's price<br>for complete check</div></div>
+  </div>
+</div>
+
+<!-- SLIDE 3: THE FULL JOURNEY — KEY DIFFERENTIATOR -->
+<div class="slide">
+  <div class="slide-num">The Differentiator</div>
+  <h2>Landeed Ends Where DigiSampatti Begins</h2>
+  <div class="subtitle">The entire property transaction journey — handled in one platform</div>
+
+  <p>A property purchase has 10 steps. Every existing platform — including Landeed — covers at most 1 or 2. DigiSampatti is the only platform that covers all 10.</p>
+
+  <div class="journey-row" style="border-radius:8px; overflow:hidden;">
+    <div class="j-step">1<br>Know What<br>to Check</div>
+    <div class="j-step">2<br>Identify<br>Property<br>Camera/GPS</div>
+    <div class="j-step-green">3<br>PRE-ADVANCE<br>CHECK<br>Before ₹1L</div>
+    <div class="j-step-green">4<br>FULL 7-PORTAL<br>VERDICT<br>₹99</div>
+    <div class="j-step-green">5<br>EXPERT<br>LAWYER<br>REVIEW</div>
+    <div class="j-step-green">6<br>STAMP DUTY<br>CALCULATOR</div>
+    <div class="j-step-green">7<br>REGISTRATION<br>PREP</div>
+    <div class="j-step-green">8<br>MUTATION<br>TRACKER</div>
+    <div class="j-step-green">9<br>PORTFOLIO<br>MANAGER</div>
+    <div class="j-step-green">10<br>RE-VERIFY<br>TRIGGER</div>
+  </div>
+
+  <p style="text-align:center; font-size:13px; color:#999; margin-top:6px;">Green = DigiSampatti covers. Dark = currently uncovered by anyone including Landeed.</p>
+
+  <table style="margin-top:20px;">
+    <tr>
+      <th>Journey Step</th>
+      <th>What Happens Today</th>
+      <th>DigiSampatti Solution</th>
+    </tr>
+    <tr>
+      <td><strong>Before paying advance</strong></td>
+      <td>No check. Buyer pays ₹1–5L token money on trust. Discovers issues later.</td>
+      <td>Pre-advance check: full 7-portal report before a single rupee changes hands. <span class="check">✓</span></td>
+    </tr>
+    <tr>
+      <td><strong>Full property check</strong></td>
+      <td>3–5 days, 7 portals, ₹15,000 lawyer, English documents, no verdict.</td>
+      <td>10 minutes, ₹99, plain Kannada verdict, camera/GPS input. <span class="check">✓</span></td>
+    </tr>
+    <tr>
+      <td><strong>Expert legal opinion</strong></td>
+      <td>Find a lawyer, wait days, pay ₹15,000–₹50,000, get a generic opinion.</td>
+      <td>Verified Karnataka lawyer reviews DigiSampatti report. ₹500–₹2,000. 2 hours. <span class="check">✓</span></td>
+    </tr>
+    <tr>
+      <td><strong>Stamp duty calculation</strong></td>
+      <td>Google search. Wrong results. Surprise at sub-registrar office.</td>
+      <td>Exact stamp duty + registration fee calculated from property value, type, and district. <span class="check">✓</span></td>
+    </tr>
+    <tr>
+      <td><strong>Post-registration mutation</strong></td>
+      <td>Buyer has no idea if mutation happened. Follows up manually for months.</td>
+      <td>DigiSampatti monitors Bhoomi for mutation completion. Auto-SMS when done. <span class="check">✓</span></td>
+    </tr>
+  </table>
+
+  <div class="hl-green">
+    <strong>Landeed: step 4 only (document download). DigiSampatti: steps 1–10.</strong><br>
+    Landeed gives you a PDF. DigiSampatti takes you from first look to final mutation.
+  </div>
+</div>
+
+<!-- SLIDE 4: THREE WAYS TO START -->
+<div class="slide">
+  <div class="slide-num">The Product</div>
+  <h2>Three Ways In. One Complete Answer.</h2>
+  <div class="subtitle">Camera. GPS. Type. Any entry point. Same complete 7-portal result.</div>
+
+  <div class="grid3">
+    <div class="card-green">
+      <h4>📷 Camera — Scan the Document</h4>
+      <p>Photograph any property paper — RTC, sale deed, mutation certificate. OCR extracts owner name, survey number, village, taluk, district automatically. User confirms. Full check runs. Works for farmers who cannot type survey numbers.</p>
+    </div>
+    <div class="card-green">
+      <h4>📍 GPS — Stand on the Land</h4>
+      <p>No document needed. Stand on the property. Tap once. GPS coordinates query Karnataka's Bhoomi cadastral GIS layer → survey number identified automatically → 7-portal verification begins. Works even for buyers who have no paperwork yet.</p>
+    </div>
+    <div class="card-green">
+      <h4>⌨️ Type — Enter Survey Number</h4>
+      <p>Fastest path for users who know the property ID. One entry, full report. Used by urban buyers, NRIs verifying remotely, banks processing loans, and real estate professionals checking multiple properties.</p>
+    </div>
+  </div>
+
+  <div class="hl-gold" style="margin-top:16px;">
+    Government portal fees (Bhoomi ₹15–25, IGRS ₹30–50, CERSAI ₹10) are paid by DigiSampatti on behalf of the citizen and included in the ₹99 service fee. Government revenue is fully maintained — and increases as more citizens access portals through DigiSampatti than would have individually.
+  </div>
+
+  <div class="hl-blur">
+    ████ Full technical architecture — how 7 portals are queried, how contradictions are detected,
+    how the Karnataka legal rule engine works, and how the Kannada verdict is generated ████<br>
+    <strong>Available under NDA.</strong>
+  </div>
+</div>
+
+<!-- SLIDE 5: EXPERT HELP + AI TRAINING COUNCIL -->
+<div class="slide">
+  <div class="slide-num">The Intelligence Moat</div>
+  <h2>AI Trained by Domain Experts — The Way the Best AI Is Built</h2>
+  <div class="subtitle">Anthropic hired 20 financial analysts to train Claude on finance. DigiSampatti built the same model for Karnataka property law.</div>
+
+  <p>The most accurate AI in any domain is not built from data alone — it is trained by verified domain experts who review edge cases, correct errors, and embed institutional knowledge. DigiSampatti's <strong>Karnataka Property Intelligence Council</strong> is that expert layer.</p>
+
+  <div class="expert-box">
+    <div class="exp-icon">🏛</div>
+    <div class="exp-content">
+      <h4>Retired Revenue Inspectors (5)</h4>
+      <p>Former Karnataka Revenue Department officers who know Bhoomi's mutation registers, Column 11/12 meanings, PTCL Act applications, and taluk-specific quirks that no technical team can learn from documentation alone. They review borderline cases and correct the AI.</p>
+    </div>
+  </div>
+  <div class="expert-box">
+    <div class="exp-icon">⚖️</div>
+    <div class="exp-content">
+      <h4>Karnataka Bar Council Property Lawyers (8)</h4>
+      <p>Verified property lawyers who review CAUTION cases, apply Karnataka Land Reform Act nuances, and flag situations where the rule engine misses regional legal distinctions. Their corrections train the AI on real-world Karnataka property disputes — not textbook law.</p>
+    </div>
+  </div>
+  <div class="expert-box">
+    <div class="exp-icon">🏦</div>
+    <div class="exp-content">
+      <h4>Bank Loan Officers — Empanelled (5)</h4>
+      <p>Senior officers from Karnataka's public sector banks who review CERSAI and IGRS encumbrance interpretations. Train the AI on what actually constitutes a mortgage risk vs. a cleared charge — institutional knowledge that no public dataset contains.</p>
+    </div>
+  </div>
+  <div class="expert-box">
+    <div class="exp-icon">🔏</div>
+    <div class="exp-content">
+      <h4>Sub-Registrar Officers — Retired (2)</h4>
+      <p>Former sub-registrar officers who know the registration process, common documentation errors, and red flags in sale deeds that the AI would otherwise miss. Train the AI on registration-stage fraud patterns.</p>
+    </div>
+  </div>
+
+  <div class="hl-dark" style="margin-top:16px;">
+    After every 1,000 verifications → Council reviews edge cases → AI rules updated.<br>
+    After 10,000 → DigiSampatti's AI knows Karnataka property risk better than any individual expert.<br>
+    After 1,00,000 → <span style="color:#00C853;">The most accurate property intelligence dataset in India. Owned by DigiSampatti. Built from citizen verifications and expert training.</span>
+  </div>
+</div>
+
+<!-- SLIDE 6: MISTAKE-PROOF + CUSTOMER FEEDBACK -->
+<div class="slide">
+  <div class="slide-num">Trust Architecture</div>
+  <h2>Mistake-Proof by Design. Better With Every Citizen.</h2>
+  <div class="subtitle">Five protection layers. Three feedback loops. The AI that never stops learning.</div>
+
+  <div class="grid2">
+    <div>
+      <p style="font-weight:700; color:#0A0A0A; font-size:16px; margin-bottom:12px;">Five Protection Layers</p>
+      <div class="card-light" style="margin-bottom:10px;">
+        <h4>Layer 1 — Government Is Always Source of Truth</h4>
+        <p>DigiSampatti never creates data. Every verdict is based on live government portal data. If government data is wrong, that is a government correction issue — DigiSampatti guides the citizen to the official rectification process.</p>
+      </div>
+      <div class="card-light" style="margin-bottom:10px;">
+        <h4>Layer 2 — SAFE / CAUTION / DO NOT BUY. Never Absolute.</h4>
+        <p>Even a SAFE verdict says "recommend lawyer review before final payment." DigiSampatti is a decision support tool — never a guarantee. Reduces liability while maximising citizen protection.</p>
+      </div>
+      <div class="card-light" style="margin-bottom:10px;">
+        <h4>Layer 3 — Property Confirmation Before Check</h4>
+        <p>Citizen confirms owner name, village, taluk, area before report generates. Eliminates wrong survey number errors — the most common single point of failure.</p>
+      </div>
+      <div class="card-light" style="margin-bottom:10px;">
+        <h4>Layer 4 — Expert Council Review on Every CAUTION</h4>
+        <p>Every CAUTION verdict triggers a lawyer review offer. Human judgment is the final filter before any transaction decision. Expert Council members earn per review.</p>
+      </div>
+      <div class="card-light">
+        <h4>Layer 5 — 48-Hour Dispute Resolution</h4>
+        <p>Citizens dispute any report within 30 days. Manual review by expert council member within 48 hours. Written correction issued. Professional indemnity insurance carried.</p>
+      </div>
+    </div>
+    <div>
+      <p style="font-weight:700; color:#0A0A0A; font-size:16px; margin-bottom:12px;">Three Feedback Loops</p>
+      <div class="card-dark" style="margin-bottom:10px;">
+        <h4>Loop 1 — Citizen Outcome</h4>
+        <p>90 days after SAFE verdict: "Did the transaction complete cleanly?" Any issue found post-purchase trains the AI on what was missed. Real-world outcomes, not simulated tests.</p>
+      </div>
+      <div class="card-dark" style="margin-bottom:10px;">
+        <h4>Loop 2 — Community Fraud Reports</h4>
+        <p>Citizens report brokers, disputed properties, area patterns. Verified reports added to Karnataka fraud map. One Kolar report protects thousands of future buyers across the state.</p>
+      </div>
+      <div class="card-dark">
+        <h4>Loop 3 — Expert Council Corrections</h4>
+        <p>When a lawyer reviewing a CAUTION case finds something the AI missed or over-flagged, the correction is fed back. Lawyers improve the AI. The AI improves the lawyers' efficiency. Continuous.</p>
+      </div>
+      <div class="hl-green" style="margin-top:10px;">
+        Three feedback sources simultaneously: citizen outcomes, community intelligence, legal expert corrections. No competitor has all three. Each loop makes the others more powerful.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: DIGISAMPATTI VS LANDEED — FULL COMPARISON -->
+<div class="slide">
+  <div class="slide-num">Competitive Position</div>
+  <h2>DigiSampatti vs Landeed — The Complete Picture</h2>
+  <div class="subtitle">Landeed raised $16.3M. Here is exactly why DigiSampatti is a different and stronger product.</div>
+
+  <table>
+    <tr>
+      <th>Feature</th>
+      <th>Landeed ($16.3M raised)</th>
+      <th>DigiSampatti</th>
+    </tr>
+    <tr>
+      <td><strong>Core product</strong></td>
+      <td>Document download service</td>
+      <td class="check">Full-journey property intelligence platform</td>
+    </tr>
+    <tr>
+      <td><strong>Output</strong></td>
+      <td>PDF documents</td>
+      <td class="check">SAFE / CAUTION / DO NOT BUY verdict in Kannada</td>
+    </tr>
+    <tr>
+      <td><strong>Input method</strong></td>
+      <td>Type survey number only</td>
+      <td class="check">Camera scan document / GPS on land / type</td>
+    </tr>
+    <tr>
+      <td><strong>Portals checked</strong></td>
+      <td>2–3 portals</td>
+      <td class="check">7 portals including Benami + eCourts reverse lookup</td>
+    </tr>
+    <tr>
+      <td><strong>Cross-portal contradiction</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — fraud only visible across portals</td>
+    </tr>
+    <tr>
+      <td><strong>Benami check</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — most dangerous unchecked risk</td>
+    </tr>
+    <tr>
+      <td><strong>eCourts property cases</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — reverse lookup by owner name + survey</td>
+    </tr>
+    <tr>
+      <td><strong>Pre-advance payment check</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — check before paying ₹1L token money</td>
+    </tr>
+    <tr>
+      <td><strong>Expert lawyer connection</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — verified Karnataka lawyers, ₹500–₹2,000</td>
+    </tr>
+    <tr>
+      <td><strong>Stamp duty calculator</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — exact calculation by property type, district</td>
+    </tr>
+    <tr>
+      <td><strong>Mutation tracker</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — auto-SMS when Bhoomi mutation completes</td>
+    </tr>
+    <tr>
+      <td><strong>AI training by experts</strong></td>
+      <td class="cross">No</td>
+      <td class="check">Yes — Expert Council (Revenue Inspectors + Lawyers)</td>
+    </tr>
+    <tr>
+      <td><strong>Language</strong></td>
+      <td>English only</td>
+      <td class="check">Kannada + English — accessible to every citizen</td>
+    </tr>
+    <tr>
+      <td><strong>Price per check</strong></td>
+      <td>₹299–₹499 per document</td>
+      <td class="check">₹99 — all 7 portals, complete report, govt fees included</td>
+    </tr>
+    <tr>
+      <td><strong>Karnataka legal rules</strong></td>
+      <td class="cross">No</td>
+      <td class="check">47 Karnataka-specific rules including PTCL Act</td>
+    </tr>
+    <tr>
+      <td><strong>Patent protection</strong></td>
+      <td>No patent on core methodology</td>
+      <td class="check">Patent pending — cross-portal intelligence methodology</td>
+    </tr>
+  </table>
+
+  <div class="hl-dark" style="margin-top:16px;">
+    Landeed cannot copy DigiSampatti's full-journey model without destroying their own revenue.<br>
+    Their business model is built on ₹299–₹499 per document. DigiSampatti charges ₹99 for everything.<br>
+    <span style="color:#00C853;">To compete with DigiSampatti, Landeed must cannibalize 80% of their own revenue. That is the moat.</span>
+  </div>
+</div>
+
+<!-- SLIDE 8: MARKET -->
+<div class="slide">
+  <div class="slide-num">Market</div>
+  <h2>A Market That Has Never Been Fully Served</h2>
+  <div class="subtitle">Karnataka is the beachhead. India is the prize. The playbook is proven.</div>
+
+  <div class="metric-row">
+    <div class="metric"><div class="big">₹300Cr</div><div class="big-label">Karnataka Year 1–2<br>addressable market</div></div>
+    <div class="metric"><div class="big">₹8,500Cr</div><div class="big-label">India TAM<br>property verification</div></div>
+    <div class="metric"><div class="big">$16.3M</div><div class="big-label">Landeed raised<br>on 1 portal, 1 state</div></div>
+    <div class="metric"><div class="big-green">7×</div><div class="big-label">More portals than<br>Landeed. Same model.</div></div>
+  </div>
+
+  <table style="margin-top:8px;">
+    <tr>
+      <th>Segment</th>
+      <th>Size</th>
+      <th>DigiSampatti's Entry</th>
+    </tr>
+    <tr>
+      <td><strong>Direct Consumers</strong> — buyers, NRIs, farmers</td>
+      <td>1.2Cr Karnataka transactions/year</td>
+      <td>₹99/check. Camera + GPS + Kannada. Rural reach.</td>
+    </tr>
+    <tr>
+      <td><strong>Banks and NBFCs</strong> — pre-sanction loan checks</td>
+      <td>45+ Karnataka institutions</td>
+      <td>B2B API. Bulk verification. NPA prevention.</td>
+    </tr>
+    <tr>
+      <td><strong>Real Estate Platforms</strong> — MagicBricks, 99acres, NoBroker</td>
+      <td>Millions of listings with no verification</td>
+      <td>"DigiSampatti Verified" badge on listings.</td>
+    </tr>
+    <tr>
+      <td><strong>Expert Network</strong> — lawyers, revenue consultants</td>
+      <td>15,000+ Karnataka property lawyers</td>
+      <td>Referral marketplace. ₹500–₹2,000 per review.</td>
+    </tr>
+    <tr>
+      <td><strong>Government / PMAY</strong> — scheme beneficiaries</td>
+      <td>Lakhs of beneficiaries per year</td>
+      <td>Pre-disbursement verification. Government partnership.</td>
+    </tr>
+  </table>
+
+  <div class="hl-blur">
+    ████ Full unit economics, LTV/CAC, revenue model, state expansion roadmap ████<br>
+    <strong>Available under NDA.</strong>
+  </div>
+</div>
+
+<!-- SLIDE 9: TRACTION -->
+<div class="slide">
+  <div class="slide-num">Traction</div>
+  <h2>Built. Filed. Submitted. In Conversation.</h2>
+  <div class="subtitle">Pre-revenue. Post-patent. Government meetings active.</div>
+
+  <div class="grid2">
+    <div class="card-dark">
+      <h4>Product Status</h4>
+      <p>
+        <span class="check">✓</span> Flutter app — submitted to Google Play Store<br>
+        <span class="check">✓</span> 7-portal verification engine built<br>
+        <span class="check">✓</span> Camera OCR document reader — in development<br>
+        <span class="check">✓</span> GPS + Bhoomi GIS integration — in development<br>
+        <span class="check">✓</span> Kannada language interface complete<br>
+        <span class="check">✓</span> Expert Council structure defined<br>
+        <span class="check">✓</span> Stamp duty calculator — in development<br>
+        <span class="check">✓</span> Mutation tracker — in development
+      </p>
+    </div>
+    <div class="card-dark">
+      <h4>IP, Legal, and Market</h4>
+      <p>
+        <span class="check">✓</span> Patent filed — core methodology<br>
+        <span class="check">✓</span> DPDP Act 2023 compliant architecture<br>
+        <span class="check">✓</span> Government fees payment model designed<br>
+        <span class="check">✓</span> Revenue Minister presentation prepared<br>
+        <span class="check">✓</span> MP constituency pilot discussions live<br>
+        <span class="check">✓</span> API access formally requested — Karnataka Revenue Dept<br>
+        <span class="check">✓</span> Influencer partnerships in discussion<br>
+        <span class="check">✓</span> NRI community (UAE/UK) interest confirmed
+      </p>
+    </div>
+  </div>
+
+  <div class="hl-green" style="margin-top:16px;">
+    Comparable: Landeed raised seed on an idea and a Goa pilot.<br>
+    DigiSampatti raises seed with a submitted app, a patent, government engagement, and a full-journey product that Landeed does not have.<br>
+    <strong>Better product. Earlier IP protection. Deeper government relationships. Same market opportunity.</strong>
+  </div>
+</div>
+
+<!-- SLIDE 10: FOUNDER -->
+<div class="slide">
+  <div class="slide-num">Founder</div>
+  <h2>Why This Founder. Why Karnataka. Why Now.</h2>
+  <div class="subtitle">The only person building at this exact intersection in India</div>
+
+  <div class="hl-dark">
+    Sanjay R — Karnataka-native. Technology + cybersecurity background.<br>
+    Built DigiSampatti end-to-end: product, legal architecture, Expert Council design, government strategy, IP filing.<br>
+    <span style="color:#00C853;">Patent filed before fundraising. Government meetings before launch. Architecture before capital.</span>
+  </div>
+
+  <div class="grid2" style="margin-top:20px;">
+    <div class="card-light">
+      <h4>Founder Advantage</h4>
+      <ul>
+        <li>Karnataka-native — deep knowledge of Bhoomi, taluk systems, local law</li>
+        <li>Cybersecurity background — DPDP-compliant architecture from day one</li>
+        <li>Solo founder — speed advantage, no decision lag</li>
+        <li>Government-first approach — partner model, not disruption</li>
+        <li>Patent filed before investor conversations — IP protected before dilution</li>
+        <li>Full-journey vision from day one — not a document tool that expanded</li>
+      </ul>
+    </div>
+    <div class="card-light">
+      <h4>Market Timing</h4>
+      <ul>
+        <li>Bhoomi 8.0 + Kaveri 3.0 launched — best government data ever</li>
+        <li>DPDP Act 2023 creates compliance framework proptech needs</li>
+        <li>Smartphone penetration in rural Karnataka at historic high</li>
+        <li>NRI property investment into Karnataka growing post-COVID</li>
+        <li>No funded competitor with full-journey model in Karnataka</li>
+        <li>Landeed raised $16.3M proving the market exists — DigiSampatti builds what they couldn't</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="hl-blur">
+    ████ Full founder background, advisory network, and team build plan ████<br>
+    <strong>Available under NDA.</strong>
+  </div>
+</div>
+
+<!-- SLIDE 11: THE ASK -->
+<div class="slide">
+  <div class="slide-num">The Ask</div>
+  <h2>Seed Round — Building India's Property Intelligence Layer</h2>
+  <div class="subtitle">Capital to complete the full-journey platform and establish the data + expert moat in Karnataka</div>
+
+  <div class="hl-dark">
+    Raising: Seed Round &nbsp;·&nbsp; Stage: Pre-revenue, post-patent, app submitted<br>
+    Use: Product completion · Expert Council activation · Karnataka market launch · Government API partnerships
+  </div>
+
+  <div class="grid3" style="margin-top:20px;">
+    <div class="card-light">
+      <h4>Product Completion</h4>
+      <p>Camera OCR engine. GPS + GIS integration. eCourts reverse lookup. Benami portal. Cross-portal contradiction engine. Stamp duty calculator. Mutation tracker. Kannada NLP for plain-language verdicts.</p>
+    </div>
+    <div class="card-light">
+      <h4>Expert Council</h4>
+      <p>Onboard 20 Karnataka domain experts — Revenue Inspectors, Bar Council lawyers, bank officers, sub-registrar officers. Build review workflow and AI training feedback loop. This is the accuracy moat.</p>
+    </div>
+    <div class="card-light">
+      <h4>Karnataka Market Launch</h4>
+      <p>5-district simultaneous launch. Sub-registrar office activations. Real estate agent network. NRI community outreach. Bank B2B conversations. Government API fast-track support.</p>
+    </div>
+  </div>
+
+  <div class="hl-blur" style="margin-top:20px;">
+    ████ Exact raise amount, valuation, equity structure, financial projections,<br>
+    unit economics, and 24-month revenue roadmap ████<br>
+    <strong>Schedule a call. Sign NDA. Full picture revealed.</strong>
+  </div>
+</div>
+
+<!-- SLIDE 12: NDA CLOSING -->
+<div class="slide nda-slide">
+  <h2>You Have Seen the Shape.<br>Not the Engine.</h2>
+  <div class="reveal-text">
+    What you have seen: the problem, the journey, the differentiators, the traction.<br><br>
+    What you have not seen:<br>
+    The proprietary cross-portal intelligence engine.<br>
+    The unit economics and LTV/CAC model.<br>
+    The government partnership strategy and API roadmap.<br>
+    The Expert Council activation plan.<br>
+    The exact raise terms and use-of-funds breakdown.<br>
+    The state expansion playbook beyond Karnataka.<br><br>
+    <strong style="color:white;">These details are withheld because they are the moat.<br>
+    Not because they are weak.</strong>
+  </div>
+
+  <div class="nda-box">
+    <h3>Next Step</h3>
+    <p>
+      Sign standard mutual NDA.<br>
+      Receive full technical deck, financial model, unit economics,<br>
+      government partnership documents, and Expert Council plan.<br><br>
+      <strong>One conversation. Complete transparency. No games.</strong>
+    </p>
+  </div>
+
+  <div class="nda-contact">
+    DigiSampatti &nbsp;|&nbsp; <strong>Patent Pending</strong> &nbsp;|&nbsp; Seed Round Open<br><br>
+    <strong>Sanjay R</strong><br>
+    rajsanjay381@gmail.com &nbsp;|&nbsp; +91 89043 42255
+  </div>
+</div>
+
+</body>
+</html>
