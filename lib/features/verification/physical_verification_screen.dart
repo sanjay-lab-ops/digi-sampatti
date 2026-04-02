@@ -168,7 +168,7 @@ class _PhysicalVerificationScreenState
                     Icon(Icons.warning_amber, size: 14, color: AppColors.caution),
                     const SizedBox(width: 4),
                     Text(
-                      'Phase 2 — Human Verification Required',
+                      'Physical Verification Required',
                       style: TextStyle(
                         color: AppColors.caution,
                         fontSize: 11,
