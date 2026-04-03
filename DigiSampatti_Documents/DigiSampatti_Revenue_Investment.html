@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiSampatti — Revenue & Investment Plan</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#07070e;--card:#0f0f1c;--border:rgba(255,255,255,.07);--primary:#6C63FF;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--text:#f1f5f9;--sub:#94a3b8}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:48px 5vw 80px;max-width:1100px;margin:0 auto}
+h1{font-size:28px;font-weight:900;color:var(--primary);margin-bottom:6px}
+.meta{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:48px}
+h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--sub);margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;margin-bottom:8px}
+th{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);padding:10px 14px;text-align:left;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
+td{font-size:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;line-height:1.5}
+tr:hover td{background:rgba(255,255,255,.02)}
+.amt{font-weight:800;color:var(--amber);white-space:nowrap}
+.grn{color:var(--green);font-weight:700}
+.dim{color:var(--sub)}
+.total-row td{background:rgba(108,99,255,.08);border-top:1px solid rgba(108,99,255,.2);font-weight:800}
+.total-row .amt{color:var(--primary);font-size:14px}
+
+/* SUMMARY CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 18px;text-align:center}
+.card.hi{border-color:rgba(108,99,255,.3);background:rgba(108,99,255,.08)}
+.card-val{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:900;color:var(--primary);margin-bottom:4px}
+.card-val.g{color:var(--green)}
+.card-val.a{color:var(--amber)}
+.card-l{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em}
+
+/* TIMELINE */
+.timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:8px}
+.tl{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.tl-phase{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);margin-bottom:6px}
+.tl-when{font-size:13px;font-weight:700;margin-bottom:10px}
+.tl-item{font-size:11px;color:var(--sub);padding:3px 0 3px 14px;position:relative;line-height:1.5}
+.tl-item::before{content:'→';position:absolute;left:0;color:var(--primary);font-size:9px;top:4px}
+.tl-mrr{font-size:12px;font-weight:800;color:var(--green);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* NOTE */
+.note{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--sub);line-height:1.7;margin-top:8px}
+.note strong{color:var(--green)}
+</style>
+</head>
+<body>
+
+<h1>DigiSampatti — Revenue & Investment Plan</h1>
+<div class="meta">April 2026 · Seed Stage · Karnataka Launch</div>
+
+<!-- REVENUE SUMMARY -->
+<h2>Revenue Per Transaction (₹50L Property)</h2>
+<div class="cards">
+  <div class="card hi"><div class="card-val">₹62,000</div><div class="card-l">Total per transaction</div></div>
+  <div class="card"><div class="card-val g">85%</div><div class="card-l">Gross margin</div></div>
+  <div class="card"><div class="card-val a">₹200</div><div class="card-l">Customer acquisition cost</div></div>
+  <div class="card"><div class="card-val">₹1,700+</div><div class="card-l">Lifetime value</div></div>
+  <div class="card"><div class="card-val g">8.5×</div><div class="card-l">LTV : CAC ratio</div></div>
+</div>
+
+<!-- ALL 12 REVENUE STREAMS -->
+<h2>All 12 Revenue Streams</h2>
+<table>
+  <tr><th>#</th><th>Stream</th><th>Who Pays</th><th>Amount</th><th>When</th><th>Per Transaction</th></tr>
+  <tr><td class="dim">1</td><td>Seller Registration</td><td>Seller</td><td class="amt">₹99</td><td>At listing</td><td class="grn">₹99</td></tr>
+  <tr><td class="dim">2</td><td>Basic Scan</td><td>Seller / Buyer</td><td class="amt">₹9</td><td>Quick check</td><td class="grn">₹9</td></tr>
+  <tr><td class="dim">3</td><td>Full 7-Portal Verification</td><td>Seller / Broker / Buyer</td><td class="amt">₹199</td><td>Before sale</td><td class="grn">₹199</td></tr>
+  <tr><td class="dim">4</td><td>Buyer Report View</td><td>Buyer</td><td class="amt">₹99</td><td>Before buying</td><td class="grn">₹99</td></tr>
+  <tr><td class="dim">5</td><td>Legal Expert Consultation</td><td>Buyer</td><td class="amt">₹499</td><td>Before sale</td><td class="grn">₹499</td></tr>
+  <tr><td class="dim">6</td><td>Escrow (Advance Protection)</td><td>Buyer + Seller</td><td class="amt">1% of deal</td><td>At agreement</td><td class="grn">₹50,000</td></tr>
+  <tr><td class="dim">7</td><td>Mutation Service</td><td>Buyer</td><td class="amt">₹2,999</td><td>After registration</td><td class="grn">₹2,999</td></tr>
+  <tr><td class="dim">8</td><td>Khata Transfer</td><td>Buyer</td><td class="amt">₹1,499</td><td>After mutation</td><td class="grn">₹1,499</td></tr>
+  <tr><td class="dim">9</td><td>Bank API Query</td><td>Bank / NBFC</td><td class="amt">₹400/query</td><td>Loan processing</td><td class="grn">₹400</td></tr>
+  <tr><td class="dim">10</td><td>Property Alert Monitor</td><td>New owner</td><td class="amt">₹199/mo</td><td>Ongoing</td><td class="grn">₹199/mo</td></tr>
+  <tr><td class="dim">11</td><td>DS Certified Broker</td><td>Broker</td><td class="amt">₹5,000/yr</td><td>Annual</td><td class="grn">₹417/mo</td></tr>
+  <tr><td class="dim">12</td><td>NRI Package</td><td>NRI buyer</td><td class="amt">₹4,999</td><td>Per transaction</td><td class="grn">₹4,999</td></tr>
+  <tr class="total-row"><td colspan="5"><strong>Total per ₹50L transaction (all streams)</strong></td><td class="amt">~₹62,000</td></tr>
+</table>
+
+<!-- INVESTMENT / SPENDING -->
+<h2>Where to Invest Now — Priority Order</h2>
+<table>
+  <tr><th>Priority</th><th>What</th><th>Cost</th><th>Why</th><th>When</th></tr>
+  <tr><td class="dim">1</td><td>Domain — digisampatti.in</td><td class="amt">₹800/yr</td><td>Needed for Cashfree KYC + professional email + website</td><td>This week</td></tr>
+  <tr><td class="dim">2</td><td>Cashfree Payments setup</td><td class="grn">₹0</td><td>Free to set up — pay per transaction (2% per payment)</td><td>This week</td></tr>
+  <tr><td class="dim">3</td><td>Website hosting (Netlify)</td><td class="grn">₹0</td><td>Free tier sufficient for 10K visitors/month</td><td>This week</td></tr>
+  <tr><td class="dim">4</td><td>Anthropic Claude API</td><td class="amt">~₹3,000/mo</td><td>Powers all AI analysis and OCR verification</td><td>Now (pay as you go)</td></tr>
+  <tr><td class="dim">5</td><td>Firebase (Blaze plan)</td><td class="amt">~₹500/mo</td><td>Free up to 50K reads/day. Upgrade when users hit free limit</td><td>When needed</td></tr>
+  <tr><td class="dim">6</td><td>Patent — Complete filing</td><td class="amt">₹15,000</td><td>Provisional filed. Complete within 12 months of provisional date</td><td>Within 6 months</td></tr>
+  <tr><td class="dim">7</td><td>Apple Developer Account</td><td class="amt">₹8,199/yr</td><td>Required to publish on iOS App Store</td><td>Month 2</td></tr>
+  <tr><td class="dim">8</td><td>Codemagic (iOS build from Windows)</td><td class="amt">₹2,000/mo</td><td>Build iOS app without a Mac — cloud Mac service</td><td>Month 2</td></tr>
+  <tr><td class="dim">9</td><td>Legal — ToS professional review</td><td class="amt">₹5,000</td><td>One-time lawyer review of Terms of Service</td><td>Month 2</td></tr>
+  <tr><td class="dim">10</td><td>First broker partnerships</td><td class="amt">₹10,000</td><td>Onboard 5 brokers free, pay for WhatsApp group ads in broker communities</td><td>Month 1</td></tr>
+  <tr><td class="dim">11</td><td>Google Play Console</td><td class="grn">Already paid</td><td>₹1,750 one-time — already done</td><td>Done ✓</td></tr>
+  <tr class="total-row"><td colspan="2"><strong>Total to launch fully (Month 1-2)</strong></td><td class="amt">~₹45,000</td><td colspan="2" class="dim">One-time + first 2 months running cost</td></tr>
+</table>
+
+<!-- WHAT NOT TO SPEND ON -->
+<h2>Do NOT Spend On (Yet)</h2>
+<table>
+  <tr><th>What</th><th>Why Not</th><th>When to reconsider</th></tr>
+  <tr><td>Paid advertising (Google/Meta ads)</td><td class="dim">Too early — get 100 organic users first, understand what converts</td><td>After ₹50K MRR</td></tr>
+  <tr><td>Office space / coworking</td><td class="dim">Not needed — build solo from home until first 1,000 users</td><td>After Series A</td></tr>
+  <tr><td>Full-time employees</td><td class="dim">Premature — hire freelancers per task until revenue covers salaries</td><td>After ₹1L MRR</td></tr>
+  <tr><td>Data licensing / government API</td><td class="dim">Zero cost — all 7 portals are public citizen access, no license needed</td><td>Never (unless govt offers free MoU)</td></tr>
+  <tr><td>Custom server infrastructure</td><td class="dim">Firebase + Netlify covers all needs up to 100K users</td><td>After 1L users</td></tr>
+</table>
+
+<!-- GROWTH MILESTONES -->
+<h2>Revenue Milestones → Funding Triggers</h2>
+<div class="timeline">
+  <div class="tl">
+    <div class="tl-phase">Now — Month 3</div>
+    <div class="tl-when">₹0 → ₹25K MRR</div>
+    <div class="tl-item">First 100 paying users</div>
+    <div class="tl-item">5 broker partnerships</div>
+    <div class="tl-item">Cashfree live + payments working</div>
+    <div class="tl-item">iOS app submitted</div>
+    <div class="tl-mrr">Spend: ₹45K total</div>
+  </div>
+  <div class="tl">
+    <div class="tl-phase">Month 3 — 6</div>
+    <div class="tl-when">₹25K → ₹1L MRR</div>
+    <div class="tl-item">500 users · 20 brokers</div>
+    <div class="tl-item">Bank API — 1 NBFC signed</div>
+    <div class="tl-item">Kalaari / Rainmatter seed round closes</div>
+    <div class="tl-item">Arth ID integration live</div>
+    <div class="tl-mrr">Seed: ₹50L raised</div>
+  </div>
+  <div class="tl">
+    <div class="tl-phase">Month 6 — 12</div>
+    <div class="tl-when">₹1L → ₹5L MRR</div>
+    <div class="tl-item">2,000 users · 100 brokers</div>
+    <div class="tl-item">AP + Tamil Nadu expansion</div>
+    <div class="tl-item">3 banks on API</div>
+    <div class="tl-item">BNB smart contract escrow live</div>
+    <div class="tl-mrr">Pre-Series A metrics ready</div>
+  </div>
+  <div class="tl">
+    <div class="tl-phase">Month 12 — 24</div>
+    <div class="tl-when">₹5L → ₹20L MRR</div>
+    <div class="tl-item">10,000 users · 500 brokers</div>
+    <div class="tl-item">5 states · 10 banks</div>
+    <div class="tl-item">Govt data partnership (Startup KA)</div>
+    <div class="tl-item">Series A raise</div>
+    <div class="tl-mrr">Series A: ₹5–10 Cr</div>
+  </div>
+</div>
+
+<!-- INVESTOR RETURN MODEL -->
+<h2>What an Investor Gets</h2>
+<table>
+  <tr><th>Metric</th><th>Seed Stage (Now)</th><th>At ₹1L MRR (Month 6)</th><th>At ₹10L MRR (Month 18)</th></tr>
+  <tr><td>Monthly Revenue</td><td class="dim">₹0 (pre-revenue)</td><td class="amt">₹1,00,000</td><td class="amt">₹10,00,000</td></tr>
+  <tr><td>ARR</td><td class="dim">₹0</td><td class="grn">₹12L</td><td class="grn">₹1.2 Cr</td></tr>
+  <tr><td>Gross Margin</td><td class="dim">85%</td><td class="grn">85%</td><td class="grn">85%</td></tr>
+  <tr><td>Valuation (10× ARR)</td><td class="dim">₹3 Cr pre-money</td><td class="grn">₹1.2 Cr</td><td class="grn">₹12 Cr</td></tr>
+  <tr><td>Seed investor (₹50L at ₹3 Cr)</td><td class="amt">16.7% equity</td><td class="grn">worth ₹2 Cr+</td><td class="grn">worth ₹20 Cr+</td></tr>
+</table>
+<div class="note">
+  <strong>Why the numbers work:</strong> DigiSampatti earns ₹62,000 per ₹50L transaction. Karnataka alone has 4.2 lakh property transactions per year.
+  Capturing 1% = 4,200 transactions = <strong>₹26 Cr annual revenue</strong> from one state.
+  At 85% gross margin, this is a high-quality SaaS business on real estate transaction volumes.
+</div>
+
+</body>
+</html>
