@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 
 class AiAnalysisScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? recordData;
@@ -21,7 +22,10 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
   }
 
   Future<void> _runAnalysis() async {
-    await ref.read(propertyCheckNotifierProvider.notifier).runAnalysisAndGenerateReport();
+    // Pass the real portal findings collected by the user in the checklist
+    final findings = ref.read(portalFindingsProvider);
+    await ref.read(propertyCheckNotifierProvider.notifier)
+        .runAnalysisAndGenerateReport(portalFindings: findings);
   }
 
   @override

@@ -1,0 +1,139 @@
+// ─── Portal Findings — What the user actually saw on each government portal ────
+// These are real user-verified inputs, NOT generated/simulated data.
+// Each field is nullable: null = portal not checked / skipped.
+
+enum KhataFound { aKhata, bKhata, noKhata, notShown }
+
+class PortalFindings {
+  // ── Bhoomi RTC ─────────────────────────────────────────────────────────────
+  final bool? bhoomiOpened;       // Did user open Bhoomi?
+  final KhataFound? khataFound;   // What Khata type did they see?
+  final bool? bhoomiHasRemarks;   // Any red remarks / govt notices in RTC?
+
+  // ── Kaveri IGRS (EC) ───────────────────────────────────────────────────────
+  final bool? kaveriOpened;
+  final bool? hasActiveLoan;      // Loan/mortgage shown in EC?
+  final bool? multipleSales;      // Multiple sale transactions recently?
+
+  // ── RERA ──────────────────────────────────────────────────────────────────
+  final bool? isApartmentProject; // Is this an apartment (not individual plot)?
+  final bool? reraRegistered;     // Builder registered on RERA? (null = N/A)
+
+  // ── eCourts ───────────────────────────────────────────────────────────────
+  final bool? ecourtsOpened;
+  final bool? hasCourtCases;      // Active litigation found?
+
+  // ── BBMP Tax ──────────────────────────────────────────────────────────────
+  final bool? bbmpOpened;
+  final bool? propertyTaxPaid;    // Tax up to date?
+
+  // ── CERSAI ────────────────────────────────────────────────────────────────
+  final bool? cersaiOpened;
+  final bool? hasBankCharge;      // Registered bank mortgage/charge?
+
+  // ── Bhoomi FMB / Sketch Map ───────────────────────────────────────────────
+  final bool? fmbOpened;
+  final bool? boundariesCorrect;  // Physical plot matches map?
+
+  const PortalFindings({
+    this.bhoomiOpened,
+    this.khataFound,
+    this.bhoomiHasRemarks,
+    this.kaveriOpened,
+    this.hasActiveLoan,
+    this.multipleSales,
+    this.isApartmentProject,
+    this.reraRegistered,
+    this.ecourtsOpened,
+    this.hasCourtCases,
+    this.bbmpOpened,
+    this.propertyTaxPaid,
+    this.cersaiOpened,
+    this.hasBankCharge,
+    this.fmbOpened,
+    this.boundariesCorrect,
+  });
+
+  PortalFindings copyWith({
+    bool? bhoomiOpened,
+    KhataFound? khataFound,
+    bool? bhoomiHasRemarks,
+    bool? kaveriOpened,
+    bool? hasActiveLoan,
+    bool? multipleSales,
+    bool? isApartmentProject,
+    bool? reraRegistered,
+    bool? ecourtsOpened,
+    bool? hasCourtCases,
+    bool? bbmpOpened,
+    bool? propertyTaxPaid,
+    bool? cersaiOpened,
+    bool? hasBankCharge,
+    bool? fmbOpened,
+    bool? boundariesCorrect,
+  }) =>
+      PortalFindings(
+        bhoomiOpened: bhoomiOpened ?? this.bhoomiOpened,
+        khataFound: khataFound ?? this.khataFound,
+        bhoomiHasRemarks: bhoomiHasRemarks ?? this.bhoomiHasRemarks,
+        kaveriOpened: kaveriOpened ?? this.kaveriOpened,
+        hasActiveLoan: hasActiveLoan ?? this.hasActiveLoan,
+        multipleSales: multipleSales ?? this.multipleSales,
+        isApartmentProject: isApartmentProject ?? this.isApartmentProject,
+        reraRegistered: reraRegistered ?? this.reraRegistered,
+        ecourtsOpened: ecourtsOpened ?? this.ecourtsOpened,
+        hasCourtCases: hasCourtCases ?? this.hasCourtCases,
+        bbmpOpened: bbmpOpened ?? this.bbmpOpened,
+        propertyTaxPaid: propertyTaxPaid ?? this.propertyTaxPaid,
+        cersaiOpened: cersaiOpened ?? this.cersaiOpened,
+        hasBankCharge: hasBankCharge ?? this.hasBankCharge,
+        fmbOpened: fmbOpened ?? this.fmbOpened,
+        boundariesCorrect: boundariesCorrect ?? this.boundariesCorrect,
+      );
+
+  // ── Risk summary for AI prompt ─────────────────────────────────────────────
+  Map<String, dynamic> toJson() => {
+        'bhoomi': {
+          'opened': bhoomiOpened,
+          'khata': khataFound?.name,
+          'hasRemarks': bhoomiHasRemarks,
+        },
+        'kaveri': {
+          'opened': kaveriOpened,
+          'activeLoan': hasActiveLoan,
+          'multipleSales': multipleSales,
+        },
+        'rera': {
+          'isApartment': isApartmentProject,
+          'registered': reraRegistered,
+        },
+        'ecourts': {
+          'opened': ecourtsOpened,
+          'hasCases': hasCourtCases,
+        },
+        'bbmp': {
+          'opened': bbmpOpened,
+          'taxPaid': propertyTaxPaid,
+        },
+        'cersai': {
+          'opened': cersaiOpened,
+          'bankCharge': hasBankCharge,
+        },
+        'fmb': {
+          'opened': fmbOpened,
+          'boundariesCorrect': boundariesCorrect,
+        },
+      };
+
+  int get portalsChecked {
+    int count = 0;
+    if (bhoomiOpened == true) count++;
+    if (kaveriOpened == true) count++;
+    if (isApartmentProject != null) count++; // RERA answered
+    if (ecourtsOpened == true) count++;
+    if (bbmpOpened == true) count++;
+    if (cersaiOpened == true) count++;
+    if (fmbOpened == true) count++;
+    return count;
+  }
+}

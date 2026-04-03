@@ -44,6 +44,7 @@ import 'package:digi_sampatti/features/nri/nri_mode_screen.dart';
 import 'package:digi_sampatti/features/demo/demo_report_screen.dart';
 import 'package:digi_sampatti/features/auth/user_type_screen.dart';
 import 'package:digi_sampatti/features/gov/gov_dashboard_screen.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -78,6 +79,11 @@ final _router = GoRouter(
       path: '/scan/manual',
       name: 'manual-search',
       builder: (context, state) => const ManualSearchScreen(),
+    ),
+    GoRoute(
+      path: '/checklist',
+      name: 'portal-checklist',
+      builder: (context, state) => const PortalChecklistScreen(),
     ),
     GoRoute(
       path: '/records',

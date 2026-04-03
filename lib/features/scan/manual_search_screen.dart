@@ -82,14 +82,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     );
     ref.read(currentScanProvider.notifier).state = scan;
     ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
-    context.push('/records', extra: {
-      'district': _selectedDistrict,
-      'taluk': _selectedTaluk,
-      'hobli': _selectedHobli ?? '',
-      'village': _selectedVillage ?? '',
-      'surveyNumber': surveyNo,
-      'ownerName': _ownerNameController.text.trim(),
-    });
+    // Go to portal checklist — user checks real government data themselves
+    context.push('/checklist');
   }
 
   @override
