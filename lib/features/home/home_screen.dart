@@ -84,14 +84,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       appBar: AppBar(
         title: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.asset(
-                'assets/images/logo.jpeg',
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(6),
               ),
+              child: const Icon(Icons.verified_user, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 10),
             Text(l.homeTitle),

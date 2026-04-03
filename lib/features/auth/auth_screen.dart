@@ -126,14 +126,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 const SizedBox(height: 24),
                 // Logo
                 Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.asset(
-                      'assets/images/logo.jpeg',
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.contain,
+                  child: Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(18),
                     ),
+                    child: const Icon(Icons.verified_user, color: Colors.white, size: 40),
                   ),
                 ),
                 const SizedBox(height: 24),

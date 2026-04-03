@@ -90,14 +90,13 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/images/logo.jpeg',
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.contain,
+                  child: Container(
+                    width: 100, height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(24),
                     ),
+                    child: const Icon(Icons.verified_user, color: Colors.white, size: 56),
                   ),
                 ),
                 const SizedBox(height: 24),
