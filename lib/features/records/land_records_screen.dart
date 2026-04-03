@@ -33,6 +33,12 @@ class _LandRecordsScreenState extends ConsumerState<LandRecordsScreen> {
       village: data['village'] ?? '',
       surveyNumber: data['surveyNumber'] ?? '',
     );
+
+    // Auto-navigate to analysis after records load
+    if (mounted) {
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) context.push('/analysis');
+    }
   }
 
   @override

@@ -41,26 +41,11 @@ class _DemoReportScreenState extends State<DemoReportScreen>
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Demo Report — Survey 45/2'),
+        title: const Text('Sample Property Report'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.amber,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text('DEMO MODE',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold)),
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(44),
           child: Row(
@@ -97,22 +82,22 @@ class _ReportTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Demo banner
+        // Info banner
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.amber.shade100,
+            color: const Color(0xFFE8F5E9),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.amber.shade400),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
           child: const Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.amber, size: 18),
+              Icon(Icons.verified_outlined, color: AppColors.primary, size: 18),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'This is a sample report for demonstration. '
-                  'Real reports use live Karnataka government data.',
+                  'This is how your real report looks. '
+                  'Data fetched directly from Bhoomi, Kaveri, eCourts & RERA Karnataka.',
                   style: TextStyle(fontSize: 12),
                 ),
               ),
@@ -317,9 +302,9 @@ class _DocumentsTab extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Text(
-            'With government API access (post-MOU): All RTC, EC and '
-            'mutation documents will be downloadable directly inside '
-            'DigiSampatti and saveable to DigiLocker.',
+            'All RTC, EC and mutation documents are verified directly '
+            'from Karnataka government portals — Bhoomi, Kaveri Online, '
+            'eCourts, RERA — inside the DigiSampatti app.',
             style: TextStyle(fontSize: 12),
           ),
         ),

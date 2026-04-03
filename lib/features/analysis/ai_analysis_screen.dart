@@ -42,10 +42,11 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
         ),
         data: (report) {
           if (report == null) return _LoadingAnalysisView();
-          return _AnalysisResultView(
-            report: report,
-            onGenerateReport: () => _generateReport(report),
-          );
+          // Auto-navigate to report screen
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) context.push('/report', extra: report.toJson());
+          });
+          return _LoadingAnalysisView();
         },
       ),
     );
