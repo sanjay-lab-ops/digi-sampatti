@@ -126,26 +126,31 @@ class AiAnalysisService {
     CersaiResult? cersai,
     BenamiResult? benami,
   ) {
-    final concerns = cr.contradictions
+    final flags = cr.contradictions
         .map((c) => LegalFlag(
-              flag: c.title,
-              severity: c.severity == ContradictionSeverity.critical
-                  ? FlagSeverity.critical
-                  : FlagSeverity.warning,
+              category: c.severity == ContradictionSeverity.critical
+                  ? 'Critical'
+                  : 'Warning',
+              title: c.title,
               details: c.description,
+              status: c.severity == ContradictionSeverity.critical
+                  ? FlagStatus.danger
+                  : FlagStatus.warning,
               actionRequired: c.actionRequired,
             ))
         .toList();
 
     return RiskAssessment(
-      riskScore: 95,
-      recommendation: Recommendation.dontBuy,
-      summary: cr.verdictReason,
-      concerns: concerns,
-      positives: [],
-      actionItems: cr.contradictions.map((c) => c.actionRequired).toList(),
+      score: 5,
+      level: RiskLevel.high,
+      isSafeToBuy: false,
       isBankLoanEligible: false,
-      portalsScanCount: _countPortals(land, rera, cersai, benami),
+      recommendation: RiskLevel.high.recommendation,
+      summary: cr.verdictReason,
+      flags: flags,
+      positives: [],
+      concerns: cr.contradictions.map((c) => c.title).toList(),
+      actionItems: cr.contradictions.map((c) => c.actionRequired).toList(),
     );
   }
 
@@ -156,30 +161,33 @@ class AiAnalysisService {
 
     final extraFlags = cr.contradictions
         .map((c) => LegalFlag(
-              flag: c.title,
-              severity: c.severity == ContradictionSeverity.critical
-                  ? FlagSeverity.critical
-                  : FlagSeverity.warning,
+              category: c.severity == ContradictionSeverity.critical
+                  ? 'Critical'
+                  : 'Warning',
+              title: c.title,
               details: '${c.portal1} vs ${c.portal2}: ${c.description}',
+              status: c.severity == ContradictionSeverity.critical
+                  ? FlagStatus.danger
+                  : FlagStatus.warning,
               actionRequired: c.actionRequired,
             ))
         .toList();
 
-    final mergedConcerns = [...extraFlags, ...base.concerns];
+    final mergedFlags = [...extraFlags, ...base.flags];
 
     // Escalate verdict if contradiction engine found critical issues
     final recommendation = cr.hasCritical
-        ? Recommendation.dontBuy
+        ? RiskLevel.high.recommendation
         : base.recommendation;
 
-    final riskScore = cr.hasCritical
-        ? (base.riskScore > 90 ? base.riskScore : 90)
-        : base.riskScore;
+    final newScore = cr.hasCritical
+        ? (base.score < 10 ? base.score : 10)
+        : base.score;
 
     return base.copyWith(
-      concerns: mergedConcerns,
+      flags: mergedFlags,
       recommendation: recommendation,
-      riskScore: riskScore,
+      score: newScore,
     );
   }
 

@@ -21,6 +21,8 @@ class LandRecord {
   final DateTime? fetchedAt;
   final double? guidanceValuePerSqft;   // Karnataka stamp duty guidance value
   final double? estimatedMarketValue;   // Estimated market value in lakhs
+  final bool areaMismatch;              // Area in RTC differs from sale docs
+  final bool hasOwnershipGap;           // Gap in mutation/ownership chain
 
   const LandRecord({
     required this.surveyNumber,
@@ -44,6 +46,8 @@ class LandRecord {
     this.fetchedAt,
     this.guidanceValuePerSqft,
     this.estimatedMarketValue,
+    this.areaMismatch = false,
+    this.hasOwnershipGap = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +72,8 @@ class LandRecord {
     'fetchedAt': fetchedAt?.toIso8601String(),
     'guidanceValuePerSqft': guidanceValuePerSqft,
     'estimatedMarketValue': estimatedMarketValue,
+    'areaMismatch': areaMismatch,
+    'hasOwnershipGap': hasOwnershipGap,
   };
 
   factory LandRecord.fromJson(Map<String, dynamic> json) => LandRecord(
@@ -102,6 +108,8 @@ class LandRecord {
         : null,
     guidanceValuePerSqft: json['guidanceValuePerSqft']?.toDouble(),
     estimatedMarketValue: json['estimatedMarketValue']?.toDouble(),
+    areaMismatch: json['areaMismatch'] ?? false,
+    hasOwnershipGap: json['hasOwnershipGap'] ?? false,
   );
 }
 
@@ -233,6 +241,8 @@ class ReraRecord {
   final String? projectType;       // Residential / Commercial / Mixed
   final int? totalUnits;
   final String? websiteUrl;
+  final bool hasComplaints;
+  final int complaintCount;
 
   const ReraRecord({
     this.registrationNumber,
@@ -245,6 +255,8 @@ class ReraRecord {
     this.projectType,
     this.totalUnits,
     this.websiteUrl,
+    this.hasComplaints = false,
+    this.complaintCount = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -258,6 +270,8 @@ class ReraRecord {
     'projectType': projectType,
     'totalUnits': totalUnits,
     'websiteUrl': websiteUrl,
+    'hasComplaints': hasComplaints,
+    'complaintCount': complaintCount,
   };
 
   factory ReraRecord.fromJson(Map<String, dynamic> json) => ReraRecord(
@@ -275,6 +289,8 @@ class ReraRecord {
     projectType: json['projectType'],
     totalUnits: json['totalUnits'],
     websiteUrl: json['websiteUrl'],
+    hasComplaints: json['hasComplaints'] ?? false,
+    complaintCount: json['complaintCount'] ?? 0,
   );
 }
 

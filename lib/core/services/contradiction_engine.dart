@@ -1,5 +1,6 @@
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
+import 'package:digi_sampatti/core/services/bhoomi_service.dart';
 import 'package:digi_sampatti/core/services/cersai_service.dart';
 import 'package:digi_sampatti/core/services/benami_service.dart';
 
@@ -171,8 +172,7 @@ class ContradictionEngine {
     final cersai = data.cersaiResult!;
 
     // Bhoomi RTC column 12 shows liabilities. If empty but CERSAI shows mortgage:
-    final bhoomiLiabilityFree =
-        bhoomi.encumbrances == null || bhoomi.encumbrances!.isEmpty;
+    final bhoomiLiabilityFree = bhoomi.encumbrances.isEmpty;
 
     if (bhoomiLiabilityFree && cersai.hasActiveLien) {
       final banks = cersai.charges

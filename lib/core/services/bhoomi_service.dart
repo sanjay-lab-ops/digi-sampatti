@@ -390,6 +390,7 @@ class RevenueSiteStatus {
   final bool isBbmpArea;
   final bool isCmcArea;
   final bool isRevenueSite;
+  final bool hasDcConversion;   // Has DC (Diversion Certificate) from Deputy Commissioner
   final String notes;
 
   const RevenueSiteStatus({
@@ -397,6 +398,7 @@ class RevenueSiteStatus {
     required this.isBbmpArea,
     required this.isCmcArea,
     required this.isRevenueSite,
+    this.hasDcConversion = false,
     required this.notes,
   });
 }

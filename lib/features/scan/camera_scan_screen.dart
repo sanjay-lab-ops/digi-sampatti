@@ -79,7 +79,6 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
         scannedAt: DateTime.now(),
         // Pre-fill from OCR if available
         surveyNumber: ocrResult.surveyNumber,
-        ownerName: ocrResult.ownerName,
       );
 
       ref.read(currentScanProvider.notifier).state = scan;

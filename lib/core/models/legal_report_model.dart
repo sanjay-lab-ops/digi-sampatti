@@ -96,6 +96,32 @@ class RiskAssessment {
     'actionItems': actionItems,
   };
 
+  RiskAssessment copyWith({
+    int? score,
+    RiskLevel? level,
+    bool? isSafeToBuy,
+    bool? isBankLoanEligible,
+    String? recommendation,
+    String? summary,
+    List<LegalFlag>? flags,
+    List<String>? positives,
+    List<String>? concerns,
+    List<String>? actionItems,
+  }) {
+    return RiskAssessment(
+      score: score ?? this.score,
+      level: level ?? this.level,
+      isSafeToBuy: isSafeToBuy ?? this.isSafeToBuy,
+      isBankLoanEligible: isBankLoanEligible ?? this.isBankLoanEligible,
+      recommendation: recommendation ?? this.recommendation,
+      summary: summary ?? this.summary,
+      flags: flags ?? this.flags,
+      positives: positives ?? this.positives,
+      concerns: concerns ?? this.concerns,
+      actionItems: actionItems ?? this.actionItems,
+    );
+  }
+
   factory RiskAssessment.fromJson(Map<String, dynamic> json) => RiskAssessment(
     score: json['score'],
     level: RiskLevel.values.byName(json['level']),
