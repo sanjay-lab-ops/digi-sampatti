@@ -8,6 +8,7 @@ import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
+import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -84,14 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              width: 32, height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Icon(Icons.verified_user, color: Colors.white, size: 18),
-            ),
+            const DSLogo(size: 32),
             const SizedBox(width: 10),
             Text(l.homeTitle),
           ],

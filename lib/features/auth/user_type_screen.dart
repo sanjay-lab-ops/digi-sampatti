@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
 // ── Entry Screen — shown before OTP login ─────────────────────────────────────
 // Single entry point for all users: buyers, sellers, brokers, banks, lawyers.
@@ -19,14 +20,7 @@ class UserTypeScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 40),
             // Logo
-            Container(
-              width: 72, height: 72,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.verified_user, color: Colors.white, size: 40),
-            ),
+            const DSLogo(size: 72),
             const SizedBox(height: 16),
             const Text('DigiSampatti',
                 style: TextStyle(

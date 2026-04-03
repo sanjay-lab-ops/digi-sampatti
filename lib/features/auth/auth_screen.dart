@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -125,16 +126,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Logo
-                Center(
-                  child: Container(
-                    width: 72, height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Icon(Icons.verified_user, color: Colors.white, size: 40),
-                  ),
-                ),
+                const Center(child: DSLogo(size: 72)),
                 const SizedBox(height: 24),
                 const Center(
                   child: Text('DigiSampatti',
