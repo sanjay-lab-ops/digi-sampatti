@@ -114,7 +114,7 @@ const _services = [
   ),
 ];
 
-class GovernmentServicesScreen extends StatelessWidget {
+class GovernmentServicesScreen extends StatefulWidget {
   final String? surveyNumber;
   final String? ownerName;
   final String? district;
@@ -127,7 +127,55 @@ class GovernmentServicesScreen extends StatelessWidget {
   });
 
   @override
+  State<GovernmentServicesScreen> createState() => _GovernmentServicesScreenState();
+}
+
+class _GovernmentServicesScreenState extends State<GovernmentServicesScreen>
+    with SingleTickerProviderStateMixin {
+  bool _scanning = true;
+  int _scanStep = 0;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulse;
+
+  static const _scanLines = [
+    'Connecting to Bhoomi...',
+    'Reading revenue records...',
+    'Checking BBMP registry...',
+    'Verifying KAVERI portal...',
+    'Loading available services...',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+    _pulse = Tween(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+    _runScan();
+  }
+
+  void _runScan() async {
+    for (int i = 0; i < _scanLines.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 380));
+      if (!mounted) return;
+      setState(() => _scanStep = i);
+    }
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+    setState(() => _scanning = false);
+    _pulseCtrl.stop();
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_scanning) return _buildScanOverlay();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -149,8 +197,8 @@ class GovernmentServicesScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Property context chip
-            if (surveyNumber != null) ...[
-              _PropertyChip(surveyNumber: surveyNumber!, ownerName: ownerName),
+            if (widget.surveyNumber != null) ...[
+              _PropertyChip(surveyNumber: widget.surveyNumber!, ownerName: widget.ownerName),
               const SizedBox(height: 14),
             ],
 
@@ -169,9 +217,9 @@ class GovernmentServicesScreen extends StatelessWidget {
             // Services grid
             ..._services.map((svc) => _ServiceCard(
               service: svc,
-              surveyNumber: surveyNumber,
-              ownerName: ownerName,
-              district: district,
+              surveyNumber: widget.surveyNumber,
+              ownerName: widget.ownerName,
+              district: widget.district,
             )),
 
             const SizedBox(height: 16),
@@ -179,6 +227,71 @@ class GovernmentServicesScreen extends StatelessWidget {
             // Grievance shortcut
             _GrievanceBanner(onTap: () => context.push('/govt/grievance')),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanOverlay() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Pulsing icon
+              AnimatedBuilder(
+                animation: _pulse,
+                builder: (_, __) => Opacity(
+                  opacity: _pulse.value,
+                  child: Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withOpacity(0.12),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 2),
+                    ),
+                    child: const Icon(Icons.account_balance, color: AppColors.primary, size: 36),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              const Text('Government Services',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+              const SizedBox(height: 6),
+              if (widget.surveyNumber != null)
+                Text('Survey No: ${widget.surveyNumber}',
+                  style: TextStyle(fontSize: 12, color: AppColors.primary.withOpacity(0.8))),
+              const SizedBox(height: 28),
+              // Scan lines
+              ...List.generate(_scanLines.length, (i) {
+                final done = i < _scanStep;
+                final active = i == _scanStep;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        done ? Icons.check_circle : (active ? Icons.radio_button_on : Icons.radio_button_off),
+                        size: 14,
+                        color: done ? AppColors.safe : (active ? AppColors.primary : Colors.white24),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(_scanLines[i],
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: done ? AppColors.safe : (active ? Colors.white : Colors.white30),
+                          fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                        )),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
