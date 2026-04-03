@@ -28,26 +28,31 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.eCourts:  return 'eCourts — Court Cases';
       case GovPortal.bbmp:     return 'BBMP — Khata';
       case GovPortal.cersai:   return 'CERSAI — Bank Mortgage';
-      case GovPortal.dishank:  return 'Dishank — Survey Maps';
+      case GovPortal.dishank:  return 'Bhoomi — FMB / Sketch Maps';
     }
   }
 
   String get url {
     switch (this) {
       case GovPortal.bhoomi:
-        return 'https://landrecords.karnataka.gov.in/service1/';
+        // Root URL — /service1/ requires server-side login credentials
+        return 'https://landrecords.karnataka.gov.in/';
       case GovPortal.kaveri:
         return 'https://kaverionline.karnataka.gov.in/';
       case GovPortal.rera:
-        return 'https://rera.karnataka.gov.in/viewAllProjects';
+        // Main RERA portal — /viewAllProjects needs JS session
+        return 'https://rera.karnataka.gov.in/';
       case GovPortal.eCourts:
-        return 'https://services.ecourts.gov.in/ecourtindiaHindi/';
+        // National eCourts services home
+        return 'https://services.ecourts.gov.in/';
       case GovPortal.bbmp:
         return 'https://bbmptax.karnataka.gov.in/';
       case GovPortal.cersai:
-        return 'https://cersai.org.in/CERSAI/home.htm';
+        // CERSAI public search — /CERSAI/home.htm returns 404 externally
+        return 'https://www.cersai.org.in/';
       case GovPortal.dishank:
-        return 'https://dishank.karnataka.gov.in/';
+        // dishank.karnataka.gov.in is discontinued — use SSLR Bhoomi sketch map
+        return 'https://landrecords.karnataka.gov.in/service2/';
     }
   }
 
@@ -66,7 +71,7 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.cersai:
         return 'Search if the property has any active bank mortgage or charge. Enter owner details, then tap Done.';
       case GovPortal.dishank:
-        return 'View official survey map and boundaries for this property. Verify plot dimensions, then tap Done.';
+        return 'View FMB / Sketch map for the survey number. Select District, Taluk, Village and enter survey number. Verify plot boundaries, then tap Done.';
     }
   }
 
