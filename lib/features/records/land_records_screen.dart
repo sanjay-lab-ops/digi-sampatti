@@ -5,6 +5,7 @@ import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
+import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 class LandRecordsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? scanData;
@@ -61,6 +62,7 @@ class _LandRecordsScreenState extends ConsumerState<LandRecordsScreen> {
                   : _RecordsView(
                       landRecord: landRecord,
                       reraRecord: reraRecord,
+                      scanData: widget.scanData,
                       onAnalyze: () => context.push('/analysis'),
                     ),
     );
@@ -72,9 +74,10 @@ class _RecordsView extends StatelessWidget {
   final LandRecord landRecord;
   final ReraRecord? reraRecord;
   final VoidCallback onAnalyze;
+  final Map<String, dynamic>? scanData;
 
   const _RecordsView({
-    required this.landRecord, this.reraRecord, required this.onAnalyze,
+    required this.landRecord, this.reraRecord, required this.onAnalyze, this.scanData,
   });
 
   @override
@@ -83,28 +86,9 @@ class _RecordsView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Beta Banner
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF8E1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFFB300).withOpacity(0.5)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.science_outlined, size: 16, color: Color(0xFFFF6F00)),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Beta: Sample data shown. Real Bhoomi records coming soon.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF5D4037), height: 1.3),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Verify on Official Portals
+          _PortalVerifyCard(scanData: scanData, landRecord: landRecord),
+          const SizedBox(height: 4),
           // Survey Header
           _SectionCard(
             title: 'Survey Details',
@@ -551,6 +535,135 @@ class _NoRecordsView extends StatelessWidget {
           Text('Try different survey details or check Bhoomi portal directly',
               style: TextStyle(color: AppColors.textMedium), textAlign: TextAlign.center),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Portal Verify Card ────────────────────────────────────────────────────────
+class _PortalVerifyCard extends StatelessWidget {
+  final Map<String, dynamic>? scanData;
+  final LandRecord landRecord;
+
+  const _PortalVerifyCard({this.scanData, required this.landRecord});
+
+  @override
+  Widget build(BuildContext context) {
+    final survey = landRecord.surveyNumber;
+    final district = landRecord.district;
+    final taluk = landRecord.taluk;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.verified_outlined, color: AppColors.primary, size: 16),
+              SizedBox(width: 6),
+              Text('Verify on Official Government Portals',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text('Open each portal to check real data for this property.',
+              style: TextStyle(fontSize: 11, color: AppColors.textMedium)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _PortalButton(
+                label: 'Bhoomi RTC',
+                icon: Icons.article_outlined,
+                color: const Color(0xFF1B5E20),
+                onTap: () => GovPortalLauncher.open(
+                  context, GovPortal.bhoomi,
+                  surveyNumber: survey, district: district, taluk: taluk,
+                ),
+              ),
+              _PortalButton(
+                label: 'Kaveri EC',
+                icon: Icons.account_balance_outlined,
+                color: const Color(0xFF0D47A1),
+                onTap: () => GovPortalLauncher.open(
+                  context, GovPortal.kaveri,
+                  surveyNumber: survey, district: district, taluk: taluk,
+                ),
+              ),
+              _PortalButton(
+                label: 'RERA',
+                icon: Icons.business_outlined,
+                color: const Color(0xFF4A148C),
+                onTap: () => GovPortalLauncher.open(context, GovPortal.rera),
+              ),
+              _PortalButton(
+                label: 'eCourts',
+                icon: Icons.gavel_outlined,
+                color: const Color(0xFFBF360C),
+                onTap: () => GovPortalLauncher.open(context, GovPortal.eCourts),
+              ),
+              _PortalButton(
+                label: 'CERSAI',
+                icon: Icons.lock_outline,
+                color: const Color(0xFF37474F),
+                onTap: () => GovPortalLauncher.open(context, GovPortal.cersai),
+              ),
+              _PortalButton(
+                label: 'Dishank Maps',
+                icon: Icons.map_outlined,
+                color: const Color(0xFF1565C0),
+                onTap: () => GovPortalLauncher.open(context, GovPortal.dishank),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PortalButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _PortalButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 13),
+            const SizedBox(width: 5),
+            Text(label, style: const TextStyle(color: Colors.white,
+                fontSize: 11, fontWeight: FontWeight.w600)),
+            const SizedBox(width: 4),
+            const Icon(Icons.open_in_new, color: Colors.white70, size: 11),
+          ],
+        ),
       ),
     );
   }
