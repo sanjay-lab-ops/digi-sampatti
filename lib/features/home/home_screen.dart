@@ -110,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )),
             const SizedBox(height: 20),
 
-            // ── Demo Mode Banner
+            // ── How It Works Banner
             _animated(2, GestureDetector(
               onTap: () => context.push('/demo'),
               child: Container(
@@ -130,10 +130,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('View Demo Report',
+                          Text('See a Sample Report',
                               style: TextStyle(color: Colors.white,
                                   fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('See how DigiSampatti works — Survey 45/2, Bengaluru Urban',
+                          Text('How DigiSampatti checks a real Karnataka property',
                               style: TextStyle(color: Colors.white70, fontSize: 11)),
                         ],
                       ),

@@ -35,17 +35,17 @@ extension GovPortalInfo on GovPortal {
   String get url {
     switch (this) {
       case GovPortal.bhoomi:
-        return 'https://bhoomi.karnataka.gov.in/bhoomi/RTCPrint.do';
+        return 'https://landrecords.karnataka.gov.in/service1/';
       case GovPortal.kaveri:
-        return 'https://kaverionline.karnataka.gov.in/ecSearchServlet';
+        return 'https://kaverionline.karnataka.gov.in/';
       case GovPortal.rera:
         return 'https://rera.karnataka.gov.in/viewAllProjects';
       case GovPortal.eCourts:
-        return 'https://services.ecourts.gov.in/ecourtindiaHindi/cases/case_status_objno.php';
+        return 'https://services.ecourts.gov.in/ecourtindiaHindi/';
       case GovPortal.bbmp:
         return 'https://bbmptax.karnataka.gov.in/';
       case GovPortal.cersai:
-        return 'https://cersai.org.in/CERSAI/searchSI.aim';
+        return 'https://cersai.org.in/CERSAI/home.htm';
       case GovPortal.dishank:
         return 'https://dishank.karnataka.gov.in/';
     }
@@ -177,28 +177,52 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
           // WebView
           WebViewWidget(controller: _controller),
 
-          // Hint banner at top
+          // Hint banner with property details
           if (_showHint)
             Positioned(
               top: 0, left: 0, right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: widget.portal.color.withOpacity(0.95),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: Colors.white, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(widget.portal.hint,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.4)),
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() => _showHint = false),
-                      child: const Icon(Icons.close, color: Colors.white70, size: 16),
-                    ),
-                  ],
+              child: Material(
+                elevation: 4,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                  color: widget.portal.color,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Property details to search
+                      if (widget.surveyNumber != null || widget.district != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(children: [
+                            const Icon(Icons.search, color: Colors.white, size: 14),
+                            const SizedBox(width: 6),
+                            Expanded(child: Text(
+                              'Enter: ${widget.surveyNumber != null ? "Survey No ${widget.surveyNumber}" : ""}${widget.district != null ? " · ${widget.district}" : ""}${widget.taluk != null ? " · ${widget.taluk}" : ""}',
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            )),
+                          ]),
+                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.white70, size: 15),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(widget.portal.hint,
+                              style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.4))),
+                          GestureDetector(
+                            onTap: () => setState(() => _showHint = false),
+                            child: const Icon(Icons.close, color: Colors.white54, size: 16),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -229,25 +253,38 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
                               fontWeight: FontWeight.w600)),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  // Done button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => context.pop(true),
-                      icon: const Icon(Icons.analytics_outlined, size: 18),
-                      label: const Text('Done — Analyse This Property',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _showHint = true),
+                        icon: const Icon(Icons.help_outline, size: 15),
+                        label: const Text('What to enter', style: TextStyle(fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: widget.portal.color,
+                          side: BorderSide(color: widget.portal.color),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.pop(true),
+                        icon: const Icon(Icons.check_circle_outline, size: 16),
+                        label: const Text('Done — Back to App',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ]),
                 ],
               ),
             ),

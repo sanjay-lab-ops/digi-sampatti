@@ -28,8 +28,8 @@ class AiAnalysisService {
   void initialize() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConstants.claudeBaseUrl,
-      connectTimeout: ApiConstants.connectTimeout,
-      receiveTimeout: ApiConstants.aiTimeout,
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 20),
     ));
   }
 
@@ -69,12 +69,13 @@ class AiAnalysisService {
           contradictionReport, landRecord, reraRecord, cersaiResult, benamiResult);
     }
 
-    // ── Step 2: Claude AI deep analysis ─────────────────────────────────────
+    // ── Step 2: Rule-based assessment first (instant result) ────────────────
+    final instant = _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
+        contradictionReport: contradictionReport);
+
+    // ── Step 3: Try Claude AI for deeper analysis (with strict timeout) ──────
     final apiKey = dotenv.env['ANTHROPIC_API_KEY'] ?? '';
-    if (apiKey.isEmpty) {
-      return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
-          contradictionReport: contradictionReport);
-    }
+    if (apiKey.isEmpty) return instant;
 
     try {
       final prompt = _buildAnalysisPrompt(
@@ -111,11 +112,10 @@ class AiAnalysisService {
         return _mergeWithContradictions(assessment, contradictionReport);
       }
     } catch (_) {
-      // Fall back to rule-based assessment
+      // Claude unavailable — return instant rule-based result
     }
 
-    return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
-        contradictionReport: contradictionReport);
+    return instant;
   }
 
   // ─── Build assessment directly from contradiction report ──────────────────
