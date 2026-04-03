@@ -45,7 +45,7 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
           if (report == null) return const _PortalScanningView();
           return _AnalysisResultView(
             report: report,
-            onViewFullReport: () => context.push('/report'),
+            onViewFullReport: () => context.push('/next-steps'),
           );
         },
       ),

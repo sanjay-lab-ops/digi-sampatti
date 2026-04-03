@@ -570,6 +570,43 @@ class _PortalCard extends StatelessWidget {
             ][i],
           )),
         ),
+        // B Khata follow-up — critical: revenue site vs convertible
+        if (findings.khataFound == KhataFound.bKhata) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.warning_amber, color: Colors.orange, size: 15),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'B Khata needs one more check — critical difference:',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Colors.black87),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          _Question(
+            label: 'Is this property in a BDA/BBMP APPROVED layout? (Look for Layout Plan number in Bhoomi)',
+            color: Colors.orange[700]!,
+            options: const [
+              _Option('Yes — approved layout (has LP No.)', Icons.check_circle, true),
+              _Option('No / Not clear — looks like revenue site', Icons.cancel, false),
+              _Option("Couldn't determine", Icons.help_outline, null),
+            ],
+            selected: findings.isRevenueSite == false ? 0 : findings.isRevenueSite == true ? 1 : null,
+            onSelect: (i) => onAnswer(findings.copyWith(isRevenueSite: i == 0 ? false : i == 1 ? true : null)),
+          ),
+        ],
         const SizedBox(height: 10),
         _Question(
           label: 'Any remarks or red text in the RTC?',

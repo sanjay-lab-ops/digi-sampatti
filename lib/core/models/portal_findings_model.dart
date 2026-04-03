@@ -9,6 +9,7 @@ class PortalFindings {
   final bool? bhoomiOpened;       // Did user open Bhoomi?
   final KhataFound? khataFound;   // What Khata type did they see?
   final bool? bhoomiHasRemarks;   // Any red remarks / govt notices in RTC?
+  final bool? isRevenueSite;      // B Khata: is this a revenue site (unapproved layout)?
 
   // ── Kaveri IGRS (EC) ───────────────────────────────────────────────────────
   final bool? kaveriOpened;
@@ -39,6 +40,7 @@ class PortalFindings {
     this.bhoomiOpened,
     this.khataFound,
     this.bhoomiHasRemarks,
+    this.isRevenueSite,
     this.kaveriOpened,
     this.hasActiveLoan,
     this.multipleSales,
@@ -58,6 +60,7 @@ class PortalFindings {
     bool? bhoomiOpened,
     KhataFound? khataFound,
     bool? bhoomiHasRemarks,
+    bool? isRevenueSite,
     bool? kaveriOpened,
     bool? hasActiveLoan,
     bool? multipleSales,
@@ -76,6 +79,7 @@ class PortalFindings {
         bhoomiOpened: bhoomiOpened ?? this.bhoomiOpened,
         khataFound: khataFound ?? this.khataFound,
         bhoomiHasRemarks: bhoomiHasRemarks ?? this.bhoomiHasRemarks,
+        isRevenueSite: isRevenueSite ?? this.isRevenueSite,
         kaveriOpened: kaveriOpened ?? this.kaveriOpened,
         hasActiveLoan: hasActiveLoan ?? this.hasActiveLoan,
         multipleSales: multipleSales ?? this.multipleSales,

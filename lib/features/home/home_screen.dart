@@ -112,7 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
             // ── How It Works Banner
             _animated(2, GestureDetector(
-              onTap: () => context.push('/demo'),
+              onTap: () => context.push('/checklist'),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -124,16 +124,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.play_circle_filled, color: Colors.amber, size: 28),
+                    Icon(Icons.verified_user, color: Colors.amber, size: 28),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('See a Sample Report',
+                          Text('Check a Property Now',
                               style: TextStyle(color: Colors.white,
                                   fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('How DigiSampatti checks a real Karnataka property',
+                          Text('Enter survey number → check 7 govt portals → get legal verdict',
                               style: TextStyle(color: Colors.white70, fontSize: 11)),
                         ],
                       ),
