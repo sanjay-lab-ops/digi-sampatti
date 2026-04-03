@@ -16,6 +16,8 @@ class AiAnalysisScreen extends ConsumerStatefulWidget {
 }
 
 class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
+  bool _navigated = false;
+
   @override
   void initState() {
     super.initState();
@@ -23,12 +25,12 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
   }
 
   Future<void> _runAnalysis() async {
+    _navigated = false;
     await ref.read(propertyCheckNotifierProvider.notifier).runAnalysisAndGenerateReport();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(isLoadingAiAnalysisProvider);
     final asyncReport = ref.watch(propertyCheckNotifierProvider);
 
     return Scaffold(
@@ -42,18 +44,17 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
         ),
         data: (report) {
           if (report == null) return _LoadingAnalysisView();
-          // Auto-navigate to report screen
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) context.push('/report', extra: report.toJson());
-          });
+          // Auto-navigate once only
+          if (!_navigated) {
+            _navigated = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) context.push('/report', extra: report.toJson());
+            });
+          }
           return _LoadingAnalysisView();
         },
       ),
     );
-  }
-
-  Future<void> _generateReport(LegalReport report) async {
-    context.push('/report', extra: report.toJson());
   }
 }
 
