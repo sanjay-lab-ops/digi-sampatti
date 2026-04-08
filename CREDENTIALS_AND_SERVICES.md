@@ -138,7 +138,68 @@ REPORT_PRICE_INR=149
 SUBSCRIPTION_PRICE_INR=999
 ```
 
-**APK location:** `android\app\build\outputs\apk\release\app-release.apk`
+---
+
+## 8. How to Build APK (Complete Reference)
+
+### Debug APK — for testing on your own phone
+```bash
+cd C:\Users\Dell\digi-sampatti
+flutter build apk --debug
+# Output: android\app\build\outputs\flutter-apk\app-debug.apk
+# Size: ~80MB | Slower but shows errors
+```
+
+### Release APK — for sending to testers
+```bash
+cd C:\Users\Dell\digi-sampatti
+flutter build apk --release --dart-define-from-file=.env
+# Output: android\app\build\outputs\flutter-apk\app-release.apk
+# Size: ~30MB | Fast, no debug info
+```
+
+### Install on phone wirelessly (ADB WiFi)
+```bash
+# Step 1: Connect (phone must be on same WiFi, wireless debugging ON)
+adb connect 192.168.29.76:PORT
+
+# Step 2: Install
+adb install -r android\app\build\outputs\flutter-apk\app-debug.apk
+
+# Check connected devices first:
+adb devices
+```
+
+### Send to testers (no ADB needed)
+```
+Share the APK file via WhatsApp or Google Drive.
+Tester must allow "Install from unknown sources" in Android settings.
+APK location: android\app\build\outputs\flutter-apk\app-release.apk
+```
+
+### When to rebuild APK
+| Change | Rebuild needed? |
+|--------|----------------|
+| Backend code changed | No — backend deploys separately |
+| BACKEND_URL changed in .env | Yes — app needs new URL baked in |
+| Flutter/Dart code changed | Yes |
+| Firebase config changed | Yes |
+| Just restarting backend | No |
+
+### Full deploy sequence after any code change
+```bash
+# 1. Make code changes
+# 2. Build
+flutter build apk --release --dart-define-from-file=.env
+# 3. Install on your phone
+adb install -r android\app\build\outputs\flutter-apk\app-release.apk
+# 4. Share with testers
+# Send: android\app\build\outputs\flutter-apk\app-release.apk via WhatsApp
+```
+
+**APK location (quick reference):**
+- Debug: `android\app\build\outputs\flutter-apk\app-debug.apk`
+- Release: `android\app\build\outputs\flutter-apk\app-release.apk`
 
 ---
 
