@@ -10,11 +10,25 @@ class DSLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/logo.png',
+    return Container(
       width: size,
       height: size,
-      fit: BoxFit.contain,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F7F0), // subtle light green tint
+        borderRadius: BorderRadius.circular(borderRadius ?? size * 0.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(size * 0.1),
+      child: Image.asset(
+        'assets/images/logo.png',
+        fit: BoxFit.contain,
+      ),
     );
   }
 }

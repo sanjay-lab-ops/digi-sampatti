@@ -1,16 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
-import 'package:digi_sampatti/core/constants/app_strings.dart';
+import 'package:digi_sampatti/core/models/professional_model.dart';
+import 'package:digi_sampatti/core/services/professional_service.dart';
+import 'package:digi_sampatti/core/services/callback_service.dart';
 
 // ─── Partners Screen ───────────────────────────────────────────────────────────
-// Commission-based referral screen shown after legal report.
-// DigiSampatti earns referral fee from each partner.
-// User pays the partner directly — transparent model.
+// Shows REAL verified professionals from Firestore, grouped by type.
+// Falls back to "Request Callback" if no one is registered yet for a category.
+// District comes from the report that led here — so results are filtered.
 
-class PartnersScreen extends StatelessWidget {
+class PartnersScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? reportData;
   const PartnersScreen({super.key, this.reportData});
+
+  @override
+  ConsumerState<PartnersScreen> createState() => _PartnersScreenState();
+}
+
+class _PartnersScreenState extends ConsumerState<PartnersScreen> {
+  final _service = ProfessionalService();
+  Map<ProfessionalType, List<ProfessionalProfile>>? _professionals;
+  bool _loading = true;
+  String? _district;
+
+  @override
+  void initState() {
+    super.initState();
+    _district = widget.reportData?['district'] as String?;
+    _load();
+  }
+
+  Future<void> _load() async {
+    final data = await _service.getAllForDistrict(_district);
+    if (mounted) setState(() { _professionals = data; _loading = false; });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +43,14 @@ class PartnersScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Get Expert Help'),
-        backgroundColor: Colors.white,
+        actions: [
+          TextButton.icon(
+            onPressed: () => context.push('/professional/register'),
+            icon: const Icon(Icons.add, size: 16, color: AppColors.primary),
+            label: const Text('Join as Partner',
+                style: TextStyle(color: AppColors.primary, fontSize: 12)),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -27,230 +59,331 @@ class PartnersScreen extends StatelessWidget {
           children: [
             _buildHeader(),
             const SizedBox(height: 20),
-            _buildSectionTitle('Legal Help'),
-            const SizedBox(height: 12),
-            _buildPartnerCard(
-              context: context,
-              icon: Icons.gavel,
-              iconColor: const Color(0xFF1A237E),
-              title: AppStrings.partnerLawyerTitle,
-              description: AppStrings.partnerLawyerDesc,
-              cta: AppStrings.partnerLawyerCta,
-              badge: 'Most Popular',
-              badgeColor: AppColors.primary,
-              commissionNote: 'Physical verification + court checks + title search',
-              onTap: () => _showContactDialog(
-                context,
-                title: 'Connect with Property Advocate',
-                message: 'We will connect you with a verified property advocate in your district within 2 hours.',
-                phone: '+91-XXXXXXXXXX',
+            if (_district != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text('Showing professionals serving $_district',
+                        style: const TextStyle(fontSize: 12, color: AppColors.primary,
+                            fontWeight: FontWeight.w500)),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildPartnerCard(
-              context: context,
-              icon: Icons.straighten,
-              iconColor: const Color(0xFF1B5E20),
-              title: AppStrings.partnerSurveyorTitle,
-              description: AppStrings.partnerSurveyorDesc,
-              cta: AppStrings.partnerSurveyorCta,
-              badge: null,
-              badgeColor: null,
-              commissionNote: 'Physical boundary measurement + survey sketch comparison',
-              onTap: () => _showContactDialog(
-                context,
-                title: 'Book Licensed Surveyor',
-                message: 'A government-licensed surveyor will visit the property and verify boundaries.',
-                phone: '+91-XXXXXXXXXX',
-              ),
+              const SizedBox(height: 16),
+            ],
+            // Legal help
+            _buildCategorySection(
+              context,
+              title: 'Legal Help',
+              types: [ProfessionalType.advocate, ProfessionalType.surveyor],
             ),
             const SizedBox(height: 20),
-            _buildSectionTitle('Home Loan'),
-            const SizedBox(height: 12),
-            _buildPartnerCard(
-              context: context,
-              icon: Icons.account_balance,
-              iconColor: const Color(0xFF0D47A1),
-              title: AppStrings.partnerBankTitle,
-              description: AppStrings.partnerBankDesc,
-              cta: AppStrings.partnerBankCta,
-              badge: 'Free Check',
-              badgeColor: AppColors.safe,
-              commissionNote: 'Pre-verified property = faster approval + better rate',
-              onTap: () => _showLoanDialog(context),
+            _buildCategorySection(
+              context,
+              title: 'Real Estate',
+              types: [ProfessionalType.broker, ProfessionalType.developer],
             ),
             const SizedBox(height: 20),
-            _buildSectionTitle('Property Protection'),
-            const SizedBox(height: 12),
-            _buildPartnerCard(
-              context: context,
-              icon: Icons.shield,
-              iconColor: const Color(0xFF4A148C),
-              title: AppStrings.partnerInsuranceTitle,
-              description: AppStrings.partnerInsuranceDesc,
-              cta: AppStrings.partnerInsuranceCta,
-              badge: 'Recommended',
-              badgeColor: const Color(0xFF4A148C),
-              commissionNote: 'Protects against future ownership disputes and hidden claims',
-              onTap: () => _showContactDialog(
-                context,
-                title: 'Get Title Insurance Quote',
-                message: 'One-time premium protects your property forever from undiscovered legal disputes.',
-                phone: '+91-XXXXXXXXXX',
-              ),
+            _buildCategorySection(
+              context,
+              title: 'Home Loan',
+              types: [ProfessionalType.bank],
             ),
             const SizedBox(height: 20),
-            _buildSectionTitle('Verified Developers'),
-            const SizedBox(height: 4),
-            const Text('DigiSampatti verified projects — legally checked before listing',
-              style: TextStyle(fontSize: 12, color: AppColors.textLight)),
-            const SizedBox(height: 12),
-            _buildDeveloperCard(
+            _buildCategorySection(
               context,
-              name: 'Brigade Group',
-              tagline: 'RERA registered · 35+ years · Bengaluru',
-              projects: ['Brigade Orchards — Devanahalli', 'Brigade Utopia — Whitefield', 'Brigade Omega — Electronic City'],
-              color: const Color(0xFF1A237E),
-              badge: 'MOU Partner',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Prestige Group',
-              tagline: 'RERA · Apartments, villas, commercial',
-              projects: ['Prestige Lakeside Habitat — Whitefield', 'Prestige Primrose Hills — Kanakapura', 'Prestige City — Sarjapur'],
-              color: const Color(0xFF1B5E20),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Sobha Developers',
-              tagline: 'Premium quality · Bengaluru & Mysuru',
-              projects: ['Sobha City — Thanisandra', 'Sobha Dream Acres — Panathur', 'Sobha Indraprastha — Hebbal'],
-              color: const Color(0xFF4A148C),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Puravankara',
-              tagline: 'Affordable to premium · Pan Bengaluru',
-              projects: ['Purva Atmosphere — Hebbal', 'Provident Ecopolitan — Bagalur', 'Purva Gainz — Electronic City'],
-              color: const Color(0xFF37474F),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Salarpuria Sattva',
-              tagline: 'Luxury apartments · North & East Bengaluru',
-              projects: ['Sattva Misty Charm — Yelahanka', 'Sattva Laurel — Sarjapur', 'Sattva East Crest — KR Puram'],
-              color: const Color(0xFFBF360C),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Century Real Estate',
-              tagline: 'Premium plots & villas · Bengaluru',
-              projects: ['Century Indus — Devanahalli', 'Century Ethos — Kanakapura', 'Century Horizon — Hebbal'],
-              color: const Color(0xFF006064),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            _buildDeveloperCard(
-              context,
-              name: 'Mantri Developers',
-              tagline: 'Apartments & townships · Bengaluru',
-              projects: ['Mantri Serenity — Kanakapura', 'Mantri Webcity — Hebbal', 'Mantri Espana — Sarjapur'],
-              color: const Color(0xFF880E4F),
-              badge: 'Verified',
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.business, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Are you a Developer or Builder?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary)),
-                        SizedBox(height: 2),
-                        Text('List your project — reach verified, serious buyers', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.primary),
-                ],
-              ),
+              title: 'After Purchase',
+              types: [
+                ProfessionalType.khataAgent,
+                ProfessionalType.vastu,
+                ProfessionalType.interior,
+                ProfessionalType.packersMovers,
+              ],
             ),
             const SizedBox(height: 20),
-            _buildSectionTitle('After You Buy'),
-            const SizedBox(height: 4),
-            const Text('Services you\'ll need after registration',
-              style: TextStyle(fontSize: 12, color: AppColors.textLight)),
-            const SizedBox(height: 12),
-            _buildSimpleCard(
-              context,
-              icon: Icons.self_improvement,
-              iconColor: const Color(0xFFFF6F00),
-              title: 'Vastu Consultation',
-              subtitle: 'Vastu check before interior or construction',
-              onTap: () => _showContactDialog(context,
-                title: 'Book Vastu Consultant',
-                message: 'A certified Vastu consultant will visit and advise on direction, layout, and corrections.',
-                phone: '+91-XXXXXXXXXX'),
-            ),
-            const SizedBox(height: 10),
-            _buildSimpleCard(
-              context,
-              icon: Icons.design_services,
-              iconColor: const Color(0xFF6A1B9A),
-              title: 'Interior Designer',
-              subtitle: 'Home interiors — modular kitchen, wardrobes, living',
-              onTap: () => _showContactDialog(context,
-                title: 'Connect with Interior Designer',
-                message: 'Get a free consultation and estimate for your new home interiors.',
-                phone: '+91-XXXXXXXXXX'),
-            ),
-            const SizedBox(height: 10),
-            _buildSimpleCard(
-              context,
-              icon: Icons.local_shipping,
-              iconColor: const Color(0xFF00695C),
-              title: 'Packers & Movers',
-              subtitle: 'Trusted local shifting service in Karnataka',
-              onTap: () => _showContactDialog(context,
-                title: 'Book Packers & Movers',
-                message: 'Get a quote for safe, insured home shifting within Karnataka.',
-                phone: '+91-XXXXXXXXXX'),
-            ),
-            const SizedBox(height: 10),
-            _buildSimpleCard(
-              context,
-              icon: Icons.receipt_long,
-              iconColor: const Color(0xFF1565C0),
-              title: 'Khata & Mutation Agent',
-              subtitle: 'BBMP Khata transfer, Bhoomi mutation paperwork',
-              onTap: () => _showContactDialog(context,
-                title: 'Khata Transfer Help',
-                message: 'A liaison agent will handle your Bhoomi mutation and BBMP Khata transfer end to end.',
-                phone: '+91-XXXXXXXXXX'),
-            ),
+            _buildJoinCTA(context),
             const SizedBox(height: 20),
             _buildDisclaimerCard(),
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(BuildContext context, {
+    required String title,
+    required List<ProfessionalType> types,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
+                color: AppColors.textDark)),
+        const SizedBox(height: 12),
+        ...types.map((type) => _buildTypeBlock(context, type)),
+      ],
+    );
+  }
+
+  Widget _buildTypeBlock(BuildContext context, ProfessionalType type) {
+    if (_loading) return _buildTypeLoading(type);
+
+    final list = _professionals?[type] ?? [];
+
+    if (list.isNotEmpty) {
+      // Real professionals — show cards
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(_typeIcon(type), size: 14, color: AppColors.textLight),
+                const SizedBox(width: 6),
+                Text(type.label,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textLight,
+                        fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Text('${list.length} verified',
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, i) => _buildProfessionalCard(context, list[i]),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      );
+    }
+
+    // No professionals yet — show fallback card
+    return _buildFallbackCard(context, type);
+  }
+
+  Widget _buildProfessionalCard(BuildContext context, ProfessionalProfile p) {
+    return GestureDetector(
+      onTap: () => context.push(
+        '/professional/${p.uid}',
+        extra: widget.reportData,
+      ),
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderColor),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.04),
+                blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Avatar
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5)),
+                  child: ClipOval(
+                    child: p.profilePhotoUrl != null
+                        ? Image.network(p.profilePhotoUrl!, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _avatarFallback(p))
+                        : _avatarFallback(p),
+                  ),
+                ),
+                const Spacer(),
+                // Verified badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6)),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified, size: 9, color: AppColors.primary),
+                      SizedBox(width: 2),
+                      Text('Verified', style: TextStyle(fontSize: 8,
+                          color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(p.fullName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            if (p.firmName != null)
+              Text(p.firmName!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+            const Spacer(),
+            Row(
+              children: [
+                const Icon(Icons.star, size: 12, color: Color(0xFFF57C00)),
+                const SizedBox(width: 3),
+                Text('${p.rating}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 4),
+                Text('${p.yearsExperience}y',
+                    style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (p.feeAmount != null)
+              Text('₹${p.feeAmount!.toStringAsFixed(0)}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.primary,
+                      fontWeight: FontWeight.w600))
+            else
+              const Text('Fee on request',
+                  style: TextStyle(fontSize: 10, color: AppColors.textLight)),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => context.push(
+                  '/professional/${p.uid}',
+                  extra: widget.reportData,
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(0, 28),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+                child: const Text('Connect'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _avatarFallback(ProfessionalProfile p) {
+    return Container(
+      color: AppColors.primary.withOpacity(0.15),
+      child: Center(
+        child: Text(p.fullName[0].toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold,
+                color: AppColors.primary, fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _buildFallbackCard(BuildContext context, ProfessionalType type) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: _typeColor(type).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(_typeIcon(type), color: _typeColor(type), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(type.label,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text(_typeTagline(type),
+                          style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('Coming Soon',
+                      style: TextStyle(fontSize: 10, color: Colors.orange,
+                          fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.borderColor)),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showCallbackSheet(context, type),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(14),
+                  bottomRight: Radius.circular(14),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Request ${type.label}',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                              color: AppColors.primary)),
+                      const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeLoading(ProfessionalType type) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      height: 80,
+      decoration: BoxDecoration(
+        color: AppColors.shimmerBase.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(14),
       ),
     );
   }
@@ -266,306 +399,63 @@ class PartnersScreen extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.verified_user, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                'Property is Digitally Verified ✓',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
+              Icon(Icons.verified_user, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Text('Property Digitally Verified ✓',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
             ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Complete your due diligence with verified experts. '
-            'All partners pre-screened by DigiSampatti.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              height: 1.5,
-            ),
+          SizedBox(height: 8),
+          Text(
+            'All partners are verified by DigiSampatti — license checked, district confirmed.',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textDark,
-      ),
-    );
-  }
-
-  Widget _buildPartnerCard({
-    required BuildContext context,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String description,
-    required String cta,
-    required String? badge,
-    required Color? badgeColor,
-    required String commissionNote,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                          ),
-                          if (badge != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: badgeColor!.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                badge,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: badgeColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        commissionNote,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.primary.withOpacity(0.8),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: AppColors.borderColor)),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        cta,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_ios,
-                          size: 14, color: AppColors.primary),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleCard(BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildJoinCTA(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => context.push('/professional/register'),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          color: AppColors.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary.withOpacity(0.2)),
         ),
         child: Row(
           children: [
             Container(
               width: 44, height: 44,
-              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: iconColor, size: 22),
+              decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Icons.business_center, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: const TextStyle(color: AppColors.textLight, fontSize: 11)),
+                  Text('Are you a professional?',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13,
+                          color: AppColors.primary)),
+                  SizedBox(height: 2),
+                  Text('Register to get leads from verified buyers',
+                      style: TextStyle(fontSize: 11, color: AppColors.textLight)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.textLight),
+            const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.primary),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDeveloperCard(BuildContext context, {
-    required String name, required String tagline,
-    required List<String> projects, required Color color, required String badge,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44, height: 44,
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                  child: Center(child: Text(name[0], style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20))),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                          child: Text(badge, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.bold)),
-                        ),
-                      ]),
-                      const SizedBox(height: 3),
-                      Text(tagline, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6, runSpacing: 4,
-                        children: projects.map((p) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: AppColors.borderColor)),
-                          child: Text(p, style: const TextStyle(fontSize: 10, color: AppColors.textMedium)),
-                        )).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderColor))),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showContactDialog(context,
-                  title: 'Enquire about $name',
-                  message: 'Our team will share verified project details and connect you with $name sales team. DigiSampatti verified buyers get priority response.',
-                  phone: '+91-XXXXXXXXXX'),
-                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(14), bottomRight: Radius.circular(14)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Enquire about projects', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-                      Icon(Icons.arrow_forward_ios, size: 13, color: color),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -578,19 +468,18 @@ class PartnersScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderColor),
       ),
-      child: Row(
+      child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 16, color: AppColors.textLight),
-          const SizedBox(width: 8),
-          const Expanded(
+          Icon(Icons.info_outline, size: 16, color: AppColors.textLight),
+          SizedBox(width: 8),
+          Expanded(
             child: Text(
-              AppStrings.partnerDisclaimer,
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textLight,
-                height: 1.5,
-              ),
+              'DigiSampatti verifies professional licenses before listing. '
+              'All fees are paid directly to the professional. '
+              'DigiSampatti earns a referral commission per successful connection. '
+              'User reviews are collected after service completion.',
+              style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.5),
             ),
           ),
         ],
@@ -598,125 +487,166 @@ class PartnersScreen extends StatelessWidget {
     );
   }
 
-  void _showContactDialog(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required String phone,
-  }) {
+  void _showCallbackSheet(BuildContext context, ProfessionalType type) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _CallbackSheet(
+        title: 'Request ${type.label}',
+        message: 'We\'ll connect you with a verified ${type.label} in '
+            '${_district ?? 'your district'} within 2 hours.',
+        expertType: _toExpertType(type),
+        district: _district,
+        surveyNumber: widget.reportData?['surveyNumber'],
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            Text(message,
-                style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textLight,
-                    height: 1.5)),
-            const SizedBox(height: 20),
+    );
+  }
+
+  ExpertType _toExpertType(ProfessionalType t) {
+    switch (t) {
+      case ProfessionalType.advocate:      return ExpertType.advocate;
+      case ProfessionalType.broker:        return ExpertType.advocate;
+      case ProfessionalType.surveyor:      return ExpertType.surveyor;
+      case ProfessionalType.vastu:         return ExpertType.vastConsultant;
+      case ProfessionalType.interior:      return ExpertType.interiorDesigner;
+      case ProfessionalType.packersMovers: return ExpertType.packersMovers;
+      case ProfessionalType.khataAgent:    return ExpertType.khataAgent;
+      case ProfessionalType.bank:          return ExpertType.homeLoan;
+      case ProfessionalType.developer:     return ExpertType.developer;
+    }
+  }
+
+  IconData _typeIcon(ProfessionalType type) {
+    switch (type) {
+      case ProfessionalType.advocate:      return Icons.gavel;
+      case ProfessionalType.broker:        return Icons.real_estate_agent;
+      case ProfessionalType.surveyor:      return Icons.straighten;
+      case ProfessionalType.vastu:         return Icons.self_improvement;
+      case ProfessionalType.interior:      return Icons.design_services;
+      case ProfessionalType.packersMovers: return Icons.local_shipping;
+      case ProfessionalType.khataAgent:    return Icons.receipt_long;
+      case ProfessionalType.bank:          return Icons.account_balance;
+      case ProfessionalType.developer:     return Icons.apartment;
+    }
+  }
+
+  Color _typeColor(ProfessionalType type) {
+    switch (type) {
+      case ProfessionalType.advocate:      return const Color(0xFF1A237E);
+      case ProfessionalType.broker:        return const Color(0xFF1B5E20);
+      case ProfessionalType.surveyor:      return const Color(0xFF006064);
+      case ProfessionalType.vastu:         return const Color(0xFFFF6F00);
+      case ProfessionalType.interior:      return const Color(0xFF6A1B9A);
+      case ProfessionalType.packersMovers: return const Color(0xFF00695C);
+      case ProfessionalType.khataAgent:    return const Color(0xFF1565C0);
+      case ProfessionalType.bank:          return const Color(0xFF0D47A1);
+      case ProfessionalType.developer:     return const Color(0xFF37474F);
+    }
+  }
+
+  String _typeTagline(ProfessionalType type) {
+    switch (type) {
+      case ProfessionalType.advocate:      return 'Title search, deed drafting, registration';
+      case ProfessionalType.broker:        return 'Site visits, deal negotiation';
+      case ProfessionalType.surveyor:      return 'Boundary verification, FMB check';
+      case ProfessionalType.vastu:         return 'Direction and layout compliance';
+      case ProfessionalType.interior:      return 'Modular kitchen, wardrobes, living';
+      case ProfessionalType.packersMovers: return 'Safe insured home shifting';
+      case ProfessionalType.khataAgent:    return 'BBMP Khata, Bhoomi mutation';
+      case ProfessionalType.bank:          return 'Home loan, LAP, 8.4% p.a. onwards';
+      case ProfessionalType.developer:     return 'RERA registered projects';
+    }
+  }
+}
+
+// ─── Callback Sheet (fallback when no professional registered yet) ─────────────
+class _CallbackSheet extends StatefulWidget {
+  final String title, message;
+  final ExpertType expertType;
+  final String? district, surveyNumber;
+
+  const _CallbackSheet({
+    required this.title, required this.message,
+    required this.expertType, this.district, this.surveyNumber,
+  });
+
+  @override
+  State<_CallbackSheet> createState() => _CallbackSheetState();
+}
+
+class _CallbackSheetState extends State<_CallbackSheet> {
+  bool _submitting = false, _submitted = false;
+
+  Future<void> _submit() async {
+    setState(() => _submitting = true);
+    final ok = await CallbackService().submitCallbackRequest(
+      expertType: widget.expertType,
+      district: widget.district,
+      surveyNumber: widget.surveyNumber,
+    );
+    setState(() { _submitting = false; _submitted = ok; });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Text(widget.message,
+              style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5)),
+          const SizedBox(height: 20),
+          if (_submitted)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(12)),
+              child: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Request Submitted!',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                        SizedBox(height: 4),
+                        Text('Our team calls you within 2 hours.',
+                            style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.phone),
-                label: const Text('Request Callback'),
+                onPressed: _submitting ? null : _submit,
+                icon: _submitting
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.phone),
+                label: Text(_submitting ? 'Submitting...' : 'Request Callback'),
               ),
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showLoanDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Apply for Home Loan',
-                style:
-                    TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.safe.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(10),
-                border:
-                    Border.all(color: AppColors.safe.withOpacity(0.2)),
-              ),
-              child: const Text(
-                '✅ This property has passed DigiSampatti legal verification. '
-                'This gives you a stronger case for faster loan approval.',
-                style: TextStyle(fontSize: 12, color: AppColors.textDark, height: 1.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Select your preferred lender:',
-                style: TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            _buildLenderOption('HDFC Bank', '8.5% p.a. onwards'),
-            _buildLenderOption('SBI Home Loans', '8.4% p.a. onwards'),
-            _buildLenderOption('ICICI Bank', '8.75% p.a. onwards'),
-            _buildLenderOption('Bajaj Finserv', '8.6% p.a. onwards'),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Check My Eligibility — Free'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLenderOption(String name, String rate) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.borderColor),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(name,
-              style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w500)),
-          Text(rate,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.primary)),
+          ),
         ],
       ),
     );
