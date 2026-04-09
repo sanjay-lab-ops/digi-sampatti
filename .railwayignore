@@ -1,0 +1,9 @@
+android/
+ios/
+lib/
+pubspec.yaml
+pubspec.lock
+.dart_tool/
+build/
+*.dart
+*.md
