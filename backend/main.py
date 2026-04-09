@@ -785,21 +785,49 @@ def fetch_ec():
 
 
 async def _scrape_kaveri_ec(district, taluk, village, survey_no, from_year, to_year) -> Optional[dict]:
+    # Try multiple Kaveri EC URLs — the portal moves frequently
+    ec_urls = [
+        "https://kaveri.karnataka.gov.in/ec-search-citizen",
+        "https://kaveri.karnataka.gov.in/kaveri/ec-search-citizen",
+        "https://igr.karnataka.gov.in/ec-search-citizen",
+    ]
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page(extra_http_headers=BROWSER_HEADERS)
         try:
-            # Kaveri 2.0 EC search — kaveri.karnataka.gov.in/ec-search-citizen
-            await page.goto("https://kaveri.karnataka.gov.in/ec-search-citizen",
-                            wait_until="domcontentloaded", timeout=25000)
-            await page.wait_for_timeout(3000)
+            # Try each URL until one loads
+            loaded = False
+            for url in ec_urls:
+                try:
+                    await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+                    await page.wait_for_timeout(3000)
+                    title = await page.title()
+                    if "error" not in title.lower() and "404" not in title:
+                        loaded = True
+                        logger.info(f"Kaveri EC loaded: {url}")
+                        break
+                except Exception:
+                    continue
+            if not loaded:
+                return None
 
-            # Angular mat-select for district
+            # Angular mat-select — try formcontrolname AND index-based selectors
             try:
-                await page.click('[formcontrolname="district"], mat-select:first-of-type', timeout=6000)
-                await page.wait_for_timeout(600)
-                await page.click(f'mat-option:has-text("{district}")', timeout=4000)
-                await page.wait_for_timeout(1500)
+                dist_sel = await page.query_selector(
+                    '[formcontrolname="district"], mat-select:first-of-type, select#district')
+                if dist_sel:
+                    tag = await dist_sel.evaluate("el => el.tagName.toLowerCase()")
+                    if tag == "select":
+                        opts = await page.evaluate(
+                            "Array.from(document.querySelector('select#district, select[name=\"district\"]').options).map(o=>o.text)")
+                        best = next((o for o in opts if district.lower() in o.lower()), None)
+                        if best:
+                            await page.select_option('select#district, select[name="district"]', label=best)
+                    else:
+                        await dist_sel.click(timeout=4000)
+                        await page.wait_for_timeout(600)
+                        await page.click(f'mat-option:has-text("{district}")', timeout=4000)
+                    await page.wait_for_timeout(1500)
             except Exception as e1:
                 logger.warning(f"EC district: {e1}")
 
@@ -1093,25 +1121,29 @@ def fetch_cersai():
 
 
 async def _scrape_cersai(state, district, survey_no) -> Optional[dict]:
-    """CERSAI 2.0 — Vue.js SPA at cersai.org.in/CERSAI/asstsrch.prg
-    Intercept the internal search API call for reliable data extraction."""
-    captured: list = []
+    """CERSAI — search by property details via browser + network interception.
+    CERSAI 2.0 (cersai.org.in) is a Vue.js SPA. We launch browser, intercept
+    the XHR/fetch calls to the backend API, and parse the JSON response.
+    Falls back to HTML parsing if no API response captured."""
+    captured_json: list = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(extra_http_headers=BROWSER_HEADERS)
+        context = await browser.new_context(extra_http_headers={
+            **BROWSER_HEADERS,
+            "Accept": "application/json, text/html, */*",
+        })
         page = await context.new_page()
 
         async def capture_response(response):
-            url = response.url.lower()
-            if any(k in url for k in ["search", "asset", "security", "charge", "prg"]):
+            url = response.url
+            if any(k in url for k in ["/search", "/asset", "/security", "/charge",
+                                       "asstsrch", "getAsset", "getSecurity"]):
                 try:
-                    ct = response.headers.get("content-type", "")
-                    if "json" in ct or "text" in ct:
-                        body = await response.text()
-                        if any(k in body.lower() for k in ["charge", "mortgage", "lien", "bank", "assets"]):
-                            captured.append(body)
-                            logger.info(f"CERSAI intercepted: {url}")
+                    body = await response.text()
+                    if len(body) > 10:
+                        captured_json.append(body)
+                        logger.info(f"CERSAI API captured: {url}")
                 except Exception:
                     pass
 
@@ -1119,56 +1151,69 @@ async def _scrape_cersai(state, district, survey_no) -> Optional[dict]:
 
         try:
             await page.goto("https://cersai.org.in/CERSAI/asstsrch.prg",
-                            wait_until="domcontentloaded", timeout=20000)
-            await page.wait_for_timeout(2000)
+                            wait_until="domcontentloaded", timeout=25000)
+            await page.wait_for_timeout(3000)
 
-            # Fill property/survey number in search
-            for sel in ['input[id="plotNo"]', 'input[name="plotNo"]',
-                        'input[placeholder*="survey"]', 'input[placeholder*="Plot"]',
-                        'input[placeholder*="property"]']:
-                inp = await page.query_selector(sel)
-                if inp:
-                    await inp.fill(survey_no)
-                    break
+            # Fill survey/plot number
+            filled = False
+            for sel in ['#plotNo', 'input[name="plotNo"]', 'input[id*="plot"]',
+                        'input[placeholder*="survey" i]', 'input[placeholder*="Plot" i]']:
+                try:
+                    inp = await page.query_selector(sel)
+                    if inp:
+                        await inp.fill(survey_no)
+                        filled = True
+                        break
+                except Exception:
+                    pass
 
-            # Select state (Karnataka)
-            try:
-                state_inp = await page.query_selector(
-                    'input[placeholder*="state"], .multiselect__input, [id*="state"]')
-                if state_inp:
-                    await state_inp.fill("Karnataka")
-                    await page.wait_for_timeout(500)
-                    await page.click('.multiselect__option:has-text("Karnataka"), li:has-text("Karnataka")',
-                                     timeout=3000)
-            except Exception:
-                pass
+            # Select state dropdown (Vue.js multiselect)
+            for state_sel in ['input[placeholder*="state" i]', '.multiselect__input',
+                               '#state input', 'input[id*="State"]']:
+                try:
+                    inp = await page.query_selector(state_sel)
+                    if inp:
+                        await inp.fill("Karnataka")
+                        await page.wait_for_timeout(600)
+                        await page.click(
+                            '.multiselect__option:has-text("Karnataka"), '
+                            'li:has-text("Karnataka"), option:has-text("Karnataka")',
+                            timeout=3000)
+                        break
+                except Exception:
+                    pass
 
-            # Click Search — CERSAI uses Vue.js, button may take time to render
-            try:
-                await page.wait_for_selector(
-                    'button[type="submit"], button:has-text("Search"), input[type="submit"]',
-                    timeout=8000)
-                btn = await page.query_selector(
-                    'button[type="submit"], button:has-text("Search"), input[type="submit"]')
-                if btn:
-                    await btn.click()
-                    await page.wait_for_timeout(4000)
-            except Exception as e:
-                logger.warning(f"CERSAI search click: {e} — parsing whatever is on page")
+            # Submit
+            for btn_sel in ['button[type="submit"]', 'button:has-text("Search")',
+                            'input[type="submit"]', 'button:has-text("Go")']:
+                try:
+                    btn = await page.query_selector(btn_sel)
+                    if btn and await btn.is_enabled():
+                        await btn.click()
+                        await page.wait_for_timeout(5000)
+                        break
+                except Exception:
+                    pass
 
             html = await page.content()
             result = _parse_cersai(html, district, survey_no)
 
-            # Override with intercepted API data if richer
-            if captured:
-                body = " ".join(captured)
-                charges = re.findall(r'(?:charge|mortgage|lien|security interest)', body, re.IGNORECASE)
-                banks = re.findall(r'(?:HDFC|SBI|ICICI|Axis|Kotak|Canara|Union|Bank\s+of\s+\w+)',
-                                   body, re.IGNORECASE)
-                if charges or banks:
-                    result["charges_found"] = len(charges)
-                    result["lenders"] = list(set([b.title() for b in banks[:5]]))
-                    result["is_mortgaged"] = len(charges) > 0
+            # Enrich with intercepted API data
+            for body in captured_json:
+                try:
+                    import json as _json
+                    data = _json.loads(body)
+                    items = data if isinstance(data, list) else data.get("data", data.get("result", []))
+                    if isinstance(items, list) and items:
+                        banks = [str(i.get("fi_name", i.get("lenderName", ""))) for i in items if isinstance(i, dict)]
+                        banks = [b for b in banks if b]
+                        result["charges_found"] = len(items)
+                        result["lenders"] = banks[:5]
+                        result["is_mortgaged"] = True
+                        result["source"] = "cersai_api"
+                        logger.info(f"CERSAI API: {len(items)} charges, lenders: {banks}")
+                except Exception:
+                    pass
 
             return result
         except Exception as e:
