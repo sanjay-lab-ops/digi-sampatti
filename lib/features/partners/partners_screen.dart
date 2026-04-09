@@ -33,8 +33,14 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
   }
 
   Future<void> _load() async {
-    final data = await _service.getAllForDistrict(_district);
-    if (mounted) setState(() { _professionals = data; _loading = false; });
+    try {
+      final data = await _service.getAllForDistrict(_district)
+          .timeout(const Duration(seconds: 10), onTimeout: () => {});
+      if (mounted) setState(() { _professionals = data; _loading = false; });
+    } catch (_) {
+      // Firestore unavailable — show empty state (fallback cards handle this)
+      if (mounted) setState(() { _professionals = {}; _loading = false; });
+    }
   }
 
   @override

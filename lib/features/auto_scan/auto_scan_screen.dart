@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
@@ -92,7 +92,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       }
     });
 
-    final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
+    const backendUrl = ApiConstants.backendBaseUrl;
 
     try {
       // ── Mark all as scanning (parallel) ───────────────────────────────────
@@ -142,7 +142,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     } catch (e) {
       setState(() {
         _scanning = false;
-        _error = 'Backend not reachable. Make sure laptop backend is running.\n\n$e';
+        _error = 'Could not connect to the verification server. Please check your internet connection and try again.';
         for (final p in _portals) {
           if (p.status == _PortalStatus.scanning) {
             p.status = _PortalStatus.failed;
@@ -276,11 +276,21 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
               ..._portals.map(_buildPortalCard),
             ],
 
+            // ── Raw Government Records (inline — no links) ──────────────
+            if (_done && _fullResult != null) ...[
+              const SizedBox(height: 24),
+              _buildRawDataSection(),
+            ],
+
             // ── Risk Summary ────────────────────────────────────────────────
             if (_done) ...[
               const SizedBox(height: 20),
               _buildRiskSummary(),
               const SizedBox(height: 16),
+              // ── What you still need to do ───────────────────────────────
+              _buildNextStepsCard(),
+              const SizedBox(height: 16),
+
               ElevatedButton.icon(
                 onPressed: () => context.push('/analysis'),
                 icon: const Icon(Icons.auto_awesome),
@@ -512,6 +522,474 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         ],
       ),
     );
+  }
+
+  // ─── What you still need to do (online vs. physical presence) ────────────
+  Widget _buildNextStepsCard() {
+    final hasFraud    = _fraudPatterns.isNotEmpty;
+    final hasCourts   = (_fullResult?['courts'] as Map?)?.containsKey('has_pending_cases') == true
+        && (_fullResult!['courts']['has_pending_cases'] as bool? ?? false);
+    final hasMortgage = (_fullResult?['cersai'] as Map?)?.containsKey('is_mortgaged') == true
+        && (_fullResult!['cersai']['is_mortgaged'] as bool? ?? false);
+    final ecDown      = _fullResult?['ec'] == null;
+    final cersaiDown  = _fullResult?['cersai'] == null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.07),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.checklist, size: 16, color: AppColors.primary),
+                SizedBox(width: 8),
+                Text('ಮುಂದಿನ ಹಂತಗಳು  /  What You Still Need To Do',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.primary)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Online — can be done from phone
+                const _SectionLabel('📱 Can be done online / on this app'),
+                const SizedBox(height: 8),
+                _NextStep(
+                  done: _fullResult?['rtc'] != null,
+                  label: 'Bhoomi RTC fetched ✓',
+                  note: 'Owner, extent, liabilities — visible above',
+                  physical: false,
+                ),
+                _NextStep(
+                  done: !ecDown,
+                  label: ecDown
+                      ? 'Kaveri EC — verify manually at kaveri.karnataka.gov.in'
+                      : 'Kaveri EC checked ✓',
+                  note: ecDown ? 'Kaveri portal is frequently down. Get EC from the sub-registrar office.' : null,
+                  physical: ecDown,
+                  isWarning: ecDown,
+                ),
+                _NextStep(
+                  done: !cersaiDown,
+                  label: cersaiDown
+                      ? 'CERSAI — ask seller to show CERSAI screenshot or check at cersai.org.in'
+                      : 'CERSAI mortgage check ✓',
+                  note: cersaiDown ? 'CERSAI login is required. A lawyer can get this for ₹200.' : null,
+                  physical: false,
+                  isWarning: cersaiDown,
+                ),
+                _NextStep(
+                  done: !hasCourts,
+                  label: hasCourts
+                      ? 'Court cases found — read details in report ⚠'
+                      : 'eCourts search done ✓',
+                  note: hasCourts ? 'Get a lawyer to review the case status before buying.' : null,
+                  physical: false,
+                  isWarning: hasCourts,
+                ),
+
+                const SizedBox(height: 14),
+                // Physical presence required
+                const _SectionLabel('🏢 Requires physical presence'),
+                const SizedBox(height: 8),
+                const _NextStep(
+                  done: false,
+                  label: 'Visit the sub-registrar office (SRO)',
+                  note: 'Get the original EC, check sale deed history in person. Bring survey number + Aadhaar.',
+                  physical: true,
+                ),
+                const _NextStep(
+                  done: false,
+                  label: 'Visit the property site',
+                  note: 'Verify boundary markers match FMB sketch. Check if any encroachment.',
+                  physical: true,
+                ),
+                const _NextStep(
+                  done: false,
+                  label: 'Check with village accountant (VA)',
+                  note: 'Ask if there are any oral/unregistered transactions or disputes on this survey.',
+                  physical: true,
+                ),
+                if (hasFraud) ...[
+                  const SizedBox(height: 14),
+                  const _SectionLabel('🚨 Fraud patterns detected — additional steps'),
+                  const SizedBox(height: 8),
+                  const _NextStep(
+                    done: false,
+                    label: 'Hire a property lawyer immediately',
+                    note: 'Do NOT pay any advance until a lawyer reviews the RTC, EC, and mutation history.',
+                    physical: false,
+                    isWarning: true,
+                  ),
+                  const _NextStep(
+                    done: false,
+                    label: 'Do NOT sign any agreement yet',
+                    note: 'Suspicious patterns detected. Get police verification of the seller\'s identity.',
+                    physical: true,
+                    isWarning: true,
+                  ),
+                ],
+
+                if (hasMortgage) ...[
+                  const SizedBox(height: 14),
+                  const _SectionLabel('🏦 Mortgage found — additional steps'),
+                  const SizedBox(height: 8),
+                  const _NextStep(
+                    done: false,
+                    label: 'Get NOC from the bank before sale',
+                    note: 'Seller must show No-Objection Certificate from the bank clearing the mortgage.',
+                    physical: true,
+                    isWarning: true,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Raw Government Records ────────────────────────────────────────────────
+  Widget _buildRawDataSection() {
+    final scan   = ref.read(currentScanProvider);
+    final rtc    = _fullResult!['rtc']    as Map<String, dynamic>?;
+    final ec     = _fullResult!['ec']     as Map<String, dynamic>?;
+    final courts = _fullResult!['courts'] as Map<String, dynamic>?;
+    final cersai = _fullResult!['cersai'] as Map<String, dynamic>?;
+    final gv     = _fullResult!['guidance_value'] as Map<String, dynamic>?;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.account_balance, size: 18, color: Color(0xFF1B5E20)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('ಸರ್ಕಾರಿ ದಾಖಲೆಗಳು  /  Raw Government Records',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        const Text('Live data fetched from Karnataka portals — shown inline',
+            style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+        const SizedBox(height: 12),
+
+        // ── Scan vs. Live comparison (only if RTC available + scan has OCR data) ─
+        if (rtc != null && scan != null && scan.surveyNumber != null)
+          _buildComparisonCard(scan, rtc),
+        if (rtc != null && scan != null && scan.surveyNumber != null)
+          const SizedBox(height: 10),
+
+        // ── RTC (Bhoomi) ──────────────────────────────────────────────────────
+        rtc != null
+            ? _buildRtcCard(rtc)
+            : _buildUnavailableCard(
+                'Bhoomi RTC  /  ಪಹಣಿ',
+                'Bhoomi portal did not respond. Survey No: ${scan?.surveyNumber ?? "—"}',
+                Icons.article_outlined, const Color(0xFF1B5E20)),
+
+        const SizedBox(height: 10),
+
+        // ── EC (Kaveri) — frequently down ─────────────────────────────────────
+        ec != null
+            ? _buildEcCard(ec)
+            : _buildUnavailableCard(
+                'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
+                'Kaveri portal is currently unavailable (frequent maintenance). '
+                'Verify EC manually at kaveri.karnataka.gov.in',
+                Icons.account_balance_outlined, const Color(0xFF0D47A1),
+                isKaveriDown: true),
+
+        const SizedBox(height: 10),
+
+        // ── eCourts ───────────────────────────────────────────────────────────
+        courts != null
+            ? _buildCourtsCard(courts)
+            : _buildUnavailableCard(
+                'eCourts India  /  ನ್ಯಾಯಾಲಯ',
+                'eCourts search was not reachable. Check manually at services.ecourts.gov.in',
+                Icons.gavel_outlined, const Color(0xFFBF360C)),
+
+        const SizedBox(height: 10),
+
+        // ── CERSAI — requires login/OTP ───────────────────────────────────────
+        cersai != null
+            ? _buildCersaiCard(cersai)
+            : _buildUnavailableCard(
+                'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
+                'CERSAI requires OTP login and cannot be automated. '
+                'Ask the seller to provide CERSAI screenshot, or check at cersai.org.in',
+                Icons.lock_outline, const Color(0xFF37474F),
+                isCersaiLogin: true),
+
+        const SizedBox(height: 10),
+
+        // ── Guidance Value — zone rate, not plot-specific ─────────────────────
+        _buildGuidanceCard(gv, scan?.district ?? '', scan?.taluk ?? ''),
+      ],
+    );
+  }
+
+  // ── Scan document vs. live portal — side by side ─────────────────────────
+  Widget _buildComparisonCard(PropertyScan scan, Map<String, dynamic> rtc) {
+    final scanSurvey   = scan.surveyNumber ?? '—';
+    final scanDistrict = scan.district ?? '—';
+    final scanTaluk    = scan.taluk ?? '—';
+    final liveSurvey   = _val(rtc['survey_number']).isNotEmpty ? _val(rtc['survey_number']) : '—';
+    final liveOwner    = _val(rtc['owner_name']).isNotEmpty ? _val(rtc['owner_name']) : '—';
+    final liveExtent   = _val(rtc['extent']).isNotEmpty ? _val(rtc['extent']) : '—';
+    final liveVillage  = _val(rtc['village']).isNotEmpty ? _val(rtc['village']) : '—';
+
+    bool match(String a, String b) =>
+        a != '—' && b != '—' && a.toLowerCase().trim() == b.toLowerCase().trim();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8E9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B5E20).withOpacity(0.08),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.compare_arrows, size: 16, color: Color(0xFF1B5E20)),
+                SizedBox(width: 8),
+                Text('Scanned Document  vs  Live Portal',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1B5E20))),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                // Header row
+                Row(
+                  children: [
+                    const SizedBox(width: 100),
+                    Expanded(
+                      child: Text('📄 Scanned',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700)),
+                    ),
+                    Expanded(
+                      child: Text('🏛 Bhoomi Live',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1B5E20))),
+                    ),
+                  ],
+                ),
+                const Divider(height: 14),
+                _CompRow('Survey No.', scanSurvey, liveSurvey,
+                    match: match(scanSurvey, liveSurvey)),
+                _CompRow('District', scanDistrict, _val(rtc['district']).isNotEmpty ? _val(rtc['district']) : '—',
+                    match: match(scanDistrict, _val(rtc['district']))),
+                _CompRow('Taluk', scanTaluk, _val(rtc['taluk']).isNotEmpty ? _val(rtc['taluk']) : '—',
+                    match: match(scanTaluk, _val(rtc['taluk']))),
+                _CompRow('Village', '—', liveVillage),
+                _CompRow('Owner', '—', liveOwner),
+                _CompRow('Extent', '—', liveExtent),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRtcCard(Map<String, dynamic> rtc) {
+    final owner       = _val(rtc['owner_name']);
+    final extent      = _val(rtc['extent']);
+    final landType    = _val(rtc['land_type']);
+    final kharab      = _val(rtc['kharab']);
+    final liabilities = _val(rtc['liabilities']);
+    final khata       = _val(rtc['khata_number']);
+    final village     = _val(rtc['village']);
+
+    return _RawCard(
+      title: 'Bhoomi RTC  /  ಪಹಣಿ',
+      subtitle: 'Record of Rights, Tenancy & Crops',
+      icon: Icons.article_outlined,
+      color: const Color(0xFF1B5E20),
+      children: [
+        _RawRow('Survey No.',   _val(rtc['survey_number']).isNotEmpty ? _val(rtc['survey_number']) : '—'),
+        if (village.isNotEmpty)   _RawRow('Village / ಗ್ರಾಮ', village),
+        _RawRow('Owner / ಮಾಲೀಕ', owner.isNotEmpty ? owner : '— (not returned)'),
+        _RawRow('Total Extent',   extent.isNotEmpty ? extent : '—'),
+        if (landType.isNotEmpty)  _RawRow('Land Type', landType),
+        if (kharab.isNotEmpty)    _RawRow('Kharab / Govt Share', kharab),
+        if (khata.isNotEmpty)     _RawRow('Khata No.', khata),
+        _RawRow('Liabilities',
+          liabilities.isNotEmpty ? liabilities : 'None on record ✓',
+          valueColor: liabilities.isNotEmpty ? Colors.red : AppColors.safe),
+      ],
+    );
+  }
+
+  Widget _buildEcCard(Map<String, dynamic> ec) {
+    final free  = ec['encumbrance_free'] == true;
+    final count = ec['transaction_count'] ?? 0;
+    final txns  = (ec['transactions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+    return _RawCard(
+      title: 'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
+      subtitle: 'Encumbrance Certificate — last 25 years',
+      icon: Icons.account_balance_outlined,
+      color: const Color(0xFF0D47A1),
+      children: [
+        _RawRow('EC Status',
+          free ? 'Encumbrance Free ✓' : '$count transaction(s) on record',
+          valueColor: free ? AppColors.safe : Colors.orange),
+        if (!free && count == 0)
+          _RawRow('Note', 'Portal returned data but no entries — re-verify manually', small: true),
+        ...txns.take(5).map((t) => _RawRow(
+          t['date']?.toString() ?? 'Entry',
+          '${t['type'] ?? 'Transaction'} — ${t['party'] ?? ''}',
+          small: true)),
+        if (txns.length > 5)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 0),
+            child: Text('+${txns.length - 5} more entries',
+                style: const TextStyle(fontSize: 11, color: AppColors.textLight))),
+      ],
+    );
+  }
+
+  Widget _buildCourtsCard(Map<String, dynamic> courts) {
+    final hasCases = courts['has_pending_cases'] == true;
+    final count    = courts['cases_found'] ?? 0;
+    final cases    = (courts['case_numbers'] as List?)?.cast<String>() ?? [];
+
+    return _RawCard(
+      title: 'eCourts India  /  ನ್ಯಾಯಾಲಯ',
+      subtitle: 'Active civil/criminal cases on owner name',
+      icon: Icons.gavel_outlined,
+      color: const Color(0xFFBF360C),
+      children: [
+        _RawRow('Litigation',
+          hasCases ? '$count case(s) found — verify before buying' : 'No cases found ✓',
+          valueColor: hasCases ? Colors.red : AppColors.safe),
+        ...cases.take(4).map((c) => _RawRow('Case No.', c, small: true)),
+      ],
+    );
+  }
+
+  Widget _buildCersaiCard(Map<String, dynamic> cersai) {
+    final mortgaged = cersai['is_mortgaged'] == true;
+    final lenders   = (cersai['lenders'] as List?)?.cast<String>() ?? [];
+
+    return _RawCard(
+      title: 'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
+      subtitle: 'Central Registry — bank mortgage & liens',
+      icon: Icons.lock_outline,
+      color: const Color(0xFF37474F),
+      children: [
+        _RawRow('Mortgage',
+          mortgaged ? 'Active charge registered ⚠' : 'No lien / charge found ✓',
+          valueColor: mortgaged ? Colors.red : AppColors.safe),
+        if (lenders.isNotEmpty) _RawRow('Lender(s)', lenders.join(', ')),
+      ],
+    );
+  }
+
+  Widget _buildGuidanceCard(Map<String, dynamic>? gv, String district, String taluk) {
+    final val    = gv?['value_per_sqft'];
+    final source = _val(gv?['source']);
+    final isFallback = source == 'igr_gazette_2024' || gv == null;
+
+    return _RawCard(
+      title: 'Guidance Value  /  ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ',
+      subtitle: 'Karnataka IGR — minimum stamp duty rate',
+      icon: Icons.currency_rupee,
+      color: const Color(0xFF006064),
+      children: [
+        _RawRow('Rate',
+          val != null ? '₹$val / sqft' : '—'),
+        _RawRow('Zone / Area',
+          taluk.isNotEmpty ? '$taluk, $district' : district),
+        _RawRow('Important',
+          isFallback
+            ? 'Zone-level estimate (IGR gazette 2024). Same rate applies to entire taluk — not plot-specific'
+            : 'Live from IGR portal',
+          valueColor: isFallback ? Colors.orange.shade700 : AppColors.safe,
+          small: true),
+      ],
+    );
+  }
+
+  Widget _buildUnavailableCard(String title, String reason, IconData icon, Color color,
+      {bool isKaveriDown = false, bool isCersaiLogin = false}) {
+    return _RawCard(
+      title: title,
+      subtitle: isKaveriDown
+          ? 'Portal frequently under maintenance'
+          : isCersaiLogin
+              ? 'OTP login required — cannot automate'
+              : 'Portal unavailable',
+      icon: icon,
+      color: color,
+      statusBadge: 'UNAVAILABLE',
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isCersaiLogin ? Icons.info_outline : Icons.wifi_off_outlined,
+              size: 14,
+              color: color.withOpacity(0.6),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(reason,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: color.withOpacity(0.8),
+                      height: 1.5)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _val(dynamic v) {
+    if (v == null) return '';
+    final s = v.toString().trim();
+    if (s.isEmpty || s == 'null' || s == 'N/A') return '';
+    return s;
   }
 
   Widget _buildRiskSummary() {
@@ -750,26 +1228,331 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         children: [
           const Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 18),
+              Icon(Icons.wifi_off_outlined, color: Colors.red, size: 18),
               SizedBox(width: 8),
-              Text('Backend not reachable',
+              Text('Connection Error',
                   style: TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.red)),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Make sure the laptop backend is running:\n'
-            '  cd digi-sampatti/backend\n'
-            '  python main.py',
-            style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+          Text(
+            _error ?? 'Could not complete the scan. Please try again.',
+            style: const TextStyle(fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               onPressed: _startScan,
-              child: const Text('Retry'),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Try Again'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Raw Data Card Widget ─────────────────────────────────────────────────────
+
+class _RawCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final List<Widget> children;
+  final String statusBadge;
+
+  const _RawCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.children,
+    this.statusBadge = 'LIVE',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnavailable = statusBadge != 'LIVE';
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: isUnavailable
+                ? Colors.grey.shade300
+                : color.withOpacity(0.25)),
+        boxShadow: [
+          BoxShadow(
+              color: color.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isUnavailable
+                  ? Colors.grey.shade100
+                  : color.withOpacity(0.08),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon,
+                    size: 16,
+                    color: isUnavailable ? Colors.grey : color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: isUnavailable ? Colors.grey.shade600 : color)),
+                      Text(subtitle,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: isUnavailable
+                                  ? Colors.grey.shade400
+                                  : color.withOpacity(0.7))),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isUnavailable ? Colors.grey.shade400 : color,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(statusBadge,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8)),
+                ),
+              ],
+            ),
+          ),
+          // Rows
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RawRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool small;
+
+  const _RawRow(this.label, this.value,
+      {this.valueColor, this.small = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: small ? 11 : 12,
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: small ? 11 : 12,
+                fontWeight: small ? FontWeight.normal : FontWeight.w600,
+                color: valueColor ?? AppColors.textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Next Step Indicator ────────────────────────────────────────────────────
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMedium));
+  }
+}
+
+class _NextStep extends StatelessWidget {
+  final bool done;
+  final String label;
+  final String? note;
+  final bool physical;
+  final bool isWarning;
+
+  const _NextStep({
+    required this.done,
+    required this.label,
+    this.note,
+    this.physical = false,
+    this.isWarning = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = done
+        ? AppColors.safe
+        : isWarning
+            ? Colors.red
+            : physical
+                ? const Color(0xFF1565C0)
+                : AppColors.textMedium;
+    final IconData icon = done
+        ? Icons.check_circle
+        : isWarning
+            ? Icons.warning_amber_rounded
+            : physical
+                ? Icons.location_on_outlined
+                : Icons.radio_button_unchecked;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: color)),
+                if (note != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(note!,
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textLight,
+                            height: 1.4)),
+                  ),
+              ],
+            ),
+          ),
+          if (physical)
+            Container(
+              margin: const EdgeInsets.only(left: 6, top: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1565C0).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text('IN PERSON',
+                  style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1565C0),
+                      letterSpacing: 0.5)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompRow extends StatelessWidget {
+  final String label;
+  final String scanned;
+  final String live;
+  final bool? match;
+
+  const _CompRow(this.label, this.scanned, this.live, {this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final matchColor = match == true
+        ? AppColors.safe
+        : match == false
+            ? Colors.orange
+            : null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textLight)),
+          ),
+          Expanded(
+            child: Text(scanned,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: matchColor ?? AppColors.textDark)),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                if (match != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      match! ? Icons.check_circle : Icons.swap_horiz,
+                      size: 12,
+                      color: matchColor,
+                    ),
+                  ),
+                Expanded(
+                  child: Text(live,
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: matchColor ?? const Color(0xFF1B5E20))),
+                ),
+              ],
             ),
           ),
         ],

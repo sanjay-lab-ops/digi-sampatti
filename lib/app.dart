@@ -99,6 +99,10 @@ final _router = GoRouter(
           prefillDistrict:     extra?['ocrDistrict']     as String?,
           prefillTaluk:        extra?['ocrTaluk']        as String?,
           prefillDocumentType: extra?['ocrDocumentType'] as String?,
+          buildingName:        extra?['buildingName']    as String?,
+          selectedBlock:       extra?['selectedBlock']   as String?,
+          selectedFlat:        extra?['selectedFlat']    as String?,
+          buildingInfo:        extra?['buildingInfo']    as String?,
         );
       },
     ),
