@@ -45,7 +45,7 @@ class _AiAnalysisScreenState extends ConsumerState<AiAnalysisScreen> {
           if (report == null) return const _PortalScanningView();
           return _AnalysisResultView(
             report: report,
-            onViewFullReport: () => context.push('/next-steps'),
+            onViewFullReport: () => context.push('/report'),
           );
         },
       ),
@@ -273,18 +273,18 @@ class _AnalysisResultView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── What You SHOULD DO
-          if (a.actionItems.isNotEmpty)
+          // ── What You SHOULD DO (positives = good signs)
+          if (a.positives.isNotEmpty)
             _Section(
               title: '✅  What You Should DO',
               color: AppColors.safe,
               bgColor: AppColors.statusClearBg,
-              items: a.actionItems,
+              items: a.positives,
               icon: Icons.check_circle_outline,
             ),
           const SizedBox(height: 12),
 
-          // ── What You Should NOT DO
+          // ── What You Should NOT DO (concerns)
           if (a.concerns.isNotEmpty)
             _Section(
               title: '🚫  What You Should NOT DO',
@@ -295,14 +295,17 @@ class _AnalysisResultView extends StatelessWidget {
             ),
           const SizedBox(height: 12),
 
-          // ── Good Signs
-          if (a.positives.isNotEmpty)
+          // ── Next Steps (actionItems — distinct from positives/concerns)
+          if (a.actionItems.isNotEmpty && a.actionItems.any(
+              (i) => !a.positives.contains(i) && !a.concerns.contains(i)))
             _Section(
-              title: '👍  Good Signs Found',
-              color: AppColors.safe,
+              title: '📋  Your Action Steps',
+              color: AppColors.primary,
               bgColor: const Color(0xFFE8F5E9),
-              items: a.positives,
-              icon: Icons.thumb_up_outlined,
+              items: a.actionItems.where(
+                (i) => !a.positives.contains(i) && !a.concerns.contains(i)
+              ).toList(),
+              icon: Icons.arrow_forward_ios,
             ),
           const SizedBox(height: 12),
 
@@ -351,7 +354,7 @@ class _AnalysisResultView extends StatelessWidget {
                 Row(
                   children: [
                     const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('₹99',
+                      Text('₹149',
                           style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                       Text('one-time · instant', style: TextStyle(color: Colors.white70, fontSize: 11)),
                     ]),
@@ -359,7 +362,7 @@ class _AnalysisResultView extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: onViewFullReport,
                       icon: const Icon(Icons.picture_as_pdf),
-                      label: const Text('View Report'),
+                      label: const Text('Get Full Report'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF1B5E20),
