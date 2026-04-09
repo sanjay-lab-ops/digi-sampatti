@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/services/property_data_service.dart';
 
 class LoanEligibilityScreen extends StatefulWidget {
   const LoanEligibilityScreen({super.key});
@@ -15,6 +16,8 @@ class _LoanEligibilityScreenState extends State<LoanEligibilityScreen> {
   double _interestRate = 8.5;
   double _tenureYears = 20;
   bool _isCalculated = false;
+  bool _enquirySent = false;
+  String _preferredBank = 'SBI';
 
   double get _salary => double.tryParse(_salaryController.text.replaceAll(',', '')) ?? 0;
   double get _existingEmi => double.tryParse(_existingEmiController.text.replaceAll(',', '')) ?? 0;
@@ -178,6 +181,42 @@ class _LoanEligibilityScreenState extends State<LoanEligibilityScreen> {
                   ),
                 ),
               ],
+              const SizedBox(height: 16),
+
+              // Bank connect CTA
+              if (!_enquirySent)
+                _BankConnectCard(
+                  maxLoan: _maxLoan,
+                  salary: _salary,
+                  preferredBank: _preferredBank,
+                  onBankChanged: (b) => setState(() => _preferredBank = b),
+                  onConnect: () async {
+                    await PropertyDataService().saveLoanEnquiry(
+                      propertyValue: _maxProperty,
+                      monthlyIncome: _salary,
+                      loanAmount: _maxLoan,
+                      preferredBank: _preferredBank,
+                    );
+                    if (mounted) setState(() => _enquirySent = true);
+                  },
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGreen,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.check_circle, color: AppColors.primary),
+                    SizedBox(width: 10),
+                    Expanded(child: Text(
+                      'Enquiry sent! A partner bank will contact you within 24 hours.',
+                      style: TextStyle(color: AppColors.primary, fontSize: 13),
+                    )),
+                  ]),
+                ),
             ],
             const SizedBox(height: 20),
           ],
@@ -218,4 +257,83 @@ class _Tip extends StatelessWidget {
       Expanded(child: Text(text, style: const TextStyle(fontSize: 12, color: AppColors.textMedium))),
     ]),
   );
+}
+
+class _BankConnectCard extends StatelessWidget {
+  final double maxLoan;
+  final double salary;
+  final String preferredBank;
+  final ValueChanged<String> onBankChanged;
+  final VoidCallback onConnect;
+
+  const _BankConnectCard({
+    required this.maxLoan,
+    required this.salary,
+    required this.preferredBank,
+    required this.onBankChanged,
+    required this.onConnect,
+  });
+
+  static const _banks = ['SBI', 'HDFC Bank', 'ICICI Bank', 'Axis Bank',
+      'Kotak Bank', 'Bank of Baroda', 'Canara Bank', 'LIC Housing'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.account_balance, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text('Connect with a Bank', style: TextStyle(color: Colors.white,
+                fontWeight: FontWeight.bold, fontSize: 14)),
+          ]),
+          const SizedBox(height: 4),
+          const Text('A partner bank loan officer will call you — no spam, no obligation',
+              style: TextStyle(color: Colors.white70, fontSize: 11)),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: preferredBank,
+            dropdownColor: const Color(0xFF1565C0),
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.15),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            items: _banks.map((b) => DropdownMenuItem(
+              value: b,
+              child: Text(b, style: const TextStyle(color: Colors.white)),
+            )).toList(),
+            onChanged: (v) { if (v != null) onBankChanged(v); },
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onConnect,
+              icon: const Icon(Icons.phone_in_talk, size: 16),
+              label: const Text('Request Callback', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF1565C0),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

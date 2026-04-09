@@ -561,6 +561,38 @@ class _ExpertRow extends StatelessWidget {
   }
 }
 
+// ─── Info Card (conversion paths etc.) ───────────────────────────────────────
+class _InfoCard extends StatelessWidget {
+  final String text;
+  final Color color;
+  final IconData icon;
+  const _InfoCard({required this.text, required this.color, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text,
+                style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
   final String title;

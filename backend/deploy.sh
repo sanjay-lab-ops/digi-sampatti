@@ -8,6 +8,9 @@ REGION="asia-south1"   # Mumbai — closest to Karnataka
 
 echo "Building and deploying to Cloud Run..."
 
+# Deploy from repo ROOT so the root Dockerfile picks up backend/ correctly
+cd "$(dirname "$0")/.."
+
 gcloud run deploy $SERVICE_NAME \
   --source . \
   --region $REGION \

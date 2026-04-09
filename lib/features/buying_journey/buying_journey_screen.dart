@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/core/services/property_data_service.dart';
 
 class BuyingJourneyScreen extends ConsumerStatefulWidget {
   const BuyingJourneyScreen({super.key});
@@ -20,11 +21,33 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
   final Map<int, bool> _preAdvance = {};
   // checklist state — stage 2
   final Map<int, bool> _agreement = {};
+  // Firestore journey ID — default 'default_journey'
+  final String _journeyId = 'default_journey';
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
+    _loadChecks();
+  }
+
+  Future<void> _loadChecks() async {
+    final data = await PropertyDataService().loadJourneyChecks(_journeyId);
+    if (mounted) {
+      setState(() {
+        if (data['preAdvance'] != null) _preAdvance.addAll(data['preAdvance']!);
+        if (data['agreement'] != null) _agreement.addAll(data['agreement']!);
+      });
+    }
+  }
+
+  Future<void> _saveCheck(String stage, int index, bool value) async {
+    await PropertyDataService().saveJourneyCheckItem(
+      journeyId: _journeyId,
+      stage: stage,
+      itemIndex: index,
+      checked: value,
+    );
   }
 
   @override
@@ -150,7 +173,11 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                 return Column(
                   children: [
                     InkWell(
-                      onTap: () => setState(() => _preAdvance[i] = !checked),
+                      onTap: () {
+                        final newVal = !checked;
+                        setState(() => _preAdvance[i] = newVal);
+                        _saveCheck('preAdvance', i, newVal);
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         child: Row(
@@ -338,7 +365,11 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                 return Column(
                   children: [
                     InkWell(
-                      onTap: () => setState(() => _agreement[i] = !checked),
+                      onTap: () {
+                        final newVal = !checked;
+                        setState(() => _agreement[i] = newVal);
+                        _saveCheck('agreement', i, newVal);
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         child: Row(

@@ -213,9 +213,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.people_outline, l.expertHelp, 'Lawyer · Bank · Developers', AppColors.warning, () => context.push('/partners')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.gavel, l.courtCaseCheck, 'eCourts · Disputes · Injunctions', const Color(0xFF1A237E), () => context.push('/ecourts')),
+                  _ToolRow(Icons.gavel, l.courtCaseCheck, 'Monitor properties · eCourts · Disputes', const Color(0xFF1A237E), () => context.push('/court-tracker')),
                   const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.assignment_turned_in, l.applyAndTrack, 'EC · RTC · Mutation · RERA · Registration', const Color(0xFF004D40), () => context.push('/gov-services')),
+                  _ToolRow(Icons.assignment_turned_in, l.applyAndTrack, 'Track status · EC · Mutation · RERA', const Color(0xFF004D40), () => context.push('/application-tracker')),
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.route, l.buyingJourney, 'Advance · Agreement · Registration', const Color(0xFF1B5E20), () => context.push('/buying-journey')),
                   const Divider(height: 1, indent: 56),
@@ -225,8 +225,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )),
             const SizedBox(height: 16),
 
-            // ── Why DigiSampatti — interactive card
-            _animated(4, _WhyDigiSampattiCard(onTap: () => _showWhySheet(context))),
+            // ── How This Works — functional 3-step guide + start CTA
+            _animated(4, _HowItWorksCard()),
             const SizedBox(height: 24),
 
             // ── Recent Reports
@@ -255,15 +255,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
-    );
-  }
-
-  void _showWhySheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _WhySheet(),
     );
   }
 
@@ -597,354 +588,137 @@ class _RecentReportCard extends StatelessWidget {
   }
 }
 
-// ─── Why DigiSampatti Card ────────────────────────────────────────────────────
-class _WhyDigiSampattiCard extends StatelessWidget {
-  final VoidCallback onTap;
-  const _WhyDigiSampattiCard({required this.onTap});
+// ─── How It Works Card — functional, shows real steps + starts check ─────────
+class _HowItWorksCard extends StatelessWidget {
+  const _HowItWorksCard();
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A237E), Color(0xFF4A148C)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('🇮🇳  Why DigiSampatti?',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                  SizedBox(height: 6),
-                  Text(
-                    'For investors · Expo ready · All India · Every citizen',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _Pill('💼 Investor'),
-                      SizedBox(width: 6),
-                      _Pill('🌾 Rural'),
-                      SizedBox(width: 6),
-                      _Pill('🏙️ Metro'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  final String label;
-  const _Pill(this.label);
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
       ),
-      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
-    );
-  }
-}
-
-// ─── Why Sheet ────────────────────────────────────────────────────────────────
-class _WhySheet extends StatefulWidget {
-  const _WhySheet();
-  @override
-  State<_WhySheet> createState() => _WhySheetState();
-}
-
-class _WhySheetState extends State<_WhySheet> with SingleTickerProviderStateMixin {
-  late TabController _tab;
-
-  @override
-  void initState() {
-    super.initState();
-    _tab = TabController(length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.88,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, sc) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 40, height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 12),
-              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.route_outlined, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
+              Text('How to Check a Property',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _Step('1', Icons.search, 'Enter Survey Number + District',
+              'Type the survey no. from your RTC or sale deed document.',
+              AppColors.primary),
+          _Step('2', Icons.open_in_new, 'Open 7 Government Portals',
+              'App opens each portal — Bhoomi, Kaveri, RERA, eCourts, BBMP, CERSAI, FMB.',
+              const Color(0xFF1565C0)),
+          _Step('3', Icons.touch_app, 'Tap What You See',
+              'Answer 2–3 simple questions per portal. No typing. No guessing.',
+              const Color(0xFF6A1B9A)),
+          _Step('4', Icons.psychology_outlined, 'Get Legal Verdict',
+              'AI analyses all findings → DO / CAUTION / DO NOT BUY with Karnataka law citations.',
+              const Color(0xFFBF360C)),
+          const SizedBox(height: 4),
+          // 3 physical things note
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.withOpacity(0.3)),
             ),
-            const Text('Why DigiSampatti?',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            TabBar(
-              controller: _tab,
-              isScrollable: true,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textLight,
-              indicatorColor: AppColors.primary,
-              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              tabs: const [
-                Tab(text: '💼 Invest'),
-                Tab(text: '🇮🇳 All India'),
-                Tab(text: '🌾 Rural'),
-                Tab(text: '📈 Prices'),
-                Tab(text: '⚖️ Governance'),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('3 Things You Still Do In Person:',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5, color: Colors.black87)),
+                SizedBox(height: 6),
+                _PhysicalItem(Icons.location_on_outlined, 'Visit the physical property — check boundaries, construction, neighbours'),
+                _PhysicalItem(Icons.account_balance_outlined, 'Visit Sub-Registrar Office (SRO) for registration on final deed day'),
+                _PhysicalItem(Icons.receipt_outlined, 'Buy e-Stamp paper from authorised bank/SHCIL for sale deed (not from street vendors)'),
               ],
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _tab,
-                children: [
-                  _investTab(),
-                  _indiaTab(),
-                  _ruralTab(),
-                  _pricesTab(),
-                  _govTab(),
-                ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context.push('/scan/manual'),
+              icon: const Icon(Icons.play_arrow, size: 18),
+              label: const Text('Start Checking a Property',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-
-  Widget _investTab() => _SheetPage(children: [
-    _SheetHeader('💼', 'Invest with Confidence', 'Property expo ready · Investor grade reports'),
-    _InfoTile('🏙️', 'International Standard',
-      'Dubai, Singapore and UAE require full legal due diligence before every property deal. DigiSampatti brings the same standard to every Indian buyer.'),
-    _InfoTile('📊', 'Investor-Grade Report',
-      'Comprehensive safety score, legal flags, encumbrance history and AI analysis — everything an investor needs before committing funds.'),
-    _InfoTile('🤝', 'Property Expo Ready',
-      'Print your DigiSampatti report at a property expo and show buyers the property is clean. Builds instant trust.'),
-    _InfoTile('🔒', 'Risk Before You Sign',
-      'Know disputes, mortgages, government notices and layout violations before paying any advance — not after.'),
-  ]);
-
-  Widget _indiaTab() {
-    final states = [
-      ['Karnataka', true],  ['Delhi', false],     ['Maharashtra', false],
-      ['Telangana', false], ['Tamil Nadu', false], ['Gujarat', false],
-      ['West Bengal', false],['Kerala', false],    ['Andhra Pradesh', false],
-      ['UP', false],        ['Rajasthan', false],  ['Haryana', false],
-      ['Punjab', false],    ['MP', false],         ['Himachal', false],
-      ['Uttarakhand', false],['J & K', false],     ['Bihar', false],
-      ['Jharkhand', false], ['Odisha', false],     ['Chhattisgarh', false],
-      ['Assam', false],     ['Goa', false],        ['Meghalaya', false],
-      ['Manipur', false],   ['Nagaland', false],   ['Mizoram', false],
-      ['Tripura', false],   ['Arunachal', false],  ['Sikkim', false],
-      ['Chandigarh', false],['Puducherry', false], ['Ladakh', false],
-      ['Andaman', false],   ['Lakshadweep', false],
-    ];
-    return _SheetPage(children: [
-      _SheetHeader('🇮🇳', 'All India Coverage', 'State-by-state rollout under Digital India mission'),
-      const _InfoTile('📡', 'DILRMP Programme',
-        'Digital India Land Records Modernisation Programme is digitizing all state land records. DigiSampatti integrates each state as portals go live.'),
-      const SizedBox(height: 12),
-      Wrap(
-        spacing: 8, runSpacing: 8,
-        children: states.map((s) {
-          final live = s[1] as bool;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: live ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: live ? const Color(0xFF66BB6A) : const Color(0xFFE0E0E0)),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(live ? '🟢' : '🔜', style: const TextStyle(fontSize: 10)),
-              const SizedBox(width: 4),
-              Text(s[0] as String,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: live ? FontWeight.bold : FontWeight.normal,
-                  color: live ? const Color(0xFF2E7D32) : const Color(0xFF757575),
-                )),
-              if (live) ...[
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(color: const Color(0xFF4CAF50), borderRadius: BorderRadius.circular(4)),
-                  child: const Text('LIVE', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ]),
-          );
-        }).toList(),
-      ),
-    ]);
-  }
-
-  Widget _ruralTab() => _SheetPage(children: [
-    _SheetHeader('🌾', 'For Every Indian', 'City flat · Village farm · Tribal land'),
-    _InfoTile('🌿', 'Forest Rights Act 2006',
-      'Tribal communities have legal rights over forest land they live on. FRA ensures every family\'s rights are properly recorded and protected.'),
-    _InfoTile('⚖️', 'PESA Act 1996',
-      'Gram Sabha has authority over land in Scheduled Areas. No land transfer without village council consent.'),
-    _InfoTile('🛡️', 'Tribal Land Protection',
-      'In Karnataka and most states, tribal land cannot be sold to non-tribals without government permission — protecting ancestral land.'),
-    _InfoTile('🌾', 'Farmer & Small Landholders',
-      'Verify your RTC, Khata and EC yourself from any phone. No need for agents or middlemen.'),
-    _InfoTile('💡', 'Simple for Everyone',
-      'No legal knowledge needed. If you can read a phone, you can protect your land.'),
-  ]);
-
-  Widget _pricesTab() => _SheetPage(children: [
-    _SheetHeader('📈', 'Property Price Ranges', 'Karnataka approximate rates — village to metro'),
-    _PriceRow('🌾', 'Gram Panchayat', '₹200 – ₹800 / sqft',   'Agricultural land, village areas', const Color(0xFF795548)),
-    _PriceRow('🏘️', 'CMC / TMC Town',  '₹800 – ₹3,000 / sqft', 'Smaller cities, taluk headquarters', const Color(0xFF607D8B)),
-    _PriceRow('🏗️', 'City Outskirts',  '₹3,000 – ₹8,000 / sqft','BDA layouts, peripheral areas', const Color(0xFF1976D2)),
-    _PriceRow('🏙️', 'BBMP Bengaluru',  '₹5,000 – ₹20,000 / sqft','City proper, approved layouts', const Color(0xFF6A1B9A)),
-    _PriceRow('🏢', 'Premium Metro',   '₹20,000 – ₹80,000 / sqft','CBD, Whitefield, Indiranagar', const Color(0xFFB71C1C)),
-    const Padding(
-      padding: EdgeInsets.only(top: 16),
-      child: Text('Always verify current market price independently. These are indicative ranges only.',
-        style: TextStyle(fontSize: 10, color: AppColors.textLight, height: 1.4)),
-    ),
-  ]);
-
-  Widget _govTab() => _SheetPage(children: [
-    _SheetHeader('⚖️', 'Digital Governance', 'Government\'s mission for transparent land records'),
-    _InfoTile('🗂️', 'Bhoomi Portal',
-      'All Karnataka land records available online. Get your RTC copy instantly from home — fast, easy, and transparent.'),
-    _InfoTile('📋', 'SAKALA Scheme',
-      'Government guarantees service delivery within fixed days. Mutation, Khata transfers — all time-bound.'),
-    _InfoTile('🔑', 'Kaveri 2.0',
-      'Online property registration. Stamp duty payment, deed booking and EC — all from home.'),
-    _InfoTile('📡', 'NLRMP / DILRMP',
-      'National programme to digitize every survey stone, village map and land boundary across India.'),
-    _InfoTile('🛡️', 'DigiSampatti Mission',
-      'Putting verified government data directly in your hands — so every citizen can make confident, informed property decisions.'),
-  ]);
 }
 
-class _SheetPage extends StatelessWidget {
-  final List<Widget> children;
-  const _SheetPage({required this.children});
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: children,
-    );
-  }
-}
+class _Step extends StatelessWidget {
+  final String num;
+  final IconData icon;
+  final String title;
+  final String desc;
+  final Color color;
+  const _Step(this.num, this.icon, this.title, this.desc, this.color);
 
-class _SheetHeader extends StatelessWidget {
-  final String emoji, title, subtitle;
-  const _SheetHeader(this.emoji, this.title, this.subtitle);
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(children: [
-        Text(emoji, style: const TextStyle(fontSize: 26)),
-        const SizedBox(width: 12),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-            Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
-          ],
-        )),
-      ]),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  final String emoji, title, description;
-  const _InfoTile(this.emoji, this.title, this.description);
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderColor),
-        ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 26, height: 26,
+            decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
+            child: Center(child: Text(num,
+                style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12))),
+          ),
           const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textDark)),
-            const SizedBox(height: 4),
-            Text(description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.4)),
-          ])),
-        ]),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: color)),
+              Text(desc, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4)),
+            ],
+          )),
+        ],
       ),
     );
   }
 }
 
-class _PriceRow extends StatelessWidget {
-  final String emoji, zone, range, desc;
-  final Color color;
-  const _PriceRow(this.emoji, this.zone, this.range, this.desc, this.color);
+class _PhysicalItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _PhysicalItem(this.icon, this.text);
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.25)),
-        ),
-        child: Row(children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(zone, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: color)),
-            Text(desc, style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
-          ])),
-          Text(range, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: color)),
-        ]),
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 13, color: Colors.amber[800]),
+          const SizedBox(width: 6),
+          Expanded(child: Text(text,
+              style: const TextStyle(fontSize: 11, color: Colors.black87, height: 1.3))),
+        ],
       ),
     );
   }

@@ -185,6 +185,8 @@ class _PortalChecklistScreenState
                       surveyNumber: scan?.surveyNumber,
                       district: scan?.district,
                       taluk: scan?.taluk,
+                      hobli: scan?.hobli,
+                      village: scan?.village,
                     );
                     // After returning from portal, open the question card
                     if (mounted) setState(() => _openStep = i);

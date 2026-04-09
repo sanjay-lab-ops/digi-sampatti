@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/services/property_data_service.dart';
+import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 // ─── Application Tracker Screen ───────────────────────────────────────────────
 // Tracks every government application submitted through DigiSampatti.
@@ -159,14 +162,40 @@ class ApplicationTrackerScreen extends StatefulWidget {
 }
 
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
-  final _apps = _demoApplications;
-
   @override
   Widget build(BuildContext context) {
-    final active = _apps.where((a) =>
-        a.status != AppStatus.completed && a.status != AppStatus.approved).toList();
-    final completed = _apps.where((a) =>
-        a.status == AppStatus.completed || a.status == AppStatus.approved).toList();
+    return StreamBuilder<QuerySnapshot>(
+      stream: PropertyDataService().streamApplications(),
+      builder: (context, snap) {
+        // While loading or no data → show empty state with add button
+        final docs = snap.data?.docs ?? [];
+        // Convert Firestore docs to GovApplication objects
+        final _apps = docs.isEmpty ? <GovApplication>[] : docs.map((d) {
+          final data = d.data() as Map<String, dynamic>;
+          return GovApplication(
+            id: d.id,
+            serviceType: data['serviceType'] ?? '',
+            serviceTitle: data['serviceTitle'] ?? '',
+            department: data['department'] ?? '',
+            referenceNumber: data['referenceNumber'],
+            submittedAt: (data['submittedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            slaDays: data['slaDays'] ?? 30,
+            status: AppStatus.values.firstWhere(
+              (s) => s.name == (data['status'] ?? 'submitted'),
+              orElse: () => AppStatus.submitted,
+            ),
+            officerName: data['officerName'],
+            canGrieve: data['canGrieve'] ?? false,
+            canAppeal: data['canAppeal'] ?? false,
+            rejectionReason: data['rejectionReason'],
+            timeline: [],
+          );
+        }).toList();
+
+        final active = _apps.where((a) =>
+            a.status != AppStatus.completed && a.status != AppStatus.approved).toList();
+        final completed = _apps.where((a) =>
+            a.status == AppStatus.completed || a.status == AppStatus.approved).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -176,7 +205,21 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         elevation: 0,
         actions: [
           TextButton.icon(
-            onPressed: () => context.push('/govt/services'),
+            onPressed: () async {
+              final ref = await GovPortalLauncher.open(
+                context,
+                GovPortal.sakala,
+              );
+              if (ref != null && ref.isNotEmpty && context.mounted) {
+                await PropertyDataService().submitApplication(
+                  serviceType: 'mutation',
+                  serviceTitle: 'Mutation Application',
+                  department: 'Tahsildar Office, Karnataka',
+                  slaDays: 30,
+                  formData: {'referenceNumber': ref},
+                );
+              }
+            },
             icon: const Icon(Icons.add, size: 16, color: AppColors.primary),
             label: const Text('New Application',
                 style: TextStyle(color: AppColors.primary, fontSize: 11)),
@@ -196,9 +239,31 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             _NoBribePledge(),
             const SizedBox(height: 16),
 
+            // Add application by reference number
+            _AddByReferenceButton(),
+            const SizedBox(height: 16),
+
+            if (_apps.isEmpty) ...[
+              Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 12),
+                    const Text('No applications tracked yet',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textMedium)),
+                    const SizedBox(height: 6),
+                    const Text('Submit on the official portal, then tap\n"Add Application" and enter the reference number.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: AppColors.textLight, height: 1.4)),
+                  ],
+                ),
+              ),
+            ],
+
             if (active.isNotEmpty) ...[
               const Text('Active Applications',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
               const SizedBox(height: 10),
               ...active.map((a) => _AppCard(app: a)),
             ],
@@ -214,6 +279,8 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         ),
       ),
     );
+      }, // end StreamBuilder builder
+    ); // end StreamBuilder
   }
 }
 
@@ -431,6 +498,32 @@ class _AppCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                if (app.canGrieve || app.isSlaBreached)
+                  ElevatedButton.icon(
+                    onPressed: () => GovPortalLauncher.open(
+                      context,
+                      GovPortal.janaspandana,
+                    ),
+                    icon: const Icon(Icons.campaign_outlined, size: 14),
+                    label: const Text('File Grievance', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange[800],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                if (app.status == AppStatus.rejected || app.status == AppStatus.slaBreached)
+                  TextButton.icon(
+                    onPressed: () => GovPortalLauncher.open(
+                      context,
+                      GovPortal.rtiOnline,
+                    ),
+                    icon: const Icon(Icons.info_outline, size: 13),
+                    label: const Text('File RTI', style: TextStyle(fontSize: 11)),
+                    style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+                  ),
               ],
             ),
           ),
@@ -631,6 +724,138 @@ class _ActionBtn extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Add Application by Reference Number ─────────────────────────────────────
+// User submits on official portal, gets reference number, enters it here.
+// App then tracks SLA days and alerts if deadline passes.
+class _AddByReferenceButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showAddDialog(context),
+        icon: const Icon(Icons.add_circle_outline, size: 16),
+        label: const Text('Add Application (enter reference number)',
+            style: TextStyle(fontSize: 12)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+        ),
+      ),
+    );
+  }
+
+  void _showAddDialog(BuildContext context) {
+    String? selectedType;
+    final refCtrl = TextEditingController();
+    final deptCtrl = TextEditingController();
+    final surveyCtrl = TextEditingController();
+
+    final serviceTypes = [
+      ('mutation', 'Mutation / Name Transfer', 'Tahsildar Office', 30),
+      ('ec_application', 'Encumbrance Certificate', 'Sub-Registrar Office', 3),
+      ('khata_transfer', 'Khata Transfer', 'BBMP / Panchayat', 30),
+      ('bkhata_conversion', 'B Khata → A Khata Conversion', 'BBMP', 60),
+      ('name_correction', 'Name Correction in Bhoomi', 'Tahsildar Office', 15),
+      ('land_conversion', 'Agricultural Land Conversion', 'DC Office', 90),
+      ('rera_complaint', 'RERA Complaint', 'RERA Karnataka', 60),
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Track Application', style: TextStyle(fontSize: 16)),
+        content: StatefulBuilder(
+          builder: (ctx2, setState2) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Service Type *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  value: selectedType,
+                  hint: const Text('Select service', style: TextStyle(fontSize: 12)),
+                  isExpanded: true,
+                  items: serviceTypes.map((t) => DropdownMenuItem(
+                    value: t.$1,
+                    child: Text(t.$2, style: const TextStyle(fontSize: 12)),
+                  )).toList(),
+                  onChanged: (v) {
+                    setState2(() => selectedType = v);
+                    final match = serviceTypes.firstWhere((t) => t.$1 == v, orElse: () => serviceTypes[0]);
+                    deptCtrl.text = match.$3;
+                  },
+                ),
+                const SizedBox(height: 12),
+                const Text('Reference Number (from portal) *',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: refCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. MUT/YLH/2026/00142',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 10),
+                const Text('Survey Number (optional)',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: surveyCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. 74/4',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Submit on the official portal first. Enter the reference number you received there. DigiSampatti will track SLA days and alert you if the deadline passes.',
+                    style: TextStyle(fontSize: 10, color: Colors.black87, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (selectedType == null || refCtrl.text.trim().isEmpty) return;
+              final match = serviceTypes.firstWhere((t) => t.$1 == selectedType!);
+              await PropertyDataService().submitApplication(
+                serviceType: match.$1,
+                serviceTitle: match.$2,
+                department: deptCtrl.text.isNotEmpty ? deptCtrl.text : match.$3,
+                slaDays: match.$4,
+                formData: {'referenceNumber': refCtrl.text.trim()},
+                surveyNumber: surveyCtrl.text.trim().isEmpty ? null : surveyCtrl.text.trim(),
+              );
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Save & Track'),
+          ),
+        ],
       ),
     );
   }

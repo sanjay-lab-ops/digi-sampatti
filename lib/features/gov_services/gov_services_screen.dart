@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
+import 'package:digi_sampatti/core/services/property_data_service.dart';
 
 // ─── Apply Service Data ───────────────────────────────────────────────────────
 
@@ -88,6 +90,51 @@ const _services = [
     whatYouGetKn: 'ಭೂಮಿ ಕೃಷಿ, ವಸತಿ ಅಥವಾ ವಾಣಿಜ್ಯ ಎಂದು ದೃಢಪಡಿಸಿ',
     applyUrl: 'https://eswathu.karnataka.gov.in',
     department: 'Urban Development Dept., Karnataka',
+  ),
+  _GovService(
+    icon: Icons.compare_arrows, color: Color(0xFF4E342E),
+    titleEn: 'B Khata to A Khata Conversion', titleKn: 'ಬಿ ಖಾತಾ ಎ ಖಾತಾ ಪರಿವರ್ತನೆ',
+    subtitleEn: 'BBMP / SAKALA', subtitleKn: 'BBMP / ಸಕಾಲ',
+    whatYouGetEn: 'Convert B Khata property to A Khata. Required to get bank loan and sell at full value.',
+    whatYouGetKn: 'ಬಿ ಖಾತಾ ಆಸ್ತಿಯನ್ನು ಎ ಖಾತಾಗೆ ಪರಿವರ್ತಿಸಿ',
+    applyUrl: 'https://sakala.kar.nic.in',
+    department: 'BBMP / SAKALA, Karnataka',
+  ),
+  _GovService(
+    icon: Icons.agriculture, color: Color(0xFF33691E),
+    titleEn: 'DC Conversion (Agri → Residential)', titleKn: 'ಡಿಸಿ ಪರಿವರ್ತನೆ',
+    subtitleEn: 'Deputy Commissioner Office', subtitleKn: 'ಜಿಲ್ಲಾಧಿಕಾರಿ ಕಛೇರಿ',
+    whatYouGetEn: 'Convert agricultural land to residential/commercial use. Mandatory before building or selling as plot.',
+    whatYouGetKn: 'ಕೃಷಿ ಭೂಮಿಯನ್ನು ವಸತಿ/ವಾಣಿಜ್ಯ ಬಳಕೆಗೆ ಪರಿವರ್ತಿಸಿ',
+    applyUrl: 'https://sakala.kar.nic.in',
+    department: 'Deputy Commissioner Office, Karnataka',
+  ),
+  _GovService(
+    icon: Icons.receipt, color: Color(0xFF0D47A1),
+    titleEn: 'NOC from Bank (Loan Closure)', titleKn: 'ಬ್ಯಾಂಕ್ ನಿಂದ NOC',
+    subtitleEn: 'After repaying home loan', subtitleKn: 'ಗೃಹ ಸಾಲ ತೀರಿಸಿದ ನಂತರ',
+    whatYouGetEn: 'After repaying loan, bank must give NOC and release original documents within 30 days.',
+    whatYouGetKn: 'ಸಾಲ ತೀರಿಸಿದ ನಂತರ ಬ್ಯಾಂಕ್ NOC ಮತ್ತು ದಾಖಲೆ ಹಿಂತಿರುಗಿಸಬೇಕು',
+    applyUrl: 'https://www.cersai.org.in',
+    department: 'Your Bank (legally mandated — free of charge)',
+  ),
+  _GovService(
+    icon: Icons.crisis_alert, color: Color(0xFF880E4F),
+    titleEn: 'RERA Complaint — Builder Delay', titleKn: 'RERA ದೂರು — ಬಿಲ್ಡರ್ ವಿಳಂಬ',
+    subtitleEn: 'Karnataka RERA — File Complaint', subtitleKn: 'ಕರ್ನಾಟಕ RERA — ದೂರು ದಾಖಲಿಸಿ',
+    whatYouGetEn: 'File complaint against builder for delay, defects, or false promises. Compensation + interest enforced.',
+    whatYouGetKn: 'ಬಿಲ್ಡರ್ ವಿರುದ್ಧ ದೂರು ಸಲ್ಲಿಸಿ — ಪರಿಹಾರ ಮತ್ತು ಬಡ್ಡಿ ಜಾರಿ',
+    applyUrl: 'https://rera.karnataka.gov.in',
+    department: 'Karnataka Real Estate Regulatory Authority',
+  ),
+  _GovService(
+    icon: Icons.search, color: Color(0xFF37474F),
+    titleEn: 'Benami Property Check', titleKn: 'ಬೇನಾಮಿ ಆಸ್ತಿ ತಪಾಸಣೆ',
+    subtitleEn: 'Income Tax — Benami Portal', subtitleKn: 'ಆದಾಯ ತೆರಿಗೆ — ಬೇನಾಮಿ',
+    whatYouGetEn: 'Check if property is flagged as benami. Report suspected benami property to Income Tax.',
+    whatYouGetKn: 'ಆಸ್ತಿ ಬೇನಾಮಿ ಆಗಿ ಪಟ್ಟಿ ಆಗಿದೆಯೇ ಎಂದು ತಿಳಿಯಿರಿ',
+    applyUrl: 'https://benami.gov.in',
+    department: 'Income Tax Department, Govt. of India',
   ),
 ];
 
@@ -368,7 +415,58 @@ class _GovServicesScreenState extends ConsumerState<GovServicesScreen>
             isKn: isKn,
             surveyNo: _surveyController.text,
             district: _districtController.text,
-            onTap: () => _launch(_services[i].applyUrl),
+            onTap: () async {
+              final service = _services[i];
+              GovPortal portal;
+              switch (service.titleEn) {
+                case 'Mutation / Khata Transfer':
+                  portal = GovPortal.sakala;
+                  break;
+                case 'Encumbrance Certificate (EC)':
+                case 'Property Registration':
+                  portal = GovPortal.kaveri;
+                  break;
+                case 'RTC / Pahani (Land Record)':
+                  portal = GovPortal.bhoomi;
+                  break;
+                case 'RERA Project Verification':
+                  portal = GovPortal.rera;
+                  break;
+                case 'Court Case Status':
+                  portal = GovPortal.eCourts;
+                  break;
+                case 'B Khata to A Khata Conversion':
+                case 'DC Conversion (Agri → Residential)':
+                  portal = GovPortal.sakala;
+                  break;
+                case 'NOC from Bank (Loan Closure)':
+                  portal = GovPortal.nocBank;
+                  break;
+                case 'RERA Complaint — Builder Delay':
+                  portal = GovPortal.rera;
+                  break;
+                case 'Benami Property Check':
+                  portal = GovPortal.benami;
+                  break;
+                default:
+                  portal = GovPortal.sakala;
+              }
+              final ref = await GovPortalLauncher.open(context, portal);
+              if (ref != null && ref.isNotEmpty && context.mounted) {
+                await PropertyDataService().submitApplication(
+                  serviceType: service.titleEn.toLowerCase().replaceAll(' ', '_'),
+                  serviceTitle: service.titleEn,
+                  department: service.department,
+                  slaDays: 30,
+                  formData: {'referenceNumber': ref},
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Application saved to tracker: $ref')),
+                  );
+                }
+              }
+            },
           )),
           const SizedBox(height: 4),
           Center(
