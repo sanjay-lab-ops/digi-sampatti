@@ -142,12 +142,13 @@ class EncumbranceService {
     bool isActive = active.any((a) => lower.contains(a)) &&
         !closed.any((c) => lower.contains(c));
     return EncumbranceEntry(
+      ecNumber: e['ec_number']?.toString() ?? e['doc_no']?.toString() ?? '',
       type: type,
       partyName: e['party_name']?.toString() ?? e['claimant']?.toString() ?? 'Unknown',
       bankName: e['bank_name']?.toString(),
       amount: double.tryParse(e['amount']?.toString() ?? ''),
       isActive: isActive,
-      registrationDate: e['date'] != null ? DateTime.tryParse(e['date'].toString()) : null,
+      date: e['date'] != null ? DateTime.tryParse(e['date'].toString()) : null,
     );
   }
 }

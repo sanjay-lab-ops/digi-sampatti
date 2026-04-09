@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/services/payment_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -33,14 +32,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     final phone = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
-    _paymentService.openPaymentAmount(
-      amount: amount,
+    _paymentService.openReportPayment(
+      reportId: desc,
       userPhone: phone,
-      description: desc,
+      customAmount: amount,
     );
   }
 
-  void _onSuccess(PaymentSuccessResponse r) {
+  void _onSuccess(String paymentId) {
     setState(() => _isProcessing = false);
     showDialog(
       context: context,
@@ -68,10 +67,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
-  void _onFailure(PaymentFailureResponse r) {
+  void _onFailure(String error) {
     setState(() => _isProcessing = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(r.message ?? 'Payment failed. Try again.'),
+      SnackBar(content: Text('Payment failed. Try again.'),
         backgroundColor: AppColors.danger));
   }
 
