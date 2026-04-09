@@ -210,14 +210,98 @@
       color: var(--gold); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
     }
 
+    /* AI SCORE VISUAL */
+    .score-showcase {
+      display: flex; align-items: center; justify-content: center;
+      gap: 32px; margin: 48px auto 0; flex-wrap: wrap;
+      max-width: 700px;
+    }
+    .score-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 32px; text-align: center; min-width: 200px;
+      position: relative; overflow: hidden;
+    }
+    .score-card::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(67,160,71,0.1) 0%, transparent 70%);
+    }
+    .score-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .score-num { font-size: 3.5rem; font-weight: 800; color: #4CAF50; line-height: 1; }
+    .score-max { font-size: 1rem; color: var(--muted); }
+    .score-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; margin: 12px 0; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #2E7D32, #43A047, #66BB6A); transition: width 1s ease; }
+    .score-verdict { font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 100px; background: rgba(76,175,80,0.15); color: #66BB6A; }
+    .score-detail { font-size: 0.78rem; color: var(--muted); margin-top: 8px; text-align: left; line-height: 1.8; }
+    .score-detail li { list-style: none; }
+    .score-detail li::before { content: "✓ "; color: #4CAF50; }
+
+    /* WAITLIST FORM */
+    .waitlist-form {
+      display: flex; gap: 10px; justify-content: center;
+      flex-wrap: wrap; margin-top: 20px;
+    }
+    .waitlist-form input[type="email"] {
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 20px; border-radius: 8px;
+      font-size: 0.95rem; width: 280px; max-width: 100%;
+      font-family: inherit;
+    }
+    .waitlist-form input::placeholder { color: var(--muted); }
+    .waitlist-form button {
+      background: var(--green-light); color: #fff;
+      padding: 12px 24px; border-radius: 8px; border: none;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer;
+      font-family: inherit; transition: background 0.2s;
+    }
+    .waitlist-form button:hover { background: var(--green-accent); }
+
+    /* INSTAGRAM STRIP */
+    .ig-strip {
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      padding: 3px;
+    }
+    .ig-inner {
+      background: var(--bg); display: flex; align-items: center; justify-content: center;
+      gap: 12px; padding: 12px 24px; flex-wrap: wrap;
+    }
+    .ig-inner a { color: white; text-decoration: none; font-weight: 600; font-size: 0.88rem; }
+
+    /* MOBILE NAV */
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px; cursor: pointer;
+      background: none; border: none; padding: 4px;
+    }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+    .mobile-menu {
+      display: none; position: fixed; top: 60px; left: 0; right: 0;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 20px 24px; z-index: 99; flex-direction: column; gap: 16px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { color: var(--text); text-decoration: none; font-size: 1rem; padding: 4px 0; }
+
     /* RESPONSIVE */
     @media (max-width: 600px) {
       .nav-links { display: none; }
+      .hamburger { display: flex; }
       .stats-bar { gap: 28px; }
+      .score-showcase { gap: 16px; }
+      .score-card { min-width: 160px; padding: 16px 20px; }
+      .waitlist-form input[type="email"] { width: 100%; }
     }
   </style>
 </head>
 <body>
+
+<!-- INSTAGRAM STRIP -->
+<div class="ig-strip">
+  <div class="ig-inner">
+    <span>📸</span>
+    <a href="https://www.instagram.com/digisampatti/" target="_blank" rel="noopener">Follow us on Instagram @digisampatti</a>
+    <span style="color:var(--muted)">·</span>
+    <span style="color:white;font-size:0.82rem;">Property tips, legal guides & real case studies daily</span>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -226,22 +310,58 @@
     <a href="#features">Features</a>
     <a href="#how-it-works">How It Works</a>
     <a href="#pricing">Pricing</a>
+    <a href="https://www.instagram.com/digisampatti/" target="_blank">Instagram</a>
     <a href="#contact">Contact</a>
   </div>
+  <button class="hamburger" onclick="document.querySelector('.mobile-menu').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   <a href="#download" class="nav-cta">Get the App</a>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu">
+  <a href="#features" onclick="this.closest('.mobile-menu').classList.remove('open')">Features</a>
+  <a href="#how-it-works" onclick="this.closest('.mobile-menu').classList.remove('open')">How It Works</a>
+  <a href="#pricing" onclick="this.closest('.mobile-menu').classList.remove('open')">Pricing</a>
+  <a href="https://www.instagram.com/digisampatti/" target="_blank">📸 Instagram</a>
+  <a href="#download" onclick="this.closest('.mobile-menu').classList.remove('open')">Download App</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
   <div>
-    <div class="hero-badge">🏆 Startup India Registered &nbsp;|&nbsp; Patent Pending</div>
+    <div class="hero-badge">🏆 Startup India Registered &nbsp;|&nbsp; Patent Pending · Karnataka</div>
     <h1>Know the <span>Legal Truth</span> of Any Property Before You Buy</h1>
-    <p>Instant land record check, AI risk analysis, encumbrance history, and RERA verification — in one tap. Built for Karnataka.</p>
+    <p>7 government portals. AI risk score. One tap. Built for Karnataka property buyers — ₹99 per report.</p>
     <div class="hero-btns">
-      <a href="#download" class="btn-primary">📱 Download App — Free</a>
+      <a href="https://github.com/sanjay-lab-ops/digi-sampatti/releases/latest/download/app-release.apk"
+         class="btn-primary" id="apk-btn">📱 Download APK — Android</a>
       <a href="#features" class="btn-secondary">See How It Works →</a>
     </div>
-    <p class="hero-note">₹99 per report &nbsp;·&nbsp; Android & iOS &nbsp;·&nbsp; Blockchain-verified</p>
+    <p class="hero-note">Free to install &nbsp;·&nbsp; ₹99 per report &nbsp;·&nbsp; Blockchain-verified PDF</p>
+
+    <!-- AI SCORE SHOWCASE -->
+    <div class="score-showcase">
+      <div class="score-card">
+        <div class="score-label">AI Legal Score</div>
+        <div><span class="score-num" id="score-anim">0</span><span class="score-max">/100</span></div>
+        <div class="score-bar"><div class="score-fill" id="score-bar" style="width:0%"></div></div>
+        <div class="score-verdict">LOW RISK</div>
+      </div>
+      <div style="text-align:left;max-width:260px;">
+        <ul class="score-detail">
+          <li>RTC owner matches sale deed</li>
+          <li>No EC encumbrances in 30 years</li>
+          <li>RERA registered &amp; active</li>
+          <li>No court cases found</li>
+          <li>BBMP A Khata confirmed</li>
+          <li>CERSAI: mortgage discharged</li>
+          <li>IGR guidance value within range</li>
+        </ul>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:12px;">Example report — Hunnigere, Bengaluru North</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -479,12 +599,29 @@
 <section class="cta-section" id="download">
   <div class="section-tag">Get Started Today</div>
   <h2>Verify Any Karnataka Property in Under 5 Minutes</h2>
-  <p>Join thousands of smart property buyers who verify before they invest. Download DigiSampatti — free to install, ₹99 per report.</p>
+  <p>Download DigiSampatti — free to install, ₹99 per report. Join smart buyers who verify before they invest.</p>
   <div class="hero-btns">
-    <a href="#" class="btn-primary">📱 Download on Android</a>
-    <a href="#" class="btn-secondary">🍎 Coming Soon on iOS</a>
+    <a href="https://github.com/sanjay-lab-ops/digi-sampatti/releases/latest/download/app-release.apk"
+       class="btn-primary" id="apk-dl">📱 Download APK — Android</a>
+    <a href="https://play.google.com/store/apps/details?id=com.digisampatti.app"
+       class="btn-secondary" target="_blank" rel="noopener">▶ Google Play</a>
   </div>
-  <p style="margin-top:16px; font-size:0.82rem; color:var(--muted);">Available on Google Play Store · Patent Pending · Startup India Registered</p>
+
+  <!-- iOS WAITLIST via Netlify Forms -->
+  <div style="margin-top:40px;">
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:12px;">🍎 iOS version coming soon — join the waitlist:</p>
+    <form name="ios-waitlist" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+          class="waitlist-form" id="waitlist-form">
+      <input type="hidden" name="form-name" value="ios-waitlist" />
+      <input type="hidden" name="bot-field" />
+      <input type="email" name="email" placeholder="your@email.com" required />
+      <button type="submit">Notify Me</button>
+    </form>
+    <p id="waitlist-thanks" style="display:none;color:#4CAF50;font-size:0.88rem;margin-top:8px;">
+      ✓ You're on the list! We'll email you when iOS launches.
+    </p>
+  </div>
+  <p style="margin-top:20px; font-size:0.82rem; color:var(--muted);">Free to install · ₹99 per report · Startup India Registered</p>
 </section>
 
 <!-- FOOTER -->
@@ -514,14 +651,18 @@
       <div class="footer-col">
         <h4>Contact</h4>
         <a href="mailto:hello@digisampatti.com">hello@digisampatti.com</a>
-        <a href="#">Karnataka, India</a>
-        <a href="#">Privacy Policy</a>
+        <a href="https://www.instagram.com/digisampatti/" target="_blank" rel="noopener">📸 Instagram @digisampatti</a>
+        <a href="https://wa.me/919900000000?text=Hi%2C+I%20want%20to%20verify%20a%20property" target="_blank" rel="noopener">💬 WhatsApp Us</a>
+        <a href="#privacy">Privacy Policy</a>
         <a href="#">Terms of Service</a>
       </div>
     </div>
     <div class="footer-bottom">
       <p>© 2026 DigiSampatti. All rights reserved. Patent Pending.</p>
-      <p>Made with ❤️ in Karnataka, India</p>
+      <p>Made with ❤️ in Karnataka &nbsp;|&nbsp;
+        <a href="https://www.instagram.com/digisampatti/" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:none;">Instagram</a> ·
+        <a href="mailto:hello@digisampatti.com" style="color:var(--muted);text-decoration:none;">Email</a>
+      </p>
     </div>
   </div>
 </footer>
@@ -550,5 +691,54 @@
   <p style="color:var(--muted);font-size:0.9rem;">For privacy concerns: hello@digisampatti.com</p>
 </section>
 
+<script>
+// ── AI Score Counter Animation ─────────────────────────────────────────────
+(function() {
+  var target = 82, duration = 1800, start = null;
+  var numEl = document.getElementById('score-anim');
+  var barEl = document.getElementById('score-bar');
+  if (!numEl || !barEl) return;
+
+  function step(ts) {
+    if (!start) start = ts;
+    var progress = Math.min((ts - start) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    var val = Math.round(ease * target);
+    numEl.textContent = val;
+    barEl.style.width = (ease * target) + '%';
+    if (progress < 1) requestAnimationFrame(step);
+  }
+
+  // Trigger when score card scrolls into view
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        requestAnimationFrame(step);
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.5 });
+  observer.observe(numEl);
+})();
+
+// ── iOS Waitlist Form ──────────────────────────────────────────────────────
+var wf = document.getElementById('waitlist-form');
+if (wf) {
+  wf.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = new FormData(wf);
+    fetch('/', { method: 'POST', body: data })
+      .then(function() {
+        wf.style.display = 'none';
+        document.getElementById('waitlist-thanks').style.display = 'block';
+      })
+      .catch(function() {
+        // Netlify will handle it on reload anyway
+        wf.style.display = 'none';
+        document.getElementById('waitlist-thanks').style.display = 'block';
+      });
+  });
+}
+</script>
 </body>
 </html>

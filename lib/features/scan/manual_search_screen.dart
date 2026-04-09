@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/services/user_service.dart';
+import 'package:digi_sampatti/core/services/gps_service.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
@@ -22,6 +27,14 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   String? _selectedTaluk;
   String? _selectedHobli;
   String? _selectedVillage;
+  bool _isDetectingGps = false;
+  String? _gpsMessage;
+
+  // Dynamic dropdown data (fetched from Bhoomi)
+  List<String> _hobliList  = [];
+  List<String> _villageList = [];
+  bool _loadingHobli   = false;
+  bool _loadingVillage = false;
 
   // 0 = Survey Number mode, 1 = Village/Name mode (rural friendly)
   int _searchMode = 0;
@@ -30,38 +43,244 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   String _selectedState = 'Karnataka';
 
   static const List<Map<String, dynamic>> _states = [
-    {'name': 'Karnataka', 'live': true,  'flag': '🟢'},
-    {'name': 'Andhra Pradesh', 'live': false, 'flag': '🔜'},
-    {'name': 'Tamil Nadu',     'live': false, 'flag': '🔜'},
-    {'name': 'Telangana',      'live': false, 'flag': '🔜'},
-    {'name': 'Maharashtra',    'live': false, 'flag': '🔜'},
-    {'name': 'Goa',            'live': false, 'flag': '🔜'},
-    {'name': 'Kerala',         'live': false, 'flag': '🔜'},
+    {'name': 'Karnataka',       'live': true,  'flag': '🟢'},
+    {'name': 'Andhra Pradesh',  'live': false, 'flag': '🔜'},
+    {'name': 'Tamil Nadu',      'live': false, 'flag': '🔜'},
+    {'name': 'Telangana',       'live': false, 'flag': '🔜'},
+    {'name': 'Maharashtra',     'live': false, 'flag': '🔜'},
+    {'name': 'Goa',             'live': false, 'flag': '🔜'},
+    {'name': 'Kerala',          'live': false, 'flag': '🔜'},
   ];
 
-  // Karnataka district → taluk mapping (abbreviated for key districts)
+  // ─── Karnataka district → taluk ──────────────────────────────────────────
   static const Map<String, List<String>> districtTaluks = {
     'Bengaluru Urban': ['Anekal', 'Bengaluru East', 'Bengaluru North', 'Bengaluru South', 'Yelahanka'],
     'Bengaluru Rural': ['Devanahalli', 'Doddaballapura', 'Hoskote', 'Nelamangala'],
-    'Mysuru': ['Hunsur', 'K.R.Nagar', 'Mysuru', 'Nanjangud', 'Periyapatna', 'T.Narasipura'],
-    'Tumakuru': ['Chikkanayakanahalli', 'Gubbi', 'Koratagere', 'Kunigal', 'Madhugiri', 'Pavagada', 'Sira', 'Tiptur', 'Tumakuru'],
-    'Mangaluru': ['Belthangady', 'Bantwal', 'Puttur', 'Sullia', 'Mangaluru'],
-    'Hubballi-Dharwad': ['Dharwad', 'Hubballi', 'Kundgol', 'Kalghatgi', 'Navalgund'],
-    'Belagavi': ['Athani', 'Bailhongal', 'Belagavi', 'Chikkodi', 'Gokak', 'Hukkeri', 'Khanapur', 'Raibag', 'Ramdurg', 'Savadatti'],
-    'Kalaburagi': ['Afzalpur', 'Aland', 'Chincholi', 'Chittapur', 'Gurmatkal', 'Jevargi', 'Kalaburagi', 'Sedam'],
-    'Hassan': ['Alur', 'Arakalagudu', 'Arsikere', 'Belur', 'Channarayapatna', 'Hassan', 'Holenarasipur', 'Sakleshpur'],
-    'Shivamogga': ['Bhadravati', 'Hosanagara', 'Sagar', 'Shikaripura', 'Shivamogga', 'Sorab', 'Thirthahalli'],
+    'Mysuru':          ['Hunsur', 'K.R.Nagar', 'Mysuru', 'Nanjangud', 'Periyapatna', 'T.Narasipura'],
+    'Tumakuru':        ['Chikkanayakanahalli', 'Gubbi', 'Koratagere', 'Kunigal', 'Madhugiri', 'Pavagada', 'Sira', 'Tiptur', 'Tumakuru'],
+    'Mangaluru':       ['Belthangady', 'Bantwal', 'Puttur', 'Sullia', 'Mangaluru'],
+    'Hubballi-Dharwad':['Dharwad', 'Hubballi', 'Kundgol', 'Kalghatgi', 'Navalgund'],
+    'Belagavi':        ['Athani', 'Bailhongal', 'Belagavi', 'Chikkodi', 'Gokak', 'Hukkeri', 'Khanapur', 'Raibag', 'Ramdurg', 'Savadatti'],
+    'Kalaburagi':      ['Afzalpur', 'Aland', 'Chincholi', 'Chittapur', 'Gurmatkal', 'Jevargi', 'Kalaburagi', 'Sedam'],
+    'Hassan':          ['Alur', 'Arakalagudu', 'Arsikere', 'Belur', 'Channarayapatna', 'Hassan', 'Holenarasipur', 'Sakleshpur'],
+    'Shivamogga':      ['Bhadravati', 'Hosanagara', 'Sagar', 'Shikaripura', 'Shivamogga', 'Sorab', 'Thirthahalli'],
+    'Chikkaballapura': ['Bagepalli', 'Chikkaballapura', 'Chintamani', 'Gauribidanur', 'Gudibanda', 'Sidlaghatta'],
+    'Ramanagara':      ['Channapatna', 'Kanakapura', 'Magadi', 'Ramanagara'],
+    'Kolar':           ['Bangarpet', 'KGF', 'Kolar', 'Malur', 'Mulbagal', 'Srinivasapura'],
+    'Chitradurga':     ['Challakere', 'Chitradurga', 'Hiriyur', 'Holalkere', 'Hosadurga', 'Molakalmuru'],
+    'Davanagere':      ['Channagiri', 'Davanagere', 'Harihara', 'Honnali', 'Jagalur', 'Nyamathi'],
+    'Vijayapura':      ['Basavana Bagevadi', 'Bijapur', 'Indi', 'Muddebihal', 'Sindagi'],
+    'Dharwad':         ['Dharwad', 'Hubli', 'Kalghatgi', 'Kundgol', 'Navalgund'],
+    'Uttara Kannada':  ['Ankola', 'Bhatkal', 'Haliyal', 'Karwar', 'Kumta', 'Mundgod', 'Siddapur', 'Sirsi', 'Supa', 'Yellapur'],
+    'Chikkamagaluru':  ['Birur', 'Chikkamagaluru', 'Kadur', 'Koppa', 'Mudigere', 'N.R.Pura', 'Sringeri', 'Tarikere'],
+    'Mandya':          ['Krishnarajapete', 'Maddur', 'Malavalli', 'Mandya', 'Nagamangala', 'Pandavapura', 'Shrirangapattana'],
+    'Kodagu':          ['Madikeri', 'Somwarpet', 'Virajpet'],
+    'Ballari':         ['Ballari', 'Hadagali', 'Hagaribommanahalli', 'Hospet', 'Kudligi', 'Sandur', 'Siruguppa'],
+    'Gadag':           ['Gadag', 'Mundargi', 'Nargund', 'Ron', 'Shirahatti'],
+    'Haveri':          ['Byadagi', 'Hangal', 'Haveri', 'Hirekerur', 'Ranebennur', 'Savanur', 'Shiggaon'],
+    'Koppal':          ['Gangavathi', 'Koppal', 'Kushtagi', 'Yelburga'],
+    'Raichur':         ['Deodurga', 'Lingsugur', 'Manvi', 'Raichur', 'Sindhanur'],
+    'Yadgir':          ['Shahapur', 'Shorapur', 'Yadgir'],
+    'Bidar':           ['Aurad', 'Basavakalyan', 'Bidar', 'Bhalki', 'Humnabad'],
+    'Chamarajanagar':  ['Chamarajanagar', 'Gundlupete', 'Kollegal', 'Yelandur'],
+    'Udupi':           ['Karkala', 'Kundapura', 'Udupi'],
+    'Dakshina Kannada':['Belthangady', 'Bantwal', 'Mangaluru', 'Puttur', 'Sullia'],
   };
 
-  List<String> get _taluks => _selectedDistrict != null
-      ? (districtTaluks[_selectedDistrict] ?? [])
-      : [];
+  // ─── Hobli map (district_taluk → hoblis) — from Bhoomi portal ───────────
+  static const Map<String, List<String>> talukHoblis = {
+    // Bengaluru Urban — EXACT from Bhoomi portal (confirmed live)
+    // Bhoomi Bangalore North: DASANAPURA1, DASANAPURA2, DASANAPURA3, KASABA1, KASABA2, YASHAVANTAPURA1, YASHAVANTAPURA2
+    'Bengaluru Urban_Yelahanka':       ['Kasaba 1', 'Kasaba 2', 'Yelahanka 1', 'Yelahanka 2'],
+    'Bengaluru Urban_Bengaluru North': [
+      'Dasanapura 1', 'Dasanapura 2', 'Dasanapura 3',
+      'Kasaba 1', 'Kasaba 2',
+      'Yashavantapura 1', 'Yashavantapura 2',
+    ],
+    'Bengaluru Urban_Bengaluru South': ['Kasaba', 'Begur', 'Kengeri', 'Uttarahalli'],
+    'Bengaluru Urban_Bengaluru East':  ['Kasaba', 'Varthur', 'Bidarahalli', 'Krishnarajapura'],
+    'Bengaluru Urban_Anekal':          ['Kasaba (Anekal)', 'Attibele', 'Sarjapura', 'Jigani'],
+    // Bengaluru Rural
+    'Bengaluru Rural_Devanahalli':     ['Kasaba (Devanahalli)', 'Devanahalli', 'Vijayapura', 'Nandagudi'],
+    'Bengaluru Rural_Hoskote':         ['Kasaba (Hoskote)', 'Hoskote', 'Jadigenahalli', 'Sulibele'],
+    'Bengaluru Rural_Nelamangala':     ['Kasaba (Nelamangala)', 'Nelamangala', 'Savandurga', 'Tavarekere'],
+    'Bengaluru Rural_Doddaballapura':  ['Kasaba (Doddaballapura)', 'Doddaballapura', 'Tubugere', 'Koratagere'],
+    // Mysuru
+    'Mysuru_Mysuru':                   ['Kasaba', 'Jayapura', 'Krishnarajanagara', 'Varuna'],
+    'Mysuru_Hunsur':                   ['Hunsur', 'Antharasante', 'Kasaba'],
+    'Mysuru_Nanjangud':                ['Kasaba', 'Nanjangud', 'Gundlupete'],
+    // Mangaluru
+    'Mangaluru_Mangaluru':             ['Kasaba', 'Mulki', 'Bajpe', 'Moodabidre'],
+    'Mangaluru_Bantwal':               ['Kasaba', 'Bantwal', 'Belthangady'],
+    // Ramanagara
+    'Ramanagara_Kanakapura':           ['Kanakapura', 'Sathanur', 'Dodda Alada Mara'],
+    'Ramanagara_Ramanagara':           ['Ramanagara', 'Channapatna'],
+    'Ramanagara_Magadi':               ['Kasaba', 'Magadi', 'Solur'],
+    // Tumakuru
+    'Tumakuru_Tumakuru':               ['Kasaba', 'Madhugiri', 'Tiptur'],
+    // Kolar
+    'Kolar_Kolar':                     ['Kasaba', 'Bangarpet', 'Mulbagal'],
+    'Kolar_KGF':                       ['Kasaba', 'Robertsonpet'],
+    // Hassan
+    'Hassan_Hassan':                   ['Kasaba', 'Arakalagudu', 'Channarayapatna'],
+    // Shivamogga
+    'Shivamogga_Shivamogga':          ['Kasaba', 'Bhadravati', 'Hosanagara'],
+    // Belagavi
+    'Belagavi_Belagavi':               ['Kasaba', 'Khanapur', 'Gokak'],
+  };
+
+  // ─── Village map (district_taluk_hobli → villages) ───────────────────────
+  static const Map<String, List<String>> hobliVillages = {
+    // Dasanapura 3 — EXACT village names from Bhoomi portal (confirmed live)
+    'Bengaluru Urban_Bengaluru North_Dasanapura 3': [
+      'Avarehalli', 'Bairegowdanahalli', 'Gattisiddanahalli', 'Gejjagadahalli',
+      'Gowdahalli', 'Gullarapalya', 'Hullegowdanahalli', 'Hunnigere',
+      'Kenganahalli', 'Kittanahalli', 'Lakkenahalli', 'Mallasandra',
+      'Nagasandra', 'Ravutanahalli', 'Shivanapura', 'Sondekoppa', 'Vankatapura',
+    ],
+    'Bengaluru Urban_Bengaluru North_Dasanapura 1': [
+      'T. Dasarahalli', 'Agrahara Dasarahalli', 'Nagasandra', 'Chikkabanavara',
+    ],
+    'Bengaluru Urban_Bengaluru North_Dasanapura 2': [
+      'Bhoganhalli', 'Machohalli', 'Madavara', 'Thigalarpalya',
+    ],
+    'Bengaluru Urban_Bengaluru North_Kasaba (Bangalore North)': [
+      'Kasaba', 'Hebbal', 'Sadahalli', 'Kodigehalli', 'Yeshwanthapura',
+    ],
+    'Bengaluru Urban_Bengaluru North_Yelahanka': [
+      'Yelahanka', 'Kogilu', 'Bagalur', 'Hunasemaranahalli', 'Doddabidarakallu',
+    ],
+    'Bengaluru Urban_Bengaluru North_Jala 1': [
+      'Jala', 'Singanayakanahalli', 'Attur', 'Rajanukunte',
+    ],
+    'Bengaluru Urban_Bengaluru North_Jala 2': [
+      'Jala', 'Chikkanahalli', 'Bettahalsur', 'Laxmipura',
+    ],
+    // Yelahanka taluk
+    'Bengaluru Urban_Yelahanka_Yelahanka':   ['Yelahanka', 'Kogilu', 'Doddabidarakallu', 'Kodigehalli', 'Bagalur', 'Hunasemaranahalli'],
+    'Bengaluru Urban_Yelahanka_Kasaba':      ['Kasaba', 'Amruthahalli', 'Sahakaranagar', 'Hebbal'],
+    'Bengaluru Urban_Yelahanka_Jala 1':      ['Jala', 'Singanayakanahalli', 'Attur', 'Rajanukunte'],
+    'Bengaluru Urban_Yelahanka_Jala 2':      ['Jala', 'Chikkanahalli', 'Bettahalsur'],
+    // South / East
+    'Bengaluru Urban_Bengaluru South_Begur': ['Begur', 'Electronic City', 'Kudlu', 'Harlur', 'Carmelaram'],
+    'Bengaluru Urban_Bengaluru South_Kengeri':['Kengeri', 'Uttarahalli', 'Bomanahalli'],
+    'Bengaluru Urban_Bengaluru East_Varthur':['Varthur', 'Whitefield', 'Marathahalli', 'Kadugodi'],
+    'Bengaluru Urban_Bengaluru East_Kasaba': ['Kasaba', 'Hebbal', 'Sadahalli', 'Kodigehalli'],
+    'Bengaluru Urban_Anekal_Attibele':       ['Attibele', 'Dommasandra', 'Sarjapura', 'Carmelaram'],
+    'Bengaluru Urban_Anekal_Jigani':         ['Jigani', 'Haragadde', 'Madiwala'],
+    // Rural
+    'Bengaluru Rural_Devanahalli_Devanahalli':['Devanahalli', 'Vijayapura', 'Kundana', 'Sulibele'],
+    'Bengaluru Rural_Hoskote_Hoskote':       ['Hoskote', 'Jadigenahalli', 'Nandagudi', 'Sulibele'],
+    'Bengaluru Rural_Nelamangala_Nelamangala':['Nelamangala', 'Soladevanahalli', 'Doddamagge'],
+    // Other districts
+    'Mysuru_Mysuru_Kasaba':                  ['Kasaba', 'Vijayanagar', 'Bannimantap', 'Chamundi Hill'],
+    'Mangaluru_Mangaluru_Kasaba':            ['Kasaba', 'Kulur', 'Kankanady', 'Surathkal'],
+    'Ramanagara_Kanakapura_Kanakapura':      ['Kanakapura', 'Sathanur', 'Harohalli', 'Gudemaranahalli'],
+  };
+
+  List<String> get _taluks =>
+      _selectedDistrict != null ? (districtTaluks[_selectedDistrict] ?? []) : [];
+
+  // ─── Load hoblis for selected district+taluk ──────────────────────────────
+  Future<void> _loadHoblis(String district, String taluk) async {
+    final key = '${district}_$taluk';
+    final local = talukHoblis[key];
+    if (local != null && local.isNotEmpty) {
+      setState(() { _hobliList = local; _selectedHobli = null; _selectedVillage = null; _villageList = []; });
+      return;
+    }
+    // Try Bhoomi API
+    setState(() { _loadingHobli = true; _hobliList = []; _selectedHobli = null; });
+    try {
+      final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
+      final r = await http.post(
+        Uri.parse('$backendUrl/hoblis'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'district': district, 'taluk': taluk}),
+      ).timeout(const Duration(seconds: 8));
+      if (r.statusCode == 200) {
+        final data = jsonDecode(r.body);
+        final list = (data['hoblis'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        setState(() { _hobliList = list; });
+      }
+    } catch (_) {}
+    setState(() { _loadingHobli = false; });
+  }
+
+  // ─── Load villages for selected district+taluk+hobli ─────────────────────
+  Future<void> _loadVillages(String district, String taluk, String hobli) async {
+    final key = '${district}_${taluk}_$hobli';
+    final local = hobliVillages[key];
+    if (local != null && local.isNotEmpty) {
+      setState(() { _villageList = local; _selectedVillage = null; });
+      return;
+    }
+    setState(() { _loadingVillage = true; _villageList = []; _selectedVillage = null; });
+    try {
+      final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
+      final r = await http.post(
+        Uri.parse('$backendUrl/villages'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'district': district, 'taluk': taluk, 'hobli': hobli}),
+      ).timeout(const Duration(seconds: 8));
+      if (r.statusCode == 200) {
+        final data = jsonDecode(r.body);
+        final list = (data['villages'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        setState(() { _villageList = list; });
+      }
+    } catch (_) {}
+    setState(() { _loadingVillage = false; });
+  }
 
   @override
   void dispose() {
     _surveyController.dispose();
     _ownerNameController.dispose();
     super.dispose();
+  }
+
+  // ─── GPS Auto-Detect (Dishank-style) ──────────────────────────────────────
+  Future<void> _detectFromGps() async {
+    setState(() { _isDetectingGps = true; _gpsMessage = null; });
+    try {
+      final gpsService = GpsService();
+      final result = await gpsService.detectAndFill();
+
+      setState(() {
+        _isDetectingGps = false;
+        if (result.hasSurveyNumber) {
+          _surveyController.text = result.surveyNumber!;
+          _gpsMessage = 'Survey number detected from GPS (${result.source})';
+        } else {
+          _gpsMessage = result.district != null
+              ? 'Location found — select district below'
+              : 'GPS detected but survey number not found. Please enter manually.';
+        }
+        // Auto-fill district/taluk/village regardless
+        if (result.district != null) {
+          final normalized = result.district!;
+          if (AppStrings.karnatakaDistricts.contains(normalized)) {
+            _selectedDistrict = normalized;
+            _selectedTaluk = null;
+          }
+        }
+        if (result.village != null && result.village!.isNotEmpty) {
+          _selectedVillage = result.village;
+        }
+        if (result.hobli != null && result.hobli!.isNotEmpty) {
+          _selectedHobli = result.hobli;
+          // Trigger village list load
+          if (_selectedDistrict != null && _selectedTaluk != null) {
+            _loadVillages(_selectedDistrict!, _selectedTaluk!, result.hobli!);
+          }
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isDetectingGps = false;
+        _gpsMessage = 'Could not detect location. Please enable GPS and try again.';
+      });
+    }
   }
 
   void _search() {
@@ -82,8 +301,16 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     );
     ref.read(currentScanProvider.notifier).state = scan;
     ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
-    // Go to portal checklist — user checks real government data themselves
-    context.push('/checklist');
+    // Save search to Firestore history
+    UserService().saveSearch(
+      surveyNumber: surveyNo,
+      district: _selectedDistrict,
+      taluk: _selectedTaluk,
+      hobli: _selectedHobli,
+      village: _selectedVillage,
+    );
+    // Go to Auto Scan — fetches all portals automatically, zero manual steps
+    context.push('/auto-scan');
   }
 
   @override
@@ -212,6 +439,106 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
               ),
               const SizedBox(height: 16),
 
+              // ── GPS Auto-Detect Button ───────────────────────────────
+              GestureDetector(
+                onTap: _isDetectingGps ? null : _detectFromGps,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: _isDetectingGps
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Detecting from GPS...',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.my_location, color: Colors.white, size: 20),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'GPS ನಿಂದ ಸರ್ವೆ ನಂಬರ್ ಪಡೆಯಿರಿ',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                                Text(
+                                  'Auto-detect survey number from current location',
+                                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+              if (_gpsMessage != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _gpsMessage!.contains('detected')
+                        ? const Color(0xFFE8F5E9)
+                        : const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _gpsMessage!.contains('detected')
+                            ? Icons.check_circle
+                            : Icons.info_outline,
+                        size: 16,
+                        color: _gpsMessage!.contains('detected')
+                            ? AppColors.primary
+                            : Colors.orange,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _gpsMessage!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _gpsMessage!.contains('detected')
+                                ? AppColors.primary
+                                : Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+
               // ── Mode Toggle ──────────────────────────────────────────
               Container(
                 decoration: BoxDecoration(
@@ -324,6 +651,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   _selectedTaluk = null;
                   _selectedHobli = null;
                   _selectedVillage = null;
+                  _hobliList = [];
+                  _villageList = [];
                 }),
                 validator: (v) =>
                     v == null ? 'ಜಿಲ್ಲೆ ಆಯ್ಕೆ ಮಾಡಿ / Select district' : null,
@@ -345,26 +674,114 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   items: _taluks
                       .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                       .toList(),
-                  onChanged: (v) => setState(() => _selectedTaluk = v),
+                  onChanged: (v) {
+                    setState(() {
+                      _selectedTaluk = v;
+                      _selectedHobli = null;
+                      _selectedVillage = null;
+                      _hobliList = [];
+                      _villageList = [];
+                    });
+                    if (v != null && _selectedDistrict != null) {
+                      _loadHoblis(_selectedDistrict!, v);
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
+
+                _KannadaFieldLabel(
+                  kannada: 'ಹೋಬಳಿ',
+                  english: 'Hobli (Revenue Circle)',
+                  required: false,
+                ),
+                if (_loadingHobli)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 18, height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                        SizedBox(width: 10),
+                        Text('Loading hoblis...', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+                      ],
+                    ),
+                  )
+                else if (_hobliList.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    value: _selectedHobli,
+                    decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.account_tree_outlined)),
+                    hint: const Text('ಹೋಬಳಿ ಆಯ್ಕೆ ಮಾಡಿ / Select Hobli'),
+                    isExpanded: true,
+                    items: _hobliList
+                        .map((h) => DropdownMenuItem(value: h, child: Text(h)))
+                        .toList(),
+                    onChanged: (v) {
+                      setState(() {
+                        _selectedHobli = v;
+                        _selectedVillage = null;
+                        _villageList = [];
+                      });
+                      if (v != null && _selectedDistrict != null && _selectedTaluk != null) {
+                        _loadVillages(_selectedDistrict!, _selectedTaluk!, v);
+                      }
+                    },
+                  )
+                else
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. Yelahanka, Kasaba, Attibele...',
+                      prefixIcon: Icon(Icons.account_tree_outlined),
+                    ),
+                    onChanged: (v) => setState(() => _selectedHobli = v.trim().isEmpty ? null : v.trim()),
+                  ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 12),
+                  child: Text(
+                    'Hobli is the revenue sub-division of a taluk. Found on your RTC document.',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  ),
+                ),
               ],
 
               _KannadaFieldLabel(
                 kannada: 'ಹಳ್ಳಿ / ಬಡಾವಣೆ',
                 english: 'Village / Area',
-                required: _searchMode == 1,
+                required: false,
               ),
-              TextFormField(
-                decoration: const InputDecoration(
-                  hintText: 'ಉದಾ: ಯಲಹಂಕ, ದೇವನಹಳ್ಳಿ... / e.g. Yelahanka...',
-                  prefixIcon: Icon(Icons.villa_outlined),
+              if (_loadingVillage)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 18, height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2)),
+                      SizedBox(width: 10),
+                      Text('Loading villages...', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+                    ],
+                  ),
+                )
+              else if (_villageList.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  value: _selectedVillage,
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.villa_outlined)),
+                  hint: const Text('ಹಳ್ಳಿ ಆಯ್ಕೆ ಮಾಡಿ / Select Village'),
+                  isExpanded: true,
+                  items: _villageList
+                      .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedVillage = v),
+                )
+              else
+                TextFormField(
+                  decoration: const InputDecoration(
+                    hintText: 'ಉದಾ: ಯಲಹಂಕ, ದೇವನಹಳ್ಳಿ... / e.g. Yelahanka...',
+                    prefixIcon: Icon(Icons.villa_outlined),
+                  ),
+                  onChanged: (v) => setState(() => _selectedVillage = v.trim().isEmpty ? null : v.trim()),
                 ),
-                onChanged: (v) => setState(() => _selectedVillage = v),
-                validator: (v) => _searchMode == 1 && (v == null || v.isEmpty)
-                    ? 'ಹಳ್ಳಿ ಹೆಸರು ನಮೂದಿಸಿ / Enter village name'
-                    : null,
-              ),
               const SizedBox(height: 16),
 
               // ── Rural Help Box ───────────────────────────────────────
@@ -374,10 +791,20 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
               // ── Search Button ────────────────────────────────────────
               ElevatedButton.icon(
                 onPressed: _search,
-                icon: const Icon(Icons.search),
-                label: const Text('ಹುಡುಕಿ / Search Property'),
+                icon: const Icon(Icons.radar),
+                label: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ಸ್ವಯಂಚಾಲಿತ ಸ್ಕ್ಯಾನ್ / Auto Scan Property',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text('Bhoomi · Kaveri · eCourts · CERSAI · RERA — automatic',
+                        style: TextStyle(fontSize: 10, color: Colors.white70)),
+                  ],
+                ),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
+                  minimumSize: const Size(double.infinity, 60),
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
               ),
               const SizedBox(height: 12),

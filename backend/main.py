@@ -177,6 +177,14 @@ def survey_from_gps():
     return jsonify(result or {"survey_number": None})
 
 
+def _normalize_hobli(hobli: str) -> str:
+    """Fix 'Dasanapura3' → 'Dasanapura 3', 'Yelahanka1' → 'Yelahanka 1', etc."""
+    if not hobli:
+        return hobli
+    import re
+    return re.sub(r'([A-Za-z])(\d)', r'\1 \2', hobli).strip()
+
+
 async def _dishank_gps(lat: float, lon: float) -> dict:
     endpoints = [
         f"https://dishank.karnataka.gov.in/rtcRequest/getSurveyDetailsByGPS?latitude={lat}&longitude={lon}",
@@ -190,11 +198,12 @@ async def _dishank_gps(lat: float, lon: float) -> dict:
                     data = r.json()
                     sno = data.get("surveyNo") or data.get("survey_number") or data.get("sno")
                     if sno:
+                        raw_hobli = data.get("hobli") or data.get("hobliName") or ""
                         return {
                             "survey_number": str(sno),
                             "district": data.get("district") or data.get("districtName"),
                             "taluk":    data.get("taluk")    or data.get("talukName"),
-                            "hobli":    data.get("hobli")    or data.get("hobliName"),
+                            "hobli":    _normalize_hobli(raw_hobli),
                             "village":  data.get("village")  or data.get("villageName"),
                             "confidence": 0.95,
                             "source": "dishank",
@@ -232,7 +241,150 @@ def fetch_rtc():
 
 
 async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Optional[dict]:
-    # Real URL: bhoomi.karnataka.gov.in redirects → landrecords.karnataka.gov.in/Service2
+    """
+    Bhoomi RTC scraper — tries two approaches:
+    1. Service2 (complex ASP.NET form, no CAPTCHA) — may fail due to ViewState
+    2. Service53 (simpler, requires reCAPTCHA solve via anticaptcha.com)
+    """
+    # ── Approach 1: Service2 (fast, no CAPTCHA cost) ────────────────────────
+    result = await _bhoomi_service2(district, taluk, hobli, village, survey_no)
+    if result and (result.get("owner_name") or result.get("extent")):
+        logger.info("Bhoomi Service2 succeeded")
+        return result
+
+    # ── Approach 2: Service53 (CAPTCHA, more reliable) ──────────────────────
+    logger.info("Bhoomi Service2 returned empty — trying Service53 with CAPTCHA")
+    result2 = await _bhoomi_service53(district, taluk, hobli, village, survey_no)
+    if result2:
+        return result2
+
+    # Return whatever we got from Service2 (at minimum has district/taluk/village)
+    return result or {"survey_number": survey_no, "district": district, "source": "bhoomi_no_data"}
+
+
+async def _bhoomi_service53(district, taluk, hobli, village, survey_no) -> Optional[dict]:
+    """Service53: CAPTCHA-gated Bhoomi portal. Uses anticaptcha to solve."""
+    async with async_playwright() as p:
+        browser: Browser = await p.chromium.launch(headless=True)
+        page: Page = await browser.new_page(extra_http_headers=BROWSER_HEADERS)
+        try:
+            await page.goto("https://landrecords.karnataka.gov.in/service53/",
+                            wait_until="networkidle", timeout=30000)
+
+            # Find reCAPTCHA site key
+            site_key = await page.evaluate(
+                "document.querySelector('[data-sitekey]')?.getAttribute('data-sitekey')"
+            )
+            if site_key:
+                logger.info(f"Service53 reCAPTCHA sitekey: {site_key}")
+                token = await solve_recaptcha(site_key, "https://landrecords.karnataka.gov.in/service53/")
+                if token:
+                    await inject_captcha_token(page, token)
+                    await page.click('#btnVerifyCaptcha')
+                    await page.wait_for_load_state("networkidle", timeout=15000)
+                else:
+                    logger.warning("Service53: CAPTCHA solve failed")
+                    return None
+            else:
+                # No CAPTCHA on this visit (session already valid) — proceed
+                logger.info("Service53: no CAPTCHA on this visit")
+
+            # After CAPTCHA — the search form loads
+            # Service53 uses same cascading dropdowns as Service2
+            dist_map = {
+                "bengaluru urban": "BENGALURU", "bangalore urban": "BENGALURU",
+                "bengaluru rural": "BANGALORE RURAL", "bangalore rural": "BANGALORE RURAL",
+                "mysuru": "MYSORE", "belagavi": "BELAGAVI", "mangaluru": "DAKSHINA KANNADA",
+            }
+            taluk_map = {
+                "bangalore north": "BANGALORE-NORTH", "bangalore south": "BANGALORE-SOUTH",
+                "bangalore east": "BANGALORE-EAST", "yelahanka": "YALAHANKA",
+                "anekal": "ANEKAL", "devanahalli": "DEVANAHALLI",
+            }
+            dist_label = dist_map.get(district.lower(), district.upper())
+            taluk_label = taluk_map.get(taluk.lower(), taluk.upper())
+
+            # Select cascading dropdowns
+            for sel_id, label in [
+                ('ctl00_MainContent_ddlCDistrict', dist_label),
+                ('ctl00_MainContent_ddlCTaluk',    taluk_label),
+                ('ctl00_MainContent_ddlCHobli',    hobli.upper()),
+                ('ctl00_MainContent_ddlCVillage',  village.upper()),
+            ]:
+                try:
+                    await page.wait_for_function(
+                        f"document.querySelector('#{sel_id}') && "
+                        f"document.querySelector('#{sel_id}').options.length > 1 && "
+                        f"!document.querySelector('#{sel_id}').disabled",
+                        timeout=12000
+                    )
+                    opts = await page.evaluate(
+                        f"Array.from(document.querySelector('#{sel_id}').options).map(o=>o.text)"
+                    )
+                    ul = label.upper().replace(' ', '')
+                    best = next((o for o in opts if o.upper().replace(' ', '') == ul), None)
+                    if not best:
+                        best = next((o for o in opts if ul in o.upper().replace(' ', '')), None)
+                    if best:
+                        await page.select_option(f'#{sel_id}', label=best)
+                        await page.wait_for_load_state("networkidle", timeout=10000)
+                        logger.info(f"Service53 {sel_id}: {best}")
+                except Exception as e:
+                    logger.warning(f"Service53 {sel_id} ({label}): {e}")
+
+            # Survey number
+            await page.evaluate(f'''
+                var el = document.getElementById("ctl00_MainContent_txtCSurveyNo");
+                if (el) {{ el.value = "{survey_no}"; el.dispatchEvent(new Event("change",{{bubbles:true}})); }}
+            ''')
+            await page.wait_for_timeout(500)
+
+            # Go → Surnoc → Hissa → FetchDetails
+            go = await page.query_selector('#ctl00_MainContent_btnCGo')
+            if go: await go.click(); await page.wait_for_load_state("networkidle", timeout=10000)
+
+            for dd in ['ctl00_MainContent_ddlCSurnocNo', 'ctl00_MainContent_ddlCHissaNo']:
+                try:
+                    await page.wait_for_function(
+                        f"document.querySelector('#{dd}') && "
+                        f"document.querySelector('#{dd}').options.length > 1",
+                        timeout=6000
+                    )
+                    dopts = await page.evaluate(f"Array.from(document.querySelector('#{dd}').options).map(o=>o.text)")
+                    best = next((o for o in dopts if o.strip() not in ('Select Surnoc','Select Hissa','Select','')), None)
+                    if best:
+                        await page.select_option(f'#{dd}', label=best)
+                        await page.wait_for_load_state("networkidle", timeout=10000)
+                        logger.info(f"Service53 {dd}: {best}")
+                except Exception as e:
+                    logger.warning(f"Service53 {dd}: {e}")
+
+            # FetchDetails
+            fetch = await page.query_selector('#ctl00_MainContent_btnCFetchDetails:not([disabled])')
+            if fetch:
+                async with page.context.expect_page(timeout=10000) as popup_info:
+                    await fetch.click()
+                try:
+                    popup = await popup_info.value
+                    await popup.wait_for_load_state("networkidle", timeout=20000)
+                    html = await popup.content()
+                    logger.info(f"Service53 popup HTML length: {len(html)}")
+                    return _parse_rtc(html, district, taluk, hobli, village, survey_no)
+                except Exception:
+                    await page.wait_for_load_state("networkidle", timeout=15000)
+                    html = await page.content()
+                    logger.info(f"Service53 same-page HTML length: {len(html)}")
+                    return _parse_rtc(html, district, taluk, hobli, village, survey_no)
+            return None
+        except Exception as e:
+            logger.error(f"Service53: {e}")
+            return None
+        finally:
+            await browser.close()
+
+
+async def _bhoomi_service2(district, taluk, hobli, village, survey_no) -> Optional[dict]:
+    # Service2: complex ASP.NET cascading form, no CAPTCHA cost
     # Uses ASP.NET cascading dropdowns, no CAPTCHA
     async with async_playwright() as p:
         browser: Browser = await p.chromium.launch(headless=True)
@@ -309,29 +461,47 @@ async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Opti
                     )
                     logger.info(f"RTC {sel_id} options: {opts}")
 
-                    # Find best match: exact, then starts-with, then contains
+                    # Find best match: exact → no-space exact → startswith → contains
                     ul = label.upper()
+                    ul_nospace = ul.replace(' ', '')
                     best = None
                     for o in opts:
                         if o.upper() == ul:
                             best = o; break
                     if not best:
+                        # space-stripped comparison (DASANAPURA 3 == DASANAPURA3)
                         for o in opts:
-                            if o.upper().startswith(ul):
-                                best = o; break
-                    if not best and fallback_label:
-                        fl = fallback_label.upper()
-                        for o in opts:
-                            if o.upper().startswith(fl):
+                            if o.upper().replace(' ', '') == ul_nospace:
                                 best = o; break
                     if not best:
                         for o in opts:
-                            if ul in o.upper():
+                            if o.upper().startswith(ul) or o.upper().replace(' ','').startswith(ul_nospace):
                                 best = o; break
+                    if not best and fallback_label:
+                        fl = fallback_label.upper()
+                        fl_nospace = fl.replace(' ', '')
+                        for o in opts:
+                            if o.upper().startswith(fl) or o.upper().replace(' ','').startswith(fl_nospace):
+                                best = o; break
+                    if not best:
+                        for o in opts:
+                            if ul in o.upper() or ul_nospace in o.upper().replace(' ', ''):
+                                best = o; break
+                    if not best:
+                        # Fuzzy match for spelling variants (HUNNEGERE vs HUNNIGERE)
+                        import difflib
+                        matches = difflib.get_close_matches(ul, [o.upper() for o in opts], n=1, cutoff=0.75)
+                        if matches:
+                            best = next((o for o in opts if o.upper() == matches[0]), None)
 
                     if best:
                         await page.select_option(f"#{sel_id}", label=best)
                         logger.info(f"RTC {sel_id} selected: {best}")
+                        # Wait for any triggered PostBack to complete
+                        try:
+                            await page.wait_for_load_state("networkidle", timeout=8000)
+                        except Exception:
+                            pass
                         return True
                     else:
                         logger.warning(f"RTC {sel_id}: no match for '{label}' in {opts}")
@@ -356,11 +526,12 @@ async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Opti
                 ok = await wait_and_select(
                     'ctl00_MainContent_ddlCVillage', village.upper(), village, timeout=10000)
                 if ok:
-                    await page.wait_for_timeout(1000)
+                    await page.wait_for_timeout(4000)  # village PostBack takes longer
 
-            # Survey number: set via JS and dispatch input event so ASP.NET sees the change
+            # ── Step 1: Enter survey number in text field then click Go ────────
+            # Bhoomi: enter number in txtCSurveyNo → click Go → Surnoc+Hissa dropdowns load
             await page.evaluate(f'''
-                var el = document.getElementById("ctl00_MainContent_txtSurvey");
+                var el = document.getElementById("ctl00_MainContent_txtCSurveyNo");
                 if (el) {{
                     el.readOnly = false;
                     el.value = "{survey_no}";
@@ -370,21 +541,149 @@ async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Opti
             ''')
             await page.wait_for_timeout(500)
 
-            # Step 1: Click "Go" to validate survey number entry
             go_btn = await page.query_selector('#ctl00_MainContent_btnCGo')
             if go_btn:
                 await go_btn.click()
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(3000)
 
-            # Step 2: Click "Fetch details" (enabled after Go)
+            # ── Step 2: Select Surnoc (the survey parcel) ───────────────────────
             try:
-                await page.wait_for_selector('#ctl00_MainContent_btnCFetchDetails:not([disabled])', timeout=6000)
+                await page.wait_for_function(
+                    "document.querySelector('#ctl00_MainContent_ddlCSurnocNo') && "
+                    "document.querySelector('#ctl00_MainContent_ddlCSurnocNo').options.length > 1",
+                    timeout=8000
+                )
+                surnoc_opts = await page.evaluate(
+                    "Array.from(document.querySelector('#ctl00_MainContent_ddlCSurnocNo').options).map(o=>o.text)"
+                )
+                logger.info(f"Bhoomi Surnoc options: {surnoc_opts}")
+                sno_str = str(survey_no).strip()
+                best_surnoc = None
+                for o in surnoc_opts:
+                    ot = o.strip()
+                    if ot == sno_str or ot.startswith(sno_str + '-') or ot.startswith(sno_str + '*') or ot == sno_str + 'P':
+                        best_surnoc = o; break
+                if not best_surnoc:
+                    for o in surnoc_opts:
+                        if o.strip().startswith(sno_str):
+                            best_surnoc = o; break
+                if not best_surnoc:
+                    best_surnoc = next((o for o in surnoc_opts if o.strip() not in ('Select Surnoc', 'Select', '')), None)
+                if best_surnoc:
+                    await page.select_option('#ctl00_MainContent_ddlCSurnocNo', label=best_surnoc)
+                    logger.info(f"Bhoomi Surnoc selected: {best_surnoc}")
+                    await page.wait_for_timeout(2000)
+            except Exception as e:
+                logger.warning(f"Surnoc dropdown: {e}")
+
+            # ── Step 3: Select Hissa using JS + force PostBack ──────────────────
+            try:
+                await page.wait_for_function(
+                    "document.querySelector('#ctl00_MainContent_ddlCHissaNo') && "
+                    "document.querySelector('#ctl00_MainContent_ddlCHissaNo').options.length > 1",
+                    timeout=6000
+                )
+                hissa_opts = await page.evaluate(
+                    "Array.from(document.querySelector('#ctl00_MainContent_ddlCHissaNo').options).map(o=>o.text)"
+                )
+                logger.info(f"Bhoomi Hissa options: {hissa_opts}")
+                best_hissa = next((o for o in hissa_opts if o.strip() == '*'), None)
+                if not best_hissa:
+                    best_hissa = next((o for o in hissa_opts if o.strip() not in ('Select Hissa', 'Select', '')), None)
+                if best_hissa:
+                    # Set value via JS and force the ASP.NET PostBack directly
+                    await page.evaluate(f'''
+                        var sel = document.getElementById("ctl00_MainContent_ddlCHissaNo");
+                        if (sel) {{
+                            sel.value = sel.options[1].value;  // pick first real option
+                            sel.dispatchEvent(new Event("change", {{bubbles: true}}));
+                        }}
+                        if (typeof __doPostBack === "function") {{
+                            __doPostBack("ctl00$MainContent$ddlCHissaNo", "");
+                        }}
+                    ''')
+                    logger.info(f"Bhoomi Hissa forced PostBack")
+                    await page.wait_for_load_state("networkidle", timeout=15000)
+            except Exception as e:
+                logger.warning(f"Hissa dropdown: {e}")
+
+            # ── Step 4: Force Period + Year via JS (bypasses disabled state) ────
+            try:
+                await page.wait_for_timeout(3000)
+                # Force-enable Period, pick first real option, trigger PostBack
+                period_result = await page.evaluate('''
+                    (function() {
+                        var p = document.getElementById("ctl00_MainContent_ddlCPeriod");
+                        if (!p) return "no_period_element";
+                        p.removeAttribute("disabled");
+                        var opts = Array.from(p.options).map(o=>o.text);
+                        var best = opts.find(o => o.trim() && o.trim() !== "Select Period");
+                        if (!best) return "no_period_options:" + opts.join(",");
+                        // set value to its index
+                        for (var i=0; i<p.options.length; i++) {
+                            if (p.options[i].text === best) { p.selectedIndex = i; break; }
+                        }
+                        p.dispatchEvent(new Event("change", {bubbles:true}));
+                        return "selected:" + best;
+                    })()
+                ''')
+                logger.info(f"Bhoomi Period JS: {period_result}")
+                if "selected:" in str(period_result):
+                    # Trigger PROPER server-side PostBack for Period (updates ViewState)
+                    await page.evaluate("if(typeof __doPostBack==='function') __doPostBack('ctl00$MainContent$ddlCPeriod','')")
+                    await page.wait_for_load_state("networkidle", timeout=15000)
+                    # Re-enable Year after PostBack (PostBack may have disabled it again)
+                    await page.evaluate('''
+                        var y = document.getElementById("ctl00_MainContent_ddlCYear");
+                        if (y) { y.removeAttribute("disabled"); y.style.display=""; }
+                    ''')
+
+                # Force-enable Year, pick latest
+                year_result = await page.evaluate('''
+                    (function() {
+                        var y = document.getElementById("ctl00_MainContent_ddlCYear");
+                        if (!y) return "no_year";
+                        y.removeAttribute("disabled");
+                        y.style.display = "";
+                        var opts = Array.from(y.options).map(o=>o.text);
+                        var best = opts.reverse().find(o => o.trim() && o.trim() !== "Select Year");
+                        if (!best) return "no_year_options";
+                        opts.reverse();
+                        for (var i=0; i<y.options.length; i++) {
+                            if (y.options[i].text === best) { y.selectedIndex = i; break; }
+                        }
+                        y.dispatchEvent(new Event("change", {bubbles:true}));
+                        return "selected:" + best;
+                    })()
+                ''')
+                logger.info(f"Bhoomi Year JS: {year_result}")
+                if "selected:" in str(year_result):
+                    await page.evaluate("if(typeof __doPostBack==='function') __doPostBack('ctl00$MainContent$ddlCYear','')")
+                    await page.wait_for_load_state("networkidle", timeout=12000)
+                await page.wait_for_timeout(1000)
+            except Exception as e:
+                logger.warning(f"Period/Year JS: {e}")
+
+            # ── Step 5: Wait for FetchDetails to enable, then click ─────────────
+            # Bhoomi enables the button only after Period PostBack completes.
+            # Poll for up to 15 seconds.
+            try:
+                for _ in range(15):
+                    enabled = await page.evaluate(
+                        "!document.getElementById('ctl00_MainContent_btnCFetchDetails')?.disabled"
+                    )
+                    if enabled:
+                        break
+                    await page.wait_for_timeout(1000)
                 fetch_btn = await page.query_selector('#ctl00_MainContent_btnCFetchDetails')
                 if fetch_btn:
                     await fetch_btn.click()
-                    await page.wait_for_load_state("networkidle", timeout=20000)
-            except Exception:
-                pass
+                    await page.wait_for_load_state("networkidle", timeout=30000)
+                    logger.info("Clicked btnCFetchDetails")
+                else:
+                    logger.warning("FetchDetails button not found")
+            except Exception as e:
+                logger.warning(f"FetchDetails button: {e}")
 
             html = await page.content()
             logger.info(f"Bhoomi RTC page length: {len(html)}")
@@ -1471,6 +1770,11 @@ async def _scrape_nadakacheri(ack_no: str) -> Optional[dict]:
 # HEALTH CHECK
 # ══════════════════════════════════════════════════════════════════════════════
 
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/health")
 def health():
     import os as _os
@@ -1522,20 +1826,37 @@ def gps_lookup():
 
 async def _gps_to_property(lat: float, lng: float) -> dict:
     """
-    Step 1: Reverse geocode (Nominatim, no API key needed)
-    Step 2: Dishank WMS GetFeatureInfo to get survey parcel
+    Step 1: Dishank REST API (getSurveyDetailsByGPS) → survey number + hobli/village
+    Step 2: Nominatim reverse geocode → fill in any missing address fields
+    Step 3: Dishank WMS GetFeatureInfo as last resort for survey number
     """
     result = {
         "latitude": lat,
         "longitude": lng,
         "district": None,
         "taluk": None,
+        "hobli": None,
         "village": None,
         "survey_number": None,
         "source": None,
     }
 
-    # ── Step 1: Reverse geocode with Nominatim ─────────────────────────────
+    # ── Step 1: Dishank REST API (most reliable) ────────────────────────────
+    try:
+        dishank_data = await _dishank_gps(lat, lng)
+        if dishank_data:
+            result.update({
+                "survey_number": dishank_data.get("survey_number"),
+                "district":      dishank_data.get("district"),
+                "taluk":         dishank_data.get("taluk"),
+                "hobli":         dishank_data.get("hobli"),
+                "village":       dishank_data.get("village"),
+                "source":        "dishank_rest",
+            })
+    except Exception as e:
+        logger.warning(f"Dishank REST GPS failed: {e}")
+
+    # ── Step 2: Nominatim — fill missing district/taluk/village ────────────
     try:
         nom_url = (
             f"https://nominatim.openstreetmap.org/reverse"
@@ -1547,64 +1868,47 @@ async def _gps_to_property(lat: float, lng: float) -> dict:
             nom = r.json()
 
         addr = nom.get("address", {})
-        # Nominatim Karnataka tags
-        result["district"] = (
-            addr.get("county") or addr.get("state_district") or addr.get("district") or ""
-        ).replace(" District", "").strip()
-        result["taluk"] = (addr.get("city") or addr.get("town") or addr.get("village") or "").strip()
-        result["village"] = (addr.get("suburb") or addr.get("hamlet") or addr.get("neighbourhood") or "").strip()
-        result["source"] = "nominatim"
+        if not result["district"]:
+            result["district"] = (
+                addr.get("county") or addr.get("state_district") or addr.get("district") or ""
+            ).replace(" District", "").strip() or None
+        if not result["taluk"]:
+            result["taluk"] = (addr.get("city") or addr.get("town") or "").strip() or None
+        if not result["village"]:
+            result["village"] = (addr.get("suburb") or addr.get("hamlet") or addr.get("neighbourhood") or "").strip() or None
+        if not result["source"]:
+            result["source"] = "nominatim"
     except Exception as e:
         logger.warning(f"Nominatim reverse geocode failed: {e}")
 
-    # ── Step 2: Dishank WMS GetFeatureInfo ─────────────────────────────────
-    # Dishank uses EPSG:4326. We build a tiny bounding box around the point.
-    # The WMS server returns XML with the cadastral parcel (survey number).
-    try:
-        delta = 0.0001  # ~11 metres
-        bbox = f"{lng-delta},{lat-delta},{lng+delta},{lat+delta}"
-        width, height = 101, 101
-        x, y = 50, 50  # pixel at centre of 101×101 image
-
-        dishank_url = (
-            "https://dishank.karnataka.gov.in/geoserver/dishank/wms"
-            "?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo"
-            "&LAYERS=dishank:survey_boundaries"
-            "&QUERY_LAYERS=dishank:survey_boundaries"
-            "&INFO_FORMAT=application/json"
-            f"&BBOX={bbox}&WIDTH={width}&HEIGHT={height}"
-            f"&X={x}&Y={y}&SRS=EPSG:4326&FEATURE_COUNT=5"
-        )
-        async with httpx.AsyncClient(timeout=15,
-                headers={"User-Agent": "Mozilla/5.0", "Referer": "https://dishank.karnataka.gov.in/"}) as client:
-            r = await client.get(dishank_url)
-
-        if r.status_code == 200:
-            try:
+    # ── Step 3: Dishank WMS (fallback if REST didn't return survey number) ──
+    if not result["survey_number"]:
+        try:
+            delta = 0.0001  # ~11 metres
+            bbox = f"{lng-delta},{lat-delta},{lng+delta},{lat+delta}"
+            dishank_url = (
+                "https://dishank.karnataka.gov.in/geoserver/dishank/wms"
+                "?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo"
+                "&LAYERS=dishank:survey_boundaries"
+                "&QUERY_LAYERS=dishank:survey_boundaries"
+                "&INFO_FORMAT=application/json"
+                f"&BBOX={bbox}&WIDTH=101&HEIGHT=101"
+                f"&X=50&Y=50&SRS=EPSG:4326&FEATURE_COUNT=5"
+            )
+            async with httpx.AsyncClient(timeout=15,
+                    headers={"User-Agent": "Mozilla/5.0", "Referer": "https://dishank.karnataka.gov.in/"}) as client:
+                r = await client.get(dishank_url)
+            if r.status_code == 200:
                 features = r.json().get("features", [])
                 if features:
                     props = features[0].get("properties", {})
-                    # Dishank property names (vary by layer version)
-                    survey_no = (
-                        props.get("survey_no") or props.get("surveyno") or
-                        props.get("SURVEY_NO") or props.get("sy_no") or
-                        props.get("parcel_no") or ""
-                    )
-                    if survey_no:
-                        result["survey_number"] = str(survey_no).strip()
-                    if not result["village"]:
-                        result["village"] = props.get("village_name") or props.get("VILLAGE_NAME") or ""
-                    if not result["taluk"]:
-                        result["taluk"] = props.get("taluk_name") or props.get("TALUK_NAME") or ""
-                    if not result["district"]:
-                        result["district"] = props.get("dist_name") or props.get("DIST_NAME") or ""
-                    result["source"] = "dishank_wms"
-            except Exception:
-                pass  # JSON parse failure — fall through with nominatim data
-
-    except Exception as e:
-        logger.warning(f"Dishank WMS lookup failed (may need VPN/network to reach dishank): {e}")
-        # Graceful: still return nominatim address data
+                    sno = (props.get("survey_no") or props.get("surveyno") or
+                           props.get("SURVEY_NO") or props.get("sy_no") or "")
+                    if sno:
+                        result["survey_number"] = str(sno).strip()
+                        result["source"] = "dishank_wms"
+        except Exception as e:
+            logger.warning(f"Dishank WMS fallback failed: {e}")
 
     return result
 
