@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -10,4 +10,5 @@ COPY . .
 ENV PORT=8080
 EXPOSE $PORT
 
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app
+# Install Chromium at container START (not build time) — bypasses Railway build network restrictions
+CMD bash -c "playwright install chromium --with-deps && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app"
