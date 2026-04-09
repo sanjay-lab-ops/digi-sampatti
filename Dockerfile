@@ -1,4 +1,6 @@
-FROM python:3.11-slim
+# Use official Playwright image — Chromium + all system deps pre-installed
+# No apt-get failures, no font package issues.
+FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
 
 WORKDIR /app
 
@@ -11,5 +13,4 @@ COPY backend/ .
 ENV PORT=8080
 EXPOSE $PORT
 
-# Install Chromium at container START — bypasses Cloud Build network restrictions
-CMD bash -c "playwright install chromium --with-deps && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app"
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app

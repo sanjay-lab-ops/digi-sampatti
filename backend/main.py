@@ -2088,6 +2088,63 @@ async def _gps_to_property(lat: float, lng: float) -> dict:
     return result
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# INSTAMOJO WEBHOOK — payment confirmation
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Instamojo POSTs to this URL after payment.
+# Dashboard → Settings → Payment Webhook URL:
+#   https://digi-sampatti-production.up.railway.app/instamojo-webhook
+#
+# We verify HMAC-SHA1 signature then mark the report as paid in Firestore.
+
+import hmac as _hmac
+import hashlib as _hashlib
+
+INSTAMOJO_PRIVATE_SALT = _load_env().get("INSTAMOJO_PRIVATE_SALT", "a29ef5e7f0ce4b41802c8e1b13123673")
+
+
+@app.route("/instamojo-webhook", methods=["POST"])
+def instamojo_webhook():
+    data = request.form.to_dict()
+    mac_provided = data.pop("mac", "")
+
+    # Rebuild message: sorted keys joined by |
+    message = "|".join(str(data[k]) for k in sorted(data.keys()))
+    mac_calculated = _hmac.new(
+        INSTAMOJO_PRIVATE_SALT.encode("utf-8"),
+        message.encode("utf-8"),
+        _hashlib.sha1,
+    ).hexdigest()
+
+    if not _hmac.compare_digest(mac_calculated, mac_provided):
+        logger.warning("Instamojo webhook: invalid MAC — ignoring")
+        return jsonify({"status": "invalid_mac"}), 400
+
+    payment_id     = data.get("payment_id", "")
+    payment_status = data.get("payment_status", "")
+    payment_request_id = data.get("payment_request_id", "")
+    amount         = data.get("amount", "")
+
+    logger.info(f"Instamojo webhook: {payment_status} | {payment_id} | ₹{amount}")
+
+    if payment_status == "Credit" and db:
+        try:
+            db.collection("payments").document(payment_id).set({
+                "payment_id": payment_id,
+                "payment_request_id": payment_request_id,
+                "amount": amount,
+                "status": "paid",
+                "gateway": "instamojo",
+                "created_at": __import__("datetime").datetime.utcnow().isoformat(),
+            })
+            logger.info(f"Firestore: payment {payment_id} marked paid")
+        except Exception as e:
+            logger.error(f"Firestore write error: {e}")
+
+    return jsonify({"status": "ok"})
+
+
 if __name__ == "__main__":
     # debug=False → single process, no reloader, no conflicts with other PIDs
     app.run(host="0.0.0.0", port=PORT, debug=False)

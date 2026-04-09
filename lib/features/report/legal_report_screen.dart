@@ -6,7 +6,6 @@ import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
@@ -22,10 +21,12 @@ class LegalReportScreen extends ConsumerStatefulWidget {
 }
 
 class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   String? _pdfPath;
   bool _isGeneratingPdf = false;
   bool _isPaid = false;
+  bool _isVerifyingPayment = false;
+  String? _pendingRequestId;
   final _paymentService = PaymentService();
   late AnimationController _scoreCtrl;
   late Animation<int> _scoreAnim;
@@ -33,6 +34,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _paymentService.initialize();
     _paymentService.onSuccess = _onPaymentSuccess;
     _paymentService.onFailure = _onPaymentFailure;
@@ -40,6 +42,14 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
+  }
+
+  // Called when user returns from Instamojo browser
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _pendingRequestId != null) {
+      _verifyInstamojoPayment(_pendingRequestId!);
+    }
   }
 
   void _animateScore(int target) {
@@ -51,21 +61,52 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scoreCtrl.dispose();
     _paymentService.dispose();
     super.dispose();
   }
 
-  void _startPayment(String reportId) {
-    final phone = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
-    _paymentService.openPayment(
+  Future<void> _startPayment(String reportId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final phone = user?.phoneNumber ?? '';
+    final name  = user?.displayName ?? 'Customer';
+
+    final requestId = await _paymentService.openReportPayment(
       reportId: reportId,
       userPhone: phone,
-      description: 'Property Report #$reportId',
+      userName: name,
     );
+
+    // Instamojo returns a requestId — save it so we can verify when user returns
+    if (requestId != null && mounted) {
+      setState(() => _pendingRequestId = requestId);
+    }
   }
 
-  void _onPaymentSuccess(PaymentSuccessResponse response) {
+  Future<void> _verifyInstamojoPayment(String requestId) async {
+    if (_isVerifyingPayment) return;
+    setState(() => _isVerifyingPayment = true);
+    try {
+      final paid = await _paymentService.verifyInstamojoPayment(requestId);
+      if (!mounted) return;
+      if (paid) {
+        setState(() => _pendingRequestId = null);
+        // onSuccess callback handles the rest
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment not confirmed yet. Complete payment and return.'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isVerifyingPayment = false);
+    }
+  }
+
+  void _onPaymentSuccess(String paymentId) {
     setState(() => _isPaid = true);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -77,10 +118,10 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     _generatePdf();
   }
 
-  void _onPaymentFailure(PaymentFailureResponse response) {
+  void _onPaymentFailure(String error) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Payment failed: ${response.message ?? "Try again"}'),
+        content: Text('Payment failed: $error'),
         backgroundColor: AppColors.danger,
       ),
     );
@@ -129,25 +170,28 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
             children: [
               Icon(Icons.picture_as_pdf, color: Colors.white, size: 22),
               SizedBox(width: 10),
-              Text('Download Full PDF Report', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Download Full PDF Report',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 8),
-          const Text('Get the complete legal report as PDF — share with your lawyer, bank, or family.',
-            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
+          const Text(
+            'Get the complete legal report as PDF — share with your lawyer, bank, or family.',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('₹99', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text('₹149', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                   Text('one-time · instant download', style: TextStyle(color: Colors.white70, fontSize: 11)),
                 ],
               ),
               const Spacer(),
               ElevatedButton(
-                onPressed: () => _startPayment(reportId),
+                onPressed: _isVerifyingPayment ? null : () => _startPayment(reportId),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFF1B5E20),
@@ -155,7 +199,11 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Pay & Download', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: _isVerifyingPayment
+                    ? const SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1B5E20)))
+                    : const Text('Pay & Download', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -164,9 +212,25 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
             children: [
               Icon(Icons.lock, size: 12, color: Colors.white70),
               SizedBox(width: 4),
-              Text('Secured by Razorpay · UPI, Card, Net Banking accepted', style: TextStyle(fontSize: 10, color: Colors.white70)),
+              Text('Secured by Instamojo · UPI, Card, Net Banking accepted',
+                  style: TextStyle(fontSize: 10, color: Colors.white70)),
             ],
           ),
+          // Show "verify payment" button if user already went to Instamojo
+          if (_pendingRequestId != null) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _verifyInstamojoPayment(_pendingRequestId!),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white54),
+                ),
+                child: const Text('I completed payment — verify now'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -338,7 +402,6 @@ _Verified by DigiSampatti — Property Verification Platform_
                       : f.status == FlagStatus.danger ? AppColors.danger
                       : AppColors.textMedium;
                   final icon = f.status == FlagStatus.clear ? Icons.check_circle_outline
-                      : f.status == FlagStatus.warning ? Icons.info_outline
                       : Icons.info_outline;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
