@@ -280,7 +280,8 @@ async def _bhoomi_service53(district, taluk, hobli, village, survey_no) -> Optio
                 token = await solve_recaptcha(site_key, "https://landrecords.karnataka.gov.in/service53/")
                 if token:
                     await inject_captcha_token(page, token)
-                    await page.click('#btnVerifyCaptcha')
+                    # Button exists but may not be visible — use JS click to force it
+                    await page.evaluate("document.getElementById('btnVerifyCaptcha').click()")
                     await page.wait_for_load_state("networkidle", timeout=15000)
                 else:
                     logger.warning("Service53: CAPTCHA solve failed")
