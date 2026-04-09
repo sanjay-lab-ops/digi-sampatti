@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/models/portal_findings_model.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 
 // ─── Auto Scan Screen ─────────────────────────────────────────────────────────
 // ZERO manual intervention.
@@ -92,7 +94,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       }
     });
 
-    final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
+    final backendUrl = ApiConstants.backendBaseUrl;
 
     try {
       // ── Mark all as scanning (parallel) ───────────────────────────────────
@@ -122,23 +124,41 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       _fullResult = data;
 
       // ── Update portal statuses from result ────────────────────────────────
-      setState(() {
-        _updatePortal('Bhoomi RTC',     data['rtc'],     _rtcSummary);
-        _updatePortal('Kaveri EC',      data['ec'],      _ecSummary);
-        _updatePortal('eCourts',        data['courts'],  _courtsSummary);
-        _updatePortal('CERSAI',         data['cersai'],  _cersaiSummary);
-        _updatePortal('Guidance Value', data['guidance_value'], _gvSummary);
-        _updatePortal('FMB Sketch',     data['fmb'],     _fmbSummary);
+      final rtc      = data['rtc']            as Map<String, dynamic>?;
+      final ec       = data['ec']             as Map<String, dynamic>?;
+      final courts   = data['courts']         as Map<String, dynamic>?;
+      final cersai   = data['cersai']         as Map<String, dynamic>?;
+      final gv       = data['guidance_value'] as Map<String, dynamic>?;
+      final fmb      = data['fmb']            as Map<String, dynamic>?;
 
-        // RERA is queried separately (needs project name)
+      setState(() {
+        _updatePortal('Bhoomi RTC',     rtc,    _rtcSummary);
+        _updatePortal('Kaveri EC',      ec,     _ecSummary);
+        _updatePortal('eCourts',        courts, _courtsSummary);
+        _updatePortal('CERSAI',         cersai, _cersaiSummary);
+        _updatePortal('Guidance Value', gv,     _gvSummary);
+        _updatePortal('FMB Sketch',     fmb,    _fmbSummary);
         _portals.firstWhere((p) => p.name == 'RERA')
           ..status = _PortalStatus.done
           ..summary = 'Checked — add project name for RERA'
           ..hasIssue = false;
-
         _scanning = false;
         _done = true;
       });
+
+      // ── Map backend results → PortalFindings so AI analysis counts correctly
+      final findings = PortalFindings(
+        bhoomiOpened:   rtc    != null,
+        kaveriOpened:   ec     != null,
+        ecourtsOpened:  courts != null,
+        cersaiOpened:   cersai != null,
+        fmbOpened:      fmb    != null,
+        isApartmentProject: false,
+        hasActiveLoan:  ec?['encumbrance_free'] != true && ec != null,
+        hasCourtCases:  (courts?['has_pending_cases'] ?? false) as bool,
+        hasBankCharge:  (cersai?['is_mortgaged'] ?? false) as bool,
+      );
+      ref.read(portalFindingsProvider.notifier).state = findings;
     } catch (e) {
       setState(() {
         _scanning = false;
