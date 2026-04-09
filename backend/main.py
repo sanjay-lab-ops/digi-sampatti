@@ -297,9 +297,15 @@ async def _bhoomi_service53(district, taluk, hobli, village, survey_no) -> Optio
                 "mysuru": "MYSORE", "belagavi": "BELAGAVI", "mangaluru": "DAKSHINA KANNADA",
             }
             taluk_map = {
-                "bangalore north": "BANGALORE-NORTH", "bangalore south": "BANGALORE-SOUTH",
-                "bangalore east": "BANGALORE-EAST", "yelahanka": "YALAHANKA",
-                "anekal": "ANEKAL", "devanahalli": "DEVANAHALLI",
+                "bangalore north":  "BANGALORE-NORTH",
+                "bengaluru north":  "BANGALORE-NORTH",
+                "bangalore south":  "BANGALORE-SOUTH",
+                "bengaluru south":  "BANGALORE-SOUTH",
+                "bangalore east":   "BANGALORE-EAST",
+                "bengaluru east":   "BANGALORE-EAST",
+                "yelahanka": "YALAHANKA",
+                "anekal": "ANEKAL",
+                "devanahalli": "DEVANAHALLI",
             }
             dist_label = dist_map.get(district.lower(), district.upper())
             taluk_label = taluk_map.get(taluk.lower(), taluk.upper())
@@ -425,10 +431,14 @@ async def _bhoomi_service2(district, taluk, hobli, village, survey_no) -> Option
             await page.wait_for_timeout(2000)
 
             # Taluk name normalization (dropdown uses UPPERCASE with hyphens)
+            # Bhoomi uses old "BANGALORE" spelling — must map both variants
             taluk_map = {
-                "bangalore north": "BANGALORE-NORTH",
-                "bangalore south": "BANGALORE-SOUTH",
-                "bangalore east":  "BANGALORE-EAST",
+                "bangalore north":  "BANGALORE-NORTH",
+                "bengaluru north":  "BANGALORE-NORTH",
+                "bangalore south":  "BANGALORE-SOUTH",
+                "bengaluru south":  "BANGALORE-SOUTH",
+                "bangalore east":   "BANGALORE-EAST",
+                "bengaluru east":   "BANGALORE-EAST",
                 "anekal": "ANEKAL",
                 "yalahanka": "YALAHANKA",
                 "yelahanka": "YALAHANKA",
@@ -1618,16 +1628,10 @@ async def _run_full_check(district, taluk, hobli, village, survey_no, owner_name
 
     rtc, ec, courts, cersai, gv, fmb = tasks
 
-    # Risk scoring
-    risk_flags = []
-    if isinstance(cersai, dict) and cersai.get("is_mortgaged"):
-        risk_flags.append("Property has active mortgage/lien (CERSAI)")
-    if isinstance(courts, dict) and courts.get("has_pending_cases"):
-        risk_flags.append(f"Pending court cases found: {courts.get('case_numbers', [])}")
-    if isinstance(ec, dict) and not ec.get("encumbrance_free"):
-        risk_flags.append("Encumbrance found in EC")
+    # Resolve guidance value with fallback
+    guidance = gv if isinstance(gv, dict) else _fallback_guidance(district, taluk, village, "residential")
 
-    risk_level = "HIGH" if len(risk_flags) >= 2 else "CAUTION" if risk_flags else "SAFE"
+    fraud_analysis = _run_fraud_analysis(rtc, ec, courts, cersai, guidance, owner_name)
 
     return {
         "survey_number": survey_no,
@@ -1636,11 +1640,181 @@ async def _run_full_check(district, taluk, hobli, village, survey_no, owner_name
         "ec":      ec     if isinstance(ec,     dict) else None,
         "courts":  courts if isinstance(courts, dict) else None,
         "cersai":  cersai if isinstance(cersai, dict) else None,
-        "guidance_value": gv if isinstance(gv, dict) else _fallback_guidance(district, taluk, village, "residential"),
+        "guidance_value": guidance,
         "fmb":     fmb    if isinstance(fmb,   dict) else None,
-        "risk_level":  risk_level,
-        "risk_flags":  risk_flags,
+        "risk_level":     fraud_analysis["risk_level"],
+        "risk_flags":     fraud_analysis["risk_flags"],
+        "fraud_patterns": fraud_analysis["fraud_patterns"],
+        "investment_score": fraud_analysis["investment_score"],
+        "investment_verdict": fraud_analysis["investment_verdict"],
         "checked_at":  time.time(),
+    }
+
+
+def _run_fraud_analysis(rtc, ec, courts, cersai, guidance, owner_name_input: str) -> dict:
+    """
+    Cross-portal fraud detection + investment scoring.
+
+    Returns:
+        risk_level       : "SAFE" | "CAUTION" | "HIGH" | "CRITICAL"
+        risk_flags       : basic issues list (backward compat)
+        fraud_patterns   : list of detected cross-portal fraud patterns
+        investment_score : 0–100
+        investment_verdict: human-readable string
+    """
+    risk_flags: list[str] = []
+    fraud_patterns: list[dict] = []
+
+    rtc_ok    = isinstance(rtc,    dict)
+    ec_ok     = isinstance(ec,     dict)
+    courts_ok = isinstance(courts, dict)
+    cersai_ok = isinstance(cersai, dict)
+    gv_ok     = isinstance(guidance, dict)
+
+    # ── Basic portal flags ────────────────────────────────────────────────────
+    if cersai_ok and cersai.get("is_mortgaged"):
+        risk_flags.append("Active mortgage/lien registered (CERSAI)")
+
+    if courts_ok and courts.get("has_pending_cases"):
+        cases = courts.get("case_numbers", [])
+        risk_flags.append(f"Pending court cases: {', '.join(str(c) for c in cases[:3])}")
+
+    if ec_ok and not ec.get("encumbrance_free"):
+        risk_flags.append(f"Encumbrance on record — {ec.get('transaction_count', 'unknown')} transaction(s) in EC")
+
+    if rtc_ok and rtc.get("liabilities"):
+        risk_flags.append(f"Liabilities noted in RTC: {rtc['liabilities']}")
+
+    # ── Cross-portal fraud patterns ───────────────────────────────────────────
+
+    # Pattern 1: Active loan (CERSAI) + past encumbrance (EC) together
+    if cersai_ok and ec_ok:
+        if cersai.get("is_mortgaged") and not ec.get("encumbrance_free"):
+            fraud_patterns.append({
+                "pattern": "LOAN_PLUS_ENCUMBRANCE",
+                "severity": "CRITICAL",
+                "detail": (
+                    f"CERSAI shows active mortgage (lender: {', '.join(cersai.get('lenders', ['unknown']))}) "
+                    f"AND Kaveri EC shows {ec.get('transaction_count', 'multiple')} encumbrance transaction(s). "
+                    "This combination is a strong indicator of double-financing or fraudulent sale attempt."
+                ),
+            })
+
+    # Pattern 2: Court case + encumbrance (seller may be hiding dispute)
+    if courts_ok and ec_ok:
+        if courts.get("has_pending_cases") and not ec.get("encumbrance_free"):
+            fraud_patterns.append({
+                "pattern": "DISPUTE_PLUS_ENCUMBRANCE",
+                "severity": "HIGH",
+                "detail": (
+                    "Active court litigation + encumbrance on record. "
+                    "Property may be under legal dispute — title transfer could be challenged in court."
+                ),
+            })
+
+    # Pattern 3: RTC owner name doesn't match provided owner name
+    if rtc_ok and owner_name_input:
+        rtc_owner = (rtc.get("owner_name") or "").lower().strip()
+        input_owner = owner_name_input.lower().strip()
+        if rtc_owner and input_owner and rtc_owner not in input_owner and input_owner not in rtc_owner:
+            # Check at least one word matches (family member scenario)
+            rtc_words = set(rtc_owner.split())
+            input_words = set(input_owner.split())
+            common = rtc_words & input_words
+            if not common:
+                fraud_patterns.append({
+                    "pattern": "OWNER_NAME_MISMATCH",
+                    "severity": "HIGH",
+                    "detail": (
+                        f"RTC shows owner as '{rtc.get('owner_name')}' but you entered '{owner_name_input}'. "
+                        "No common name found. Verify ownership chain — seller may not be the legal owner."
+                    ),
+                })
+
+    # Pattern 4: High transaction count in EC (property flipped multiple times quickly)
+    if ec_ok:
+        txn_count = ec.get("transaction_count", 0)
+        if isinstance(txn_count, int) and txn_count >= 5:
+            fraud_patterns.append({
+                "pattern": "HIGH_TRANSACTION_FREQUENCY",
+                "severity": "CAUTION",
+                "detail": (
+                    f"EC shows {txn_count} transactions. Frequent transfers may indicate title dispute, "
+                    "family partition issue, or property flipping — verify complete ownership chain."
+                ),
+            })
+
+    # Pattern 5: Court case + active loan (seller under financial stress)
+    if courts_ok and cersai_ok:
+        if courts.get("has_pending_cases") and cersai.get("is_mortgaged"):
+            fraud_patterns.append({
+                "pattern": "FINANCIAL_STRESS_SELLER",
+                "severity": "HIGH",
+                "detail": (
+                    "Seller has both active loan (CERSAI) and pending court case. "
+                    "Property may be sold under distress — high risk of transaction being challenged."
+                ),
+            })
+
+    # ── Investment score (0–100) ──────────────────────────────────────────────
+    score = 100
+
+    # Deduct for risk flags
+    score -= len(risk_flags) * 8
+
+    # Deduct for fraud patterns by severity
+    for p in fraud_patterns:
+        sev = p.get("severity", "CAUTION")
+        if sev == "CRITICAL":
+            score -= 35
+        elif sev == "HIGH":
+            score -= 20
+        elif sev == "CAUTION":
+            score -= 10
+
+    # Bonus: guidance value available (data-rich area → good investment)
+    if gv_ok and guidance.get("source") == "kaveri_live":
+        score += 5  # live data area
+
+    # Guidance value zone bonus (Zone A/B = prime area)
+    if gv_ok:
+        zone = (guidance.get("zone") or "").upper()
+        if zone in ("A", "B"):
+            score += 5
+        elif zone in ("E", "F"):
+            score -= 5
+
+    # Clamp
+    score = max(0, min(100, score))
+
+    # Verdict
+    if score >= 80:
+        verdict = "Strong Buy — Clean title, low risk"
+    elif score >= 60:
+        verdict = "Proceed with Caution — Minor issues, get legal opinion"
+    elif score >= 40:
+        verdict = "High Risk — Resolve encumbrances/disputes before purchase"
+    else:
+        verdict = "Do Not Buy — Multiple fraud indicators detected"
+
+    # Determine overall risk level
+    critical = any(p["severity"] == "CRITICAL" for p in fraud_patterns)
+    high     = any(p["severity"] == "HIGH"     for p in fraud_patterns)
+    if critical:
+        risk_level = "CRITICAL"
+    elif high or len(risk_flags) >= 2:
+        risk_level = "HIGH"
+    elif risk_flags or fraud_patterns:
+        risk_level = "CAUTION"
+    else:
+        risk_level = "SAFE"
+
+    return {
+        "risk_level":        risk_level,
+        "risk_flags":        risk_flags,
+        "fraud_patterns":    fraud_patterns,
+        "investment_score":  score,
+        "investment_verdict": verdict,
     }
 
 
