@@ -400,35 +400,79 @@ async def _bhoomi_service2(district, taluk, hobli, village, survey_no) -> Option
             await page.goto("https://landrecords.karnataka.gov.in/Service2",
                             wait_until="networkidle", timeout=30000)
 
-            # Normalize district name to match dropdown (all-caps Karnataka names)
-            dist_map = {
-                "bangalore urban": "BENGALURU",
-                "bengaluru urban": "BENGALURU",
-                "bangalore south": "BENGALURU SOUTH",
-                "bengaluru south": "BENGALURU SOUTH",
-                "bangalore rural": "BANGALORE RURAL",
-                "bengaluru rural": "BANGALORE RURAL",
-                "mysuru": "MYSORE", "mysore": "MYSORE",
-                "belagavi": "BELAGAVI", "belgaum": "BELAGAVI",
-                "hubballi-dharwad": "DHARWAD", "dharwad": "DHARWAD",
-                "mangaluru": "DAKSHINA KANNADA", "dakshina kannada": "DAKSHINA KANNADA",
-                "shivamogga": "SHIVAMOGGA", "tumakuru": "TUMAKURU",
-                "kalaburagi": "KALABURAGI", "raichur": "RAICHUR",
-                "ballari": "BALLARI", "vijayapura": "VIJAYAPURA",
-                "chikkaballapur": "CHIKKABALLAPUR", "kolar": "KOLAR",
-                "ramanagara": "RAMANAGARA", "mandya": "MANDYA",
-                "hassan": "HASSAN", "kodagu": "KODAGU",
-                "udupi": "UDUPI", "uttara kannada": "UTTAR KANNADA",
-                "chitradurga": "CHITRADURGA", "davanagere": "DAVANAGERE",
-                "gadag": "GADAG", "haveri": "HAVERI",
-                "bidar": "BIDAR", "koppal": "KOPPAL",
-                "chikkamagaluru": "CHIKKAMAGALURU", "bagalkote": "BAGALKOTE",
-                "yadgir": "YADAGIR", "vijayanagara": "VIJAYANAGARA",
+            # Normalize district name — multiple candidate labels to try
+            # Bhoomi historically uses "BANGALORE URBAN" (old) but may have "BENGALURU URBAN" (new)
+            dist_candidates = {
+                "bangalore urban":  ["BANGALORE URBAN", "BENGALURU URBAN", "BENGALURU", "BANGALORE"],
+                "bengaluru urban":  ["BANGALORE URBAN", "BENGALURU URBAN", "BENGALURU", "BANGALORE"],
+                "bangalore rural":  ["BANGALORE RURAL", "BENGALURU RURAL"],
+                "bengaluru rural":  ["BANGALORE RURAL", "BENGALURU RURAL"],
+                "bangalore south":  ["BANGALORE SOUTH", "BENGALURU SOUTH"],
+                "bengaluru south":  ["BANGALORE SOUTH", "BENGALURU SOUTH"],
+                "mysuru": ["MYSORE", "MYSURU"], "mysore": ["MYSORE", "MYSURU"],
+                "belagavi": ["BELAGAVI", "BELGAUM"], "belgaum": ["BELAGAVI", "BELGAUM"],
+                "hubballi-dharwad": ["DHARWAD", "HUBLI-DHARWAD"],
+                "dharwad": ["DHARWAD"], "hubli": ["DHARWAD"],
+                "mangaluru": ["DAKSHINA KANNADA", "MANGALURU"],
+                "dakshina kannada": ["DAKSHINA KANNADA"],
+                "shivamogga": ["SHIVAMOGGA", "SHIMOGA"],
+                "tumakuru": ["TUMAKURU", "TUMKUR"],
+                "kalaburagi": ["KALABURAGI", "GULBARGA"],
+                "raichur": ["RAICHUR"], "ballari": ["BALLARI", "BELLARY"],
+                "vijayapura": ["VIJAYAPURA", "BIJAPUR"],
+                "chikkaballapur": ["CHIKKABALLAPUR"],
+                "kolar": ["KOLAR"], "ramanagara": ["RAMANAGARA"],
+                "mandya": ["MANDYA"], "hassan": ["HASSAN"],
+                "kodagu": ["KODAGU", "COORG"], "udupi": ["UDUPI"],
+                "uttara kannada": ["UTTAR KANNADA", "UTTARA KANNADA"],
+                "chitradurga": ["CHITRADURGA"], "davanagere": ["DAVANAGERE", "DAVANGERE"],
+                "gadag": ["GADAG"], "haveri": ["HAVERI"],
+                "bidar": ["BIDAR"], "koppal": ["KOPPAL"],
+                "chikkamagaluru": ["CHIKKAMAGALURU", "CHIKMAGALUR"],
+                "bagalkote": ["BAGALKOTE", "BAGALKOT"],
+                "yadgir": ["YADAGIR", "YADGIR"], "vijayanagara": ["VIJAYANAGARA"],
             }
-            dist_label = dist_map.get(district.lower(), district.upper())
+            candidates = dist_candidates.get(district.lower(), [district.upper()])
 
-            # Select district — options are in initial HTML, no AJAX needed
-            await page.select_option('#ctl00_MainContent_ddlCDistrict', label=dist_label)
+            # Get actual dropdown options to find best match (fuzzy)
+            import difflib
+            dist_opts = await page.evaluate(
+                "Array.from(document.querySelector('#ctl00_MainContent_ddlCDistrict').options)"
+                ".map(o=>o.text)"
+            )
+            logger.info(f"Bhoomi district options: {dist_opts}")
+
+            best_dist = None
+            # Try each candidate label against actual options
+            for cand in candidates:
+                cu = cand.upper()
+                for o in dist_opts:
+                    if o.upper() == cu:
+                        best_dist = o; break
+                    if o.upper().startswith(cu) or cu.startswith(o.upper().rstrip()):
+                        best_dist = o; break
+                if best_dist:
+                    break
+            # Fuzzy fallback
+            if not best_dist:
+                all_upper = [o.upper() for o in dist_opts]
+                for cand in candidates:
+                    ms = difflib.get_close_matches(cand.upper(), all_upper, n=1, cutoff=0.7)
+                    if ms:
+                        best_dist = next((o for o in dist_opts if o.upper() == ms[0]), None)
+                        if best_dist:
+                            break
+
+            if best_dist:
+                logger.info(f"Bhoomi district selecting: '{best_dist}'")
+                await page.select_option('#ctl00_MainContent_ddlCDistrict', label=best_dist)
+            else:
+                logger.warning(f"Bhoomi district not found: {district} in {dist_opts}")
+                # Try first candidate as last resort
+                try:
+                    await page.select_option('#ctl00_MainContent_ddlCDistrict', label=candidates[0])
+                except Exception:
+                    pass
             await page.wait_for_timeout(2000)
 
             # Taluk name normalization (dropdown uses UPPERCASE with hyphens)
