@@ -2101,7 +2101,7 @@ async def _gps_to_property(lat: float, lng: float) -> dict:
 import hmac as _hmac
 import hashlib as _hashlib
 
-INSTAMOJO_PRIVATE_SALT = _load_env().get("INSTAMOJO_PRIVATE_SALT", "a29ef5e7f0ce4b41802c8e1b13123673")
+INSTAMOJO_PRIVATE_SALT = os.environ.get("INSTAMOJO_PRIVATE_SALT", "a29ef5e7f0ce4b41802c8e1b13123673")
 
 
 @app.route("/instamojo-webhook", methods=["POST"])
