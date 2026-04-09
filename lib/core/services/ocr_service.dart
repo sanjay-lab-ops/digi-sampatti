@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 
@@ -19,6 +20,9 @@ import 'package:digi_sampatti/core/constants/api_constants.dart';
 //   - Already integrated — no extra dependency or billing account
 // ──────────────────────────────────────────────────────────────────────────────
 
+/// What the camera captured — determines which UI flow to show
+enum ScanType { document, building, unknown }
+
 class OcrResult {
   final String? surveyNumber;
   final String? ownerName;
@@ -30,6 +34,13 @@ class OcrResult {
   final double confidence;      // 0.0 – 1.0
   final String? rawText;        // Full extracted text for fallback
 
+  // Building detection fields
+  final ScanType scanType;               // document / building / unknown
+  final String? buildingName;            // "Prestige Lakeside Habitat"
+  final List<String> visibleBlocks;      // ["A", "B", "C"] or ["Block 1", "Tower 2"]
+  final List<String> visibleFlats;       // ["A101", "A102", ...] if flat numbers visible
+  final String? buildingAddress;         // street address of building
+
   const OcrResult({
     this.surveyNumber,
     this.ownerName,
@@ -40,15 +51,23 @@ class OcrResult {
     this.documentType,
     this.confidence = 0.0,
     this.rawText,
+    this.scanType = ScanType.unknown,
+    this.buildingName,
+    this.visibleBlocks = const [],
+    this.visibleFlats = const [],
+    this.buildingAddress,
   });
 
   bool get hasUsefulData =>
       surveyNumber != null || ownerName != null || khataNumber != null;
 
+  bool get isBuilding => scanType == ScanType.building;
+
   @override
   String toString() =>
-      'OcrResult(survey=$surveyNumber, owner=$ownerName, taluk=$taluk, '
-      'district=$district, doc=$documentType, conf=$confidence)';
+      'OcrResult(type=$scanType, survey=$surveyNumber, owner=$ownerName, '
+      'taluk=$taluk, district=$district, doc=$documentType, conf=$confidence, '
+      'building=$buildingName, blocks=$visibleBlocks)';
 }
 
 class OcrService {
@@ -110,8 +129,7 @@ class OcrService {
                 },
                 {
                   'type': 'text',
-                  'text':
-                      'Extract property details from this document. Return JSON only.',
+                  'text': 'Analyze this image. Is it a property DOCUMENT (RTC, EC, sale deed, etc.) or a BUILDING PHOTO (apartment, house, plot)? Return JSON only.',
                 },
               ],
             },
@@ -124,8 +142,10 @@ class OcrService {
         final text = (content.first['text'] as String).trim();
         return _parseOcrResponse(text);
       }
-    } catch (_) {
-      // Fail silently — caller falls back to manual entry
+    } catch (e, stack) {
+      // Log error so we can diagnose — caller falls back to manual entry
+      debugPrint('[OCR] extractFromDocument failed: $e');
+      debugPrint('[OCR] stack: $stack');
     }
 
     return const OcrResult(confidence: 0.0);
@@ -150,16 +170,39 @@ class OcrService {
 
       final Map<String, dynamic> data = json.decode(jsonStr);
 
+      // Determine scan type
+      final scanTypeStr = (data['scan_type'] as String? ?? 'unknown').toLowerCase();
+      final scanType = scanTypeStr == 'building'
+          ? ScanType.building
+          : scanTypeStr == 'document'
+              ? ScanType.document
+              : ScanType.unknown;
+
+      // Parse visible blocks/flats lists
+      List<String> parseList(dynamic v) {
+        if (v == null) return [];
+        if (v is List) return v.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
+        if (v is String && v.isNotEmpty) return [v];
+        return [];
+      }
+
       return OcrResult(
-        surveyNumber:   _clean(data['survey_number']),
-        ownerName:      _clean(data['owner_name']),
-        taluk:          _clean(data['taluk']),
-        district:       _clean(data['district']),
-        khataNumber:    _clean(data['khata_number']),
+        scanType:        scanType,
+        // Document fields
+        surveyNumber:    _clean(data['survey_number']),
+        ownerName:       _clean(data['owner_name']),
+        taluk:           _clean(data['taluk']),
+        district:        _clean(data['district']),
+        khataNumber:     _clean(data['khata_number']),
         propertyAddress: _clean(data['property_address']),
-        documentType:   _clean(data['document_type']),
-        confidence:     (data['confidence'] as num?)?.toDouble() ?? 0.5,
-        rawText:        _clean(data['raw_text']),
+        documentType:    _clean(data['document_type']),
+        confidence:      (data['confidence'] as num?)?.toDouble() ?? 0.5,
+        rawText:         _clean(data['raw_text']),
+        // Building fields
+        buildingName:    _clean(data['building_name']),
+        visibleBlocks:   parseList(data['visible_blocks']),
+        visibleFlats:    parseList(data['visible_flats']),
+        buildingAddress: _clean(data['building_address']),
       );
     } catch (_) {
       return OcrResult(rawText: text, confidence: 0.2);
@@ -175,36 +218,55 @@ class OcrService {
 
   // ─── System Prompt ─────────────────────────────────────────────────────────
   static const String _ocrSystemPrompt = '''
-You are a property document OCR specialist for Karnataka, India.
+You are a property scan AI for Karnataka, India. The image is either:
+A) A PROPERTY DOCUMENT (RTC, EC, Sale Deed, Khata, Tax Receipt, Mutation)
+B) A BUILDING PHOTO (apartment complex, house exterior, plot, construction site)
 
-The image will be one of:
-- RTC (Record of Tenancy and Cultivation) — Hakkupatra
-- Encumbrance Certificate (EC) — from IGRS/KAVERI
-- Khata Certificate or Extract — from BBMP/CMC/Gram Panchayat
-- Sale Deed / Agreement to Sell
-- Property Tax Paid receipt
-- Mutation order
-- Any other land/property document
+FIRST decide which it is, then extract the relevant fields.
 
-Extract the following fields. The document may contain Kannada text, English text, or both.
+Return ONLY valid JSON — no explanation, no markdown:
 
-Return ONLY valid JSON (no explanation, no markdown, no extra text):
+FOR A DOCUMENT:
 {
+  "scan_type": "document",
   "document_type": "RTC" | "EC" | "Khata" | "Sale Deed" | "Tax Receipt" | "Mutation" | "Other",
-  "survey_number": "survey/sarvey/Sy. No. value — e.g. 123/4A",
-  "owner_name": "current owner or seller name",
-  "taluk": "taluk name",
-  "district": "district name",
-  "khata_number": "khata/katha number if visible",
-  "property_address": "full address or location description",
-  "confidence": 0.0 to 1.0 (how confident you are in the extraction),
-  "raw_text": "first 300 chars of all text you can read from the document"
+  "survey_number": "Sy.No value e.g. 45/2A — extract only the number/alphanumeric",
+  "owner_name": "current owner name (transliterate Kannada to English)",
+  "taluk": "taluk name in English",
+  "district": "district name in English",
+  "khata_number": "khata number if visible, else null",
+  "property_address": "full address if visible, else null",
+  "confidence": 0.0 to 1.0,
+  "raw_text": "first 300 chars of all readable text",
+  "building_name": null,
+  "visible_blocks": [],
+  "visible_flats": [],
+  "building_address": null
+}
+
+FOR A BUILDING PHOTO:
+{
+  "scan_type": "building",
+  "document_type": null,
+  "survey_number": null,
+  "owner_name": null,
+  "taluk": null,
+  "district": null,
+  "khata_number": null,
+  "property_address": null,
+  "confidence": 0.0 to 1.0,
+  "raw_text": "any text visible on the building",
+  "building_name": "apartment/project name if visible on signboard, else null",
+  "visible_blocks": ["A", "B", "C"] or ["Block 1", "Tower 2"] — list all block/tower/wing identifiers visible. If individual units visible: ["A", "B", "C"]. If none visible: [],
+  "visible_flats": ["A101", "A102", "B201"] — only if flat numbers are clearly visible on doors/boards, else [],
+  "building_address": "street address or landmark if visible on board, else null"
 }
 
 Rules:
-- Survey number formats: "123", "123/4", "123/4A", "Sy.No.45/2B" — extract the numeric/alphanumeric part
-- If a field is not visible or unclear, use null (not empty string)
-- For Kannada text, transliterate the relevant fields into English
-- confidence = 0.9 if document is clear; 0.6 if partially visible; 0.3 if very blurry
+- Survey number: extract ONLY the numeric/alphanumeric part e.g. "45" or "123/4A"
+- Kannada text: transliterate owner name, taluk, district to English
+- confidence: 0.9=clear, 0.6=partially visible, 0.3=blurry
+- null for any field not clearly visible
+- For buildings: even if only 1 block visible, list it. Guess blocks from context (e.g. if "Block A" and "Block B" are typical for this size).
 ''';
 }

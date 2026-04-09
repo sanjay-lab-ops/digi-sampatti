@@ -4,13 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:camera/camera.dart';
 import 'package:uuid/uuid.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/services/camera_service.dart';
 import 'package:digi_sampatti/core/services/gps_service.dart';
-import 'package:digi_sampatti/core/services/gps_lookup_service.dart';
 import 'package:digi_sampatti/core/services/ocr_service.dart';
 
 class CameraScanScreen extends ConsumerStatefulWidget {
@@ -27,12 +25,8 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
   bool _isInitialized = false;
   bool _isCapturing = false;
   bool _isRunningOcr = false;
-  bool _isGpsLookup = false;        // true when doing GPS→survey lookup
-  bool _scanMode = false;           // false=document OCR, true=GPS site scan
   GpsLocation? _currentLocation;
   String? _captureError;
-  OcrResult? _ocrResult;
-  GpsLookupResult? _gpsResult;
 
   @override
   void initState() {
@@ -68,12 +62,15 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       final freshLocation = await _gpsService.getCurrentLocation();
       final location = freshLocation ?? _currentLocation;
 
-      // Run OCR in background while showing preview
+      // Await OCR so survey number is available before showing preview
       setState(() { _isRunningOcr = true; });
-      OcrResult ocrResult = const OcrResult();
-      _ocrService.extractFromDocument(photoPath).then((result) {
-        if (mounted) setState(() { _ocrResult = result; _isRunningOcr = false; });
-      });
+      OcrResult ocrResult;
+      try {
+        ocrResult = await _ocrService.extractFromDocument(photoPath);
+      } catch (e) {
+        ocrResult = const OcrResult();
+      }
+      if (mounted) setState(() { _isRunningOcr = false; });
 
       final scan = PropertyScan(
         id: const Uuid().v4(),
@@ -81,7 +78,6 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
         location: location,
         scanMethod: ScanMethod.camera,
         scannedAt: DateTime.now(),
-        // Pre-fill from OCR if available
         surveyNumber: ocrResult.surveyNumber,
       );
 
@@ -89,78 +85,228 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
       if (mounted) {
-        // Show GPS-stamped preview with OCR result + Dishank option
-        await _showPhotoPreview(context, photoPath, location, scan);
+        if (ocrResult.isBuilding) {
+          // Building detected — show block selector first
+          await _showBuildingBlockPicker(context, photoPath, location, ocrResult);
+        } else {
+          // Document detected — show GPS-stamped preview
+          await _showPhotoPreview(context, photoPath, location, scan, ocrResult);
+        }
       }
     } finally {
       if (mounted) setState(() { _isCapturing = false; });
     }
   }
 
-  // ── GPS Site Scan ────────────────────────────────────────────────────────
-  Future<void> _doGpsLookup() async {
-    final loc = _currentLocation;
-    if (loc == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('GPS not available — move to open area')));
-      return;
-    }
-    setState(() { _isGpsLookup = true; _gpsResult = null; });
-    final result = await GpsLookupService().lookup(loc.latitude, loc.longitude);
-    if (!mounted) return;
-    setState(() { _isGpsLookup = false; _gpsResult = result; });
+  // ── Building Block Picker ─────────────────────────────────────────────────
+  Future<void> _showBuildingBlockPicker(
+      BuildContext context, String photoPath, GpsLocation? location, OcrResult ocrResult) async {
+    String? selectedBlock;
+    String? selectedFlat;
 
-    if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not identify property — try entering details manually')));
-      return;
-    }
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final blocks = ocrResult.visibleBlocks;
+          final flats  = ocrResult.visibleFlats;
+          final hasBlocks = blocks.isNotEmpty;
+          final hasFlats  = flats.isNotEmpty;
 
-    // Navigate to manual search with GPS data pre-filled
-    context.push('/scan/manual', extra: {
-      'fromCamera': true,
-      'latitude': loc.latitude,
-      'longitude': loc.longitude,
-      'address': loc.address,
-      'ocrDistrict': result.district,
-      'ocrTaluk': result.taluk,
-      'ocrVillage': result.village,
-      'ocrSurveyNumber': result.surveyNumber,
-      'source': 'gps_dishank',
-    });
-  }
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A1A2E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                // Handle
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+                const SizedBox(height: 16),
 
-  Widget _modeTab({
-    required String label,
-    required IconData icon,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: active ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 13, color: active ? Colors.white : Colors.white60),
-            const SizedBox(width: 5),
-            Text(label,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-                    color: active ? Colors.white : Colors.white60)),
-          ],
-        ),
+                // Building name
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.apartment, color: Colors.greenAccent, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        ocrResult.buildingName ?? 'Building Detected',
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (ocrResult.buildingAddress != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(ocrResult.buildingAddress!,
+                              style: const TextStyle(color: Colors.white60, fontSize: 12),
+                              textAlign: TextAlign.center),
+                        ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Select your block / flat to check property details',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Block selector
+                        if (hasBlocks) ...[
+                          const Text('Select Block / Tower / Wing',
+                              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8, runSpacing: 8,
+                            children: blocks.map((b) => GestureDetector(
+                              onTap: () => setModalState(() { selectedBlock = b; selectedFlat = null; }),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: selectedBlock == b ? AppColors.primary : Colors.white12,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: selectedBlock == b ? AppColors.primary : Colors.white24,
+                                  ),
+                                ),
+                                child: Text(b,
+                                    style: TextStyle(
+                                      color: selectedBlock == b ? Colors.white : Colors.white70,
+                                      fontWeight: FontWeight.w600,
+                                    )),
+                              ),
+                            )).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Flat selector (if visible)
+                        if (hasFlats) ...[
+                          const Text('Select Flat / Unit',
+                              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8, runSpacing: 8,
+                            children: flats
+                              .where((f) => selectedBlock == null || f.startsWith(selectedBlock!))
+                              .map((f) => GestureDetector(
+                              onTap: () => setModalState(() => selectedFlat = f),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selectedFlat == f ? Colors.green.shade700 : Colors.white10,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: selectedFlat == f ? Colors.greenAccent : Colors.white24,
+                                  ),
+                                ),
+                                child: Text(f, style: TextStyle(
+                                  color: selectedFlat == f ? Colors.white : Colors.white60,
+                                  fontSize: 12,
+                                )),
+                              ),
+                            )).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Manual entry if no blocks/flats detected
+                        if (!hasBlocks && !hasFlats) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Row(children: [
+                              Icon(Icons.info_outline, color: Colors.white54, size: 16),
+                              SizedBox(width: 8),
+                              Expanded(child: Text(
+                                'No block numbers detected on this building. You can enter the flat/block number manually on the next screen.',
+                                style: TextStyle(color: Colors.white60, fontSize: 12),
+                              )),
+                            ]),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Continue button
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        final blockInfo = [
+                          if (ocrResult.buildingName != null) ocrResult.buildingName,
+                          if (selectedBlock != null) 'Block $selectedBlock',
+                          if (selectedFlat != null) 'Flat $selectedFlat',
+                        ].join(', ');
+
+                        context.push('/scan/manual', extra: {
+                          'fromCamera': true,
+                          'latitude':  location?.latitude,
+                          'longitude': location?.longitude,
+                          'address':   location?.address ?? ocrResult.buildingAddress,
+                          'photoPath': photoPath,
+                          'ocrOwnerName':    null,
+                          'ocrSurveyNumber': null,
+                          'ocrDistrict':     null,
+                          'ocrTaluk':        null,
+                          'ocrDocumentType': 'Building',
+                          'ocrConfidence':   ocrResult.confidence,
+                          // Building-specific extras shown in manual search
+                          'buildingName':  ocrResult.buildingName,
+                          'selectedBlock': selectedBlock,
+                          'selectedFlat':  selectedFlat,
+                          'buildingInfo':  blockInfo.isEmpty ? null : blockInfo,
+                        });
+                      },
+                      icon: const Icon(Icons.search),
+                      label: Text(
+                        selectedBlock != null || selectedFlat != null
+                            ? 'Check ${selectedFlat ?? selectedBlock ?? 'Property'}'
+                            : 'Continue — Enter Details',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
   Future<void> _showPhotoPreview(
-      BuildContext context, String photoPath, GpsLocation? location, PropertyScan scan) async {
+      BuildContext context, String photoPath, GpsLocation? location, PropertyScan scan, OcrResult ocrResult) async {
     final now = DateTime.now();
     final dateStr =
         '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}  ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
@@ -173,6 +319,7 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
         photoPath: photoPath,
         location: location,
         dateStr: dateStr,
+        ocrResult: ocrResult,
         onContinue: () {
           Navigator.pop(context);
           context.push('/scan/manual', extra: {
@@ -181,13 +328,12 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             'longitude': location?.longitude,
             'address': location?.address,
             'photoPath': photoPath,
-            // Pass OCR results so manual_search can pre-fill the form
-            'ocrSurveyNumber': _ocrResult?.surveyNumber,
-            'ocrOwnerName': _ocrResult?.ownerName,
-            'ocrTaluk': _ocrResult?.taluk,
-            'ocrDistrict': _ocrResult?.district,
-            'ocrDocumentType': _ocrResult?.documentType,
-            'ocrConfidence': _ocrResult?.confidence,
+            'ocrSurveyNumber': ocrResult.surveyNumber,
+            'ocrOwnerName': ocrResult.ownerName,
+            'ocrTaluk': ocrResult.taluk,
+            'ocrDistrict': ocrResult.district,
+            'ocrDocumentType': ocrResult.documentType,
+            'ocrConfidence': ocrResult.confidence,
           });
         },
       ),
@@ -226,148 +372,21 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             child: _GpsOverlay(location: _currentLocation),
           ),
 
-          // OCR status overlay (shown while reading document)
-          if (_isRunningOcr)
+          // GPS status
+          if (_currentLocation != null)
             Positioned(
               top: 70, left: 16, right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 14, height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.greenAccent,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Reading document...',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // OCR result banner (shown after OCR completes with data)
-          if (!_isRunningOcr && _ocrResult != null && _ocrResult!.hasUsefulData)
-            Positioned(
-              top: 70, left: 16, right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade900.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.greenAccent, width: 1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.auto_fix_high,
-                          color: Colors.greenAccent, size: 14),
-                      const SizedBox(width: 6),
-                      const Text('Document scanned',
-                          style: TextStyle(
-                              color: Colors.greenAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold)),
-                    ]),
-                    if (_ocrResult!.surveyNumber != null)
-                      Text('Survey No: ${_ocrResult!.surveyNumber}',
-                          style: const TextStyle(color: Colors.white, fontSize: 11)),
-                    if (_ocrResult!.ownerName != null)
-                      Text('Owner: ${_ocrResult!.ownerName}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                  ],
-                ),
-              ),
-            ),
-
-          // Mode toggle — Document OCR vs GPS Site Scan
-          Positioned(
-            top: 120, left: 0, right: 0,
-            child: Center(
-              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black54,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.all(3),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _modeTab(label: 'Scan Document', icon: Icons.document_scanner,
-                        active: !_scanMode, onTap: () => setState(() => _scanMode = false)),
-                    _modeTab(label: 'Scan Site', icon: Icons.place,
-                        active: _scanMode, onTap: () => setState(() => _scanMode = true)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // GPS lookup result banner
-          if (_isGpsLookup)
-            Positioned(
-              top: 170, left: 16, right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.greenAccent),
-                ),
-                child: const Row(
-                  children: [
-                    SizedBox(width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.greenAccent)),
-                    SizedBox(width: 10),
-                    Text('Looking up property at your location...',
-                        style: TextStyle(color: Colors.white, fontSize: 12)),
-                  ],
-                ),
-              ),
-            ),
-
-          if (!_isGpsLookup && _gpsResult != null && _gpsResult!.hasPartialData)
-            Positioned(
-              top: 170, left: 16, right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade900.withOpacity(0.92),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.greenAccent),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Row(children: [
-                      Icon(Icons.location_on, color: Colors.greenAccent, size: 14),
-                      SizedBox(width: 5),
-                      Text('Property identified', style: TextStyle(
-                          color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ]),
-                    if (_gpsResult!.district != null)
-                      Text('${_gpsResult!.district}  ›  ${_gpsResult!.taluk ?? ""}  ›  ${_gpsResult!.village ?? ""}',
-                          style: const TextStyle(color: Colors.white, fontSize: 11)),
-                    if (_gpsResult!.surveyNumber != null)
-                      Text('Survey No: ${_gpsResult!.surveyNumber}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12,
-                              fontWeight: FontWeight.bold)),
-                    if (_gpsResult!.surveyNumber == null)
-                      const Text('Survey number not found — check Dishank manually',
-                          style: TextStyle(color: Colors.orange, fontSize: 10)),
-                  ],
+                child: Text(
+                  'GPS: ${_currentLocation!.address ?? _currentLocation!.coordinatesString}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
@@ -377,15 +396,35 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             painter: _GridPainter(),
           ),
 
+          // OCR loading overlay
+          if (_isRunningOcr)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text('Reading document with AI...',
+                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                    SizedBox(height: 6),
+                    Text('Extracting survey number, owner, taluk...',
+                        style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ),
+
           // Bottom Controls
           Positioned(
             bottom: 0, left: 0, right: 0,
             child: _CaptureControls(
-              isCapturing: _isCapturing || _isGpsLookup,
+              isCapturing: _isCapturing,
               location: _currentLocation,
               error: _captureError,
-              scanMode: _scanMode,
-              onCapture: _scanMode ? _doGpsLookup : _capturePhoto,
+              scanMode: false,
+              onCapture: _capturePhoto,
               onGallery: () async {
                 final path = await _cameraService.pickFromGallery();
                 if (path != null && mounted) {
@@ -521,21 +560,13 @@ class _PhotoPreviewSheet extends StatelessWidget {
   final String photoPath;
   final GpsLocation? location;
   final String dateStr;
+  final OcrResult ocrResult;
   final VoidCallback onContinue;
 
   const _PhotoPreviewSheet({
     required this.photoPath, required this.location,
-    required this.dateStr, required this.onContinue,
+    required this.dateStr, required this.ocrResult, required this.onContinue,
   });
-
-  Future<void> _openDishank() async {
-    // Try Dishank app first, fall back to Play Store
-    final appUri = Uri.parse('intent://open#Intent;package=in.ksrsac.dishank;scheme=dishank;end');
-    final playUri = Uri.parse('https://play.google.com/store/apps/details?id=in.ksrsac.dishank');
-    if (!await launchUrl(appUri, mode: LaunchMode.externalApplication)) {
-      await launchUrl(playUri, mode: LaunchMode.externalApplication);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -614,42 +645,68 @@ class _PhotoPreviewSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             child: Column(
               children: [
-                // Dishank tip
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A237E).withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.map, color: Colors.white70, size: 16),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text(
-                          'Don\'t know the survey number? Open Dishank — tap your plot on the map to get it.',
-                          style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                // OCR results banner
+                if (ocrResult.hasUsefulData)
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.15),
+                      border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(children: [
+                          Icon(Icons.auto_awesome, color: Colors.greenAccent, size: 14),
+                          SizedBox(width: 6),
+                          Text('AI extracted from document',
+                              style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ]),
+                        const SizedBox(height: 6),
+                        if (ocrResult.surveyNumber != null)
+                          _ocrRow('Survey No.', ocrResult.surveyNumber!),
+                        if (ocrResult.ownerName != null)
+                          _ocrRow('Owner', ocrResult.ownerName!),
+                        if (ocrResult.taluk != null)
+                          _ocrRow('Taluk', ocrResult.taluk!),
+                        if (ocrResult.district != null)
+                          _ocrRow('District', ocrResult.district!),
+                        if (ocrResult.documentType != null)
+                          _ocrRow('Doc Type', ocrResult.documentType!),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.white54, size: 16),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Could not read document. You can enter survey number manually on the next screen.',
+                            style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: _openDishank,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.lightBlueAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                        child: const Text('Open\nDishank', textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: onContinue,
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Continue — Enter Survey No.'),
+                    label: Text(ocrResult.hasUsefulData
+                        ? 'Continue — Verify Details'
+                        : 'Continue — Enter Survey No.'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -665,6 +722,19 @@ class _PhotoPreviewSheet extends StatelessWidget {
     );
   }
 }
+
+Widget _ocrRow(String label, String value) => Padding(
+  padding: const EdgeInsets.only(top: 3),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(width: 72,
+        child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11))),
+      Expanded(child: Text(value,
+          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600))),
+    ],
+  ),
+);
 
 // ─── Grid Lines Painter ────────────────────────────────────────────────────────
 class _GridPainter extends CustomPainter {

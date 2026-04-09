@@ -13,7 +13,30 @@ import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 
 class ManualSearchScreen extends ConsumerStatefulWidget {
-  const ManualSearchScreen({super.key});
+  // Pre-fill values from OCR or GPS
+  final String? prefillSurveyNumber;
+  final String? prefillOwnerName;
+  final String? prefillDistrict;
+  final String? prefillTaluk;
+  final String? prefillDocumentType;
+  // Building scan extras
+  final String? buildingName;
+  final String? selectedBlock;
+  final String? selectedFlat;
+  final String? buildingInfo;
+
+  const ManualSearchScreen({
+    super.key,
+    this.prefillSurveyNumber,
+    this.prefillOwnerName,
+    this.prefillDistrict,
+    this.prefillTaluk,
+    this.prefillDocumentType,
+    this.buildingName,
+    this.selectedBlock,
+    this.selectedFlat,
+    this.buildingInfo,
+  });
 
   @override
   ConsumerState<ManualSearchScreen> createState() => _ManualSearchScreenState();
@@ -29,6 +52,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   String? _selectedVillage;
   bool _isDetectingGps = false;
   String? _gpsMessage;
+  bool _prefillApplied = false;  // banner: show when OCR pre-filled
 
   // Dynamic dropdown data (fetched from Bhoomi)
   List<String> _hobliList  = [];
@@ -117,16 +141,193 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     'Ramanagara_Ramanagara':           ['Ramanagara', 'Channapatna'],
     'Ramanagara_Magadi':               ['Kasaba', 'Magadi', 'Solur'],
     // Tumakuru
-    'Tumakuru_Tumakuru':               ['Kasaba', 'Madhugiri', 'Tiptur'],
+    'Tumakuru_Tumakuru':               ['Kasaba', 'Madhugiri', 'Tiptur', 'Gubbi'],
+    'Tumakuru_Tiptur':                 ['Kasaba', 'Tiptur', 'Turuvekere'],
+    'Tumakuru_Madhugiri':              ['Kasaba', 'Madhugiri', 'Sira', 'Pavagada'],
+    'Tumakuru_Kunigal':                ['Kasaba', 'Kunigal', 'Yediyur'],
+    'Tumakuru_Chikkanayakanahalli':    ['Kasaba', 'Chikkanayakanahalli'],
+    'Tumakuru_Koratagere':             ['Kasaba', 'Koratagere'],
+    'Tumakuru_Gubbi':                  ['Kasaba', 'Gubbi'],
+    'Tumakuru_Pavagada':               ['Kasaba', 'Pavagada'],
+    'Tumakuru_Sira':                   ['Kasaba', 'Sira'],
     // Kolar
-    'Kolar_Kolar':                     ['Kasaba', 'Bangarpet', 'Mulbagal'],
+    'Kolar_Kolar':                     ['Kasaba', 'Bangarpet', 'Mulbagal', 'Malur'],
     'Kolar_KGF':                       ['Kasaba', 'Robertsonpet'],
+    'Kolar_Bangarpet':                 ['Kasaba', 'Bangarpet'],
+    'Kolar_Malur':                     ['Kasaba', 'Malur'],
+    'Kolar_Mulbagal':                  ['Kasaba', 'Mulbagal'],
+    'Kolar_Srinivasapura':             ['Kasaba', 'Srinivasapura'],
+    // Chikkaballapura
+    'Chikkaballapura_Chikkaballapura': ['Kasaba', 'Gudibanda', 'Nandi'],
+    'Chikkaballapura_Chintamani':      ['Kasaba', 'Chintamani', 'Shidlaghatta'],
+    'Chikkaballapura_Gauribidanur':    ['Kasaba', 'Gauribidanur'],
+    'Chikkaballapura_Bagepalli':       ['Kasaba', 'Bagepalli'],
+    'Chikkaballapura_Gudibanda':       ['Kasaba', 'Gudibanda'],
+    'Chikkaballapura_Sidlaghatta':     ['Kasaba', 'Sidlaghatta'],
     // Hassan
-    'Hassan_Hassan':                   ['Kasaba', 'Arakalagudu', 'Channarayapatna'],
+    'Hassan_Hassan':                   ['Kasaba', 'Arakalagudu', 'Channarayapatna', 'Holenarasipur'],
+    'Hassan_Arsikere':                 ['Kasaba', 'Arsikere', 'Belur'],
+    'Hassan_Belur':                    ['Kasaba', 'Belur'],
+    'Hassan_Holenarasipur':            ['Kasaba', 'Holenarasipur'],
+    'Hassan_Sakleshpur':               ['Kasaba', 'Sakleshpur'],
+    'Hassan_Alur':                     ['Kasaba', 'Alur'],
     // Shivamogga
-    'Shivamogga_Shivamogga':          ['Kasaba', 'Bhadravati', 'Hosanagara'],
-    // Belagavi
-    'Belagavi_Belagavi':               ['Kasaba', 'Khanapur', 'Gokak'],
+    'Shivamogga_Shivamogga':          ['Kasaba', 'Bhadravati', 'Hosanagara', 'Sagar'],
+    'Shivamogga_Bhadravati':           ['Kasaba', 'Bhadravati'],
+    'Shivamogga_Sagar':                ['Kasaba', 'Sagar', 'Sorab'],
+    'Shivamogga_Shikaripura':          ['Kasaba', 'Shikaripura'],
+    'Shivamogga_Thirthahalli':         ['Kasaba', 'Thirthahalli'],
+    'Shivamogga_Hosanagara':           ['Kasaba', 'Hosanagara'],
+    'Shivamogga_Sorab':                ['Kasaba', 'Sorab'],
+    // Chikkamagaluru
+    'Chikkamagaluru_Chikkamagaluru':   ['Kasaba', 'Birur', 'Kadur', 'Mudigere'],
+    'Chikkamagaluru_Kadur':            ['Kasaba', 'Kadur', 'Birur'],
+    'Chikkamagaluru_Koppa':            ['Kasaba', 'Koppa'],
+    'Chikkamagaluru_Mudigere':         ['Kasaba', 'Mudigere'],
+    'Chikkamagaluru_Tarikere':         ['Kasaba', 'Tarikere'],
+    'Chikkamagaluru_Sringeri':         ['Kasaba', 'Sringeri'],
+    'Chikkamagaluru_N.R.Pura':         ['Kasaba', 'N.R.Pura'],
+    'Chikkamagaluru_Birur':            ['Kasaba', 'Birur'],
+    // Dakshina Kannada
+    'Dakshina Kannada_Mangaluru':      ['Kasaba', 'Mulki', 'Bajpe', 'Moodabidre', 'Ullal'],
+    'Dakshina Kannada_Bantwal':        ['Kasaba', 'Bantwal', 'Puttur'],
+    'Dakshina Kannada_Puttur':         ['Kasaba', 'Puttur', 'Sullia'],
+    'Dakshina Kannada_Belthangady':    ['Kasaba', 'Belthangady', 'Dharmasthala'],
+    'Dakshina Kannada_Sullia':         ['Kasaba', 'Sullia'],
+    // Udupi
+    'Udupi_Udupi':                     ['Kasaba', 'Brahmavar', 'Kaup', 'Kota'],
+    'Udupi_Kundapura':                 ['Kasaba', 'Kundapura', 'Byndoor'],
+    'Udupi_Karkala':                   ['Kasaba', 'Karkala', 'Moodbidri'],
+    // Uttara Kannada
+    'Uttara Kannada_Karwar':           ['Kasaba', 'Karwar', 'Ankola'],
+    'Uttara Kannada_Ankola':           ['Kasaba', 'Ankola'],
+    'Uttara Kannada_Sirsi':            ['Kasaba', 'Sirsi', 'Siddapur', 'Yellapur'],
+    'Uttara Kannada_Kumta':            ['Kasaba', 'Kumta', 'Honnavar'],
+    'Uttara Kannada_Bhatkal':          ['Kasaba', 'Bhatkal', 'Honnavar'],
+    'Uttara Kannada_Haliyal':          ['Kasaba', 'Haliyal', 'Mundgod'],
+    'Uttara Kannada_Siddapur':         ['Kasaba', 'Siddapur'],
+    'Uttara Kannada_Mundgod':          ['Kasaba', 'Mundgod'],
+    'Uttara Kannada_Yellapur':         ['Kasaba', 'Yellapur'],
+    'Uttara Kannada_Supa':             ['Kasaba', 'Supa'],
+    // Kodagu
+    'Kodagu_Madikeri':                 ['Kasaba', 'Madikeri', 'Napoklu', 'Bhagamandala'],
+    'Kodagu_Somwarpet':                ['Kasaba', 'Somwarpet', 'Shanthally'],
+    'Kodagu_Virajpet':                 ['Kasaba', 'Virajpet', 'Ponnampet', 'Gonikoppal'],
+    // Mandya
+    'Mandya_Mandya':                   ['Kasaba', 'Maddur', 'Malavalli', 'Pandavapura'],
+    'Mandya_Maddur':                   ['Kasaba', 'Maddur'],
+    'Mandya_Malavalli':                ['Kasaba', 'Malavalli'],
+    'Mandya_Krishnarajapete':          ['Kasaba', 'Krishnarajapete'],
+    'Mandya_Nagamangala':              ['Kasaba', 'Nagamangala'],
+    'Mandya_Pandavapura':              ['Kasaba', 'Pandavapura'],
+    'Mandya_Shrirangapattana':         ['Kasaba', 'Shrirangapattana'],
+    // Chamarajanagar
+    'Chamarajanagar_Chamarajanagar':   ['Kasaba', 'Gundlupete', 'Yelandur'],
+    'Chamarajanagar_Gundlupete':       ['Kasaba', 'Gundlupete', 'Hanur'],
+    'Chamarajanagar_Kollegal':         ['Kasaba', 'Kollegal'],
+    'Chamarajanagar_Yelandur':         ['Kasaba', 'Yelandur'],
+    // Mysuru (expanded)
+    'Mysuru_K.R.Nagar':               ['Kasaba', 'K.R.Nagar', 'Hunsur'],
+    'Mysuru_T.Narasipura':             ['Kasaba', 'T.Narasipura', 'Bannur'],
+    'Mysuru_Periyapatna':              ['Kasaba', 'Periyapatna'],
+    // Davanagere
+    'Davanagere_Davanagere':           ['Kasaba', 'Jagalur', 'Honnali', 'Channagiri'],
+    'Davanagere_Channagiri':           ['Kasaba', 'Channagiri'],
+    'Davanagere_Harihara':             ['Kasaba', 'Harihara'],
+    'Davanagere_Honnali':              ['Kasaba', 'Honnali'],
+    'Davanagere_Jagalur':              ['Kasaba', 'Jagalur'],
+    'Davanagere_Nyamathi':             ['Kasaba', 'Nyamathi'],
+    // Chitradurga
+    'Chitradurga_Chitradurga':         ['Kasaba', 'Hiriyur', 'Holalkere', 'Hosadurga'],
+    'Chitradurga_Hiriyur':             ['Kasaba', 'Hiriyur'],
+    'Chitradurga_Holalkere':           ['Kasaba', 'Holalkere'],
+    'Chitradurga_Hosadurga':           ['Kasaba', 'Hosadurga'],
+    'Chitradurga_Challakere':          ['Kasaba', 'Challakere', 'Molakalmuru'],
+    'Chitradurga_Molakalmuru':         ['Kasaba', 'Molakalmuru'],
+    // Gadag
+    'Gadag_Gadag':                     ['Kasaba', 'Ron', 'Nargund', 'Mundargi'],
+    'Gadag_Ron':                       ['Kasaba', 'Ron'],
+    'Gadag_Nargund':                   ['Kasaba', 'Nargund'],
+    'Gadag_Mundargi':                  ['Kasaba', 'Mundargi'],
+    'Gadag_Shirahatti':                ['Kasaba', 'Shirahatti'],
+    // Haveri
+    'Haveri_Haveri':                   ['Kasaba', 'Ranebennur', 'Shiggaon', 'Savanur'],
+    'Haveri_Ranebennur':               ['Kasaba', 'Ranebennur'],
+    'Haveri_Shiggaon':                 ['Kasaba', 'Shiggaon'],
+    'Haveri_Byadagi':                  ['Kasaba', 'Byadagi'],
+    'Haveri_Hangal':                   ['Kasaba', 'Hangal'],
+    'Haveri_Hirekerur':                ['Kasaba', 'Hirekerur'],
+    'Haveri_Savanur':                  ['Kasaba', 'Savanur'],
+    // Dharwad / Hubballi-Dharwad
+    'Hubballi-Dharwad_Hubballi':       ['Kasaba', 'Hubballi', 'Dharwad', 'Kundgol'],
+    'Hubballi-Dharwad_Dharwad':        ['Kasaba', 'Dharwad', 'Navalgund'],
+    'Hubballi-Dharwad_Kundgol':        ['Kasaba', 'Kundgol'],
+    'Hubballi-Dharwad_Kalghatgi':      ['Kasaba', 'Kalghatgi'],
+    'Hubballi-Dharwad_Navalgund':      ['Kasaba', 'Navalgund'],
+    'Dharwad_Dharwad':                 ['Kasaba', 'Navalgund', 'Kundgol'],
+    'Dharwad_Hubli':                   ['Kasaba', 'Hubli'],
+    // Koppal
+    'Koppal_Koppal':                   ['Kasaba', 'Gangavathi', 'Kushtagi', 'Yelburga'],
+    'Koppal_Gangavathi':               ['Kasaba', 'Gangavathi'],
+    'Koppal_Kushtagi':                 ['Kasaba', 'Kushtagi'],
+    'Koppal_Yelburga':                 ['Kasaba', 'Yelburga'],
+    // Ballari
+    'Ballari_Ballari':                 ['Kasaba', 'Hospet', 'Sandur', 'Siruguppa'],
+    'Ballari_Hospet':                  ['Kasaba', 'Hospet', 'Kampli'],
+    'Ballari_Sandur':                  ['Kasaba', 'Sandur'],
+    'Ballari_Siruguppa':               ['Kasaba', 'Siruguppa'],
+    'Ballari_Hadagali':                ['Kasaba', 'Hadagali'],
+    'Ballari_Hagaribommanahalli':      ['Kasaba', 'Hagaribommanahalli'],
+    'Ballari_Kudligi':                 ['Kasaba', 'Kudligi'],
+    // Raichur
+    'Raichur_Raichur':                 ['Kasaba', 'Sindhanur', 'Manvi', 'Lingsugur'],
+    'Raichur_Sindhanur':               ['Kasaba', 'Sindhanur'],
+    'Raichur_Manvi':                   ['Kasaba', 'Manvi'],
+    'Raichur_Lingsugur':               ['Kasaba', 'Lingsugur'],
+    'Raichur_Deodurga':                ['Kasaba', 'Deodurga'],
+    // Yadgir
+    'Yadgir_Yadgir':                   ['Kasaba', 'Shorapur', 'Shahapur'],
+    'Yadgir_Shorapur':                 ['Kasaba', 'Shorapur', 'Gurmatkal'],
+    'Yadgir_Shahapur':                 ['Kasaba', 'Shahapur'],
+    // Kalaburagi
+    'Kalaburagi_Kalaburagi':           ['Kasaba', 'Aland', 'Afzalpur', 'Sedam'],
+    'Kalaburagi_Aland':                ['Kasaba', 'Aland'],
+    'Kalaburagi_Afzalpur':             ['Kasaba', 'Afzalpur'],
+    'Kalaburagi_Chincholi':            ['Kasaba', 'Chincholi'],
+    'Kalaburagi_Chittapur':            ['Kasaba', 'Chittapur'],
+    'Kalaburagi_Gurmatkal':            ['Kasaba', 'Gurmatkal'],
+    'Kalaburagi_Jevargi':              ['Kasaba', 'Jevargi'],
+    'Kalaburagi_Sedam':                ['Kasaba', 'Sedam'],
+    // Bidar
+    'Bidar_Bidar':                     ['Kasaba', 'Basavakalyan', 'Bhalki', 'Humnabad'],
+    'Bidar_Basavakalyan':              ['Kasaba', 'Basavakalyan'],
+    'Bidar_Bhalki':                    ['Kasaba', 'Bhalki'],
+    'Bidar_Humnabad':                  ['Kasaba', 'Humnabad'],
+    'Bidar_Aurad':                     ['Kasaba', 'Aurad'],
+    // Vijayapura
+    'Vijayapura_Vijayapura':           ['Kasaba', 'Indi', 'Sindagi', 'Muddebihal'],
+    'Vijayapura_Bijapur':              ['Kasaba', 'Bijapur', 'Indi'],
+    'Vijayapura_Indi':                 ['Kasaba', 'Indi'],
+    'Vijayapura_Sindagi':              ['Kasaba', 'Sindagi'],
+    'Vijayapura_Muddebihal':           ['Kasaba', 'Muddebihal'],
+    'Vijayapura_Basavana Bagevadi':    ['Kasaba', 'Basavana Bagevadi'],
+    // Belagavi (expanded)
+    'Belagavi_Belagavi':               ['Kasaba', 'Khanapur', 'Gokak', 'Chikkodi'],
+    'Belagavi_Athani':                 ['Kasaba', 'Athani'],
+    'Belagavi_Bailhongal':             ['Kasaba', 'Bailhongal'],
+    'Belagavi_Chikkodi':               ['Kasaba', 'Chikkodi'],
+    'Belagavi_Gokak':                  ['Kasaba', 'Gokak'],
+    'Belagavi_Hukkeri':                ['Kasaba', 'Hukkeri'],
+    'Belagavi_Khanapur':               ['Kasaba', 'Khanapur'],
+    'Belagavi_Raibag':                 ['Kasaba', 'Raibag'],
+    'Belagavi_Ramdurg':                ['Kasaba', 'Ramdurg'],
+    'Belagavi_Savadatti':              ['Kasaba', 'Savadatti'],
+    // Mangaluru (expanded)
+    'Mangaluru_Puttur':                ['Kasaba', 'Puttur'],
+    'Mangaluru_Sullia':                ['Kasaba', 'Sullia'],
+    'Mangaluru_Belthangady':           ['Kasaba', 'Belthangady'],
+    // Ramanagara (expanded)
+    'Ramanagara_Channapatna':          ['Kasaba', 'Channapatna'],
   };
 
   // ─── Village map (district_taluk_hobli → villages) ───────────────────────
@@ -233,6 +434,45 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill from OCR results passed by camera scan screen
+    final sv = widget.prefillSurveyNumber;
+    final owner = widget.prefillOwnerName;
+    final district = widget.prefillDistrict;
+    final taluk = widget.prefillTaluk;
+    if (sv != null && sv.isNotEmpty) {
+      _surveyController.text = sv;
+      _prefillApplied = true;
+    }
+    if (owner != null && owner.isNotEmpty) {
+      _ownerNameController.text = owner;
+      _prefillApplied = true;
+    }
+    if (district != null && district.isNotEmpty) {
+      // Try exact match first, then case-insensitive
+      final matched = districtTaluks.keys.firstWhere(
+        (d) => d.toLowerCase() == district.toLowerCase(),
+        orElse: () => '',
+      );
+      if (matched.isNotEmpty) {
+        _selectedDistrict = matched;
+        _prefillApplied = true;
+      }
+    }
+    if (taluk != null && taluk.isNotEmpty && _selectedDistrict != null) {
+      final taluks = districtTaluks[_selectedDistrict] ?? [];
+      final matched = taluks.firstWhere(
+        (t) => t.toLowerCase() == taluk.toLowerCase(),
+        orElse: () => '',
+      );
+      if (matched.isNotEmpty) {
+        _selectedTaluk = matched;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _surveyController.dispose();
     _ownerNameController.dispose();
@@ -325,6 +565,73 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              // ── Building scan banner ─────────────────────────────────
+              if (widget.buildingInfo != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE3F2FD),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.blue.shade300),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        const Icon(Icons.apartment, color: Colors.blue, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(
+                          widget.buildingName ?? 'Building Scan',
+                          style: const TextStyle(color: Color(0xFF1565C0), fontSize: 13, fontWeight: FontWeight.bold),
+                        )),
+                      ]),
+                      if (widget.selectedBlock != null || widget.selectedFlat != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, left: 26),
+                          child: Text(
+                            [
+                              if (widget.selectedBlock != null) 'Block: ${widget.selectedBlock}',
+                              if (widget.selectedFlat != null) 'Flat: ${widget.selectedFlat}',
+                            ].join('  |  '),
+                            style: const TextStyle(color: Color(0xFF1565C0), fontSize: 12),
+                          ),
+                        ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4, left: 26),
+                        child: Text(
+                          'Enter the survey number from your sale deed or ask the builder for the property details.',
+                          style: TextStyle(color: Colors.blue, fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // ── OCR Pre-fill Banner ──────────────────────────────────
+              if (_prefillApplied && widget.buildingInfo == null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.green.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: Colors.green, size: 18),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Fields pre-filled from your document scan. Review and confirm before checking.',
+                          style: TextStyle(color: Color(0xFF2E7D32), fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // ── State Selector ───────────────────────────────────────
               Container(

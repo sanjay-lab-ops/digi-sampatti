@@ -20,11 +20,37 @@ import 'package:digi_sampatti/core/models/professional_model.dart';
 class ProfessionalService {
   static final ProfessionalService _i = ProfessionalService._();
   factory ProfessionalService() => _i;
-  ProfessionalService._();
 
-  final _db = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  final _storage = FirebaseStorage.instance;
+  // Cached nullable fields — safe even if Firebase not initialized
+  static FirebaseFirestore? _db;
+  static FirebaseAuth? _auth;
+  static FirebaseStorage? _storage;
+  static bool _firebaseAvailable = false;
+
+  ProfessionalService._() {
+    try {
+      _db = FirebaseFirestore.instance;
+      _auth = FirebaseAuth.instance;
+      _storage = FirebaseStorage.instance;
+      _firebaseAvailable = true;
+    } catch (_) {
+      _firebaseAvailable = false;
+    }
+  }
+
+  bool get isFirebaseAvailable => _firebaseAvailable;
+
+  /// Returns non-null db or throws a user-friendly error
+  FirebaseFirestore get _requireDb {
+    final db = _db;
+    if (db == null) throw Exception('Firebase not available');
+    return db;
+  }
+  FirebaseStorage get _requireStorage {
+    final st = _storage;
+    if (st == null) throw Exception('Firebase Storage not available');
+    return st;
+  }
 
   // ─── Registration ──────────────────────────────────────────────────────────
 
@@ -45,18 +71,20 @@ class ProfessionalService {
     File? licenseImageFile,
     File? profilePhotoFile,
   }) async {
-    final user = _auth.currentUser;
+    if (!_firebaseAvailable || _auth == null) return 'Firebase not available — contact support via WhatsApp';
+
+    final user = _auth!.currentUser;
     if (user == null) return 'Not logged in';
 
     try {
       // Check if already registered
-      final existing = await _db.collection('professionals').doc(user.uid).get();
+      final existing = await _requireDb.collection('professionals').doc(user.uid).get();
       if (existing.exists) return 'You already have a professional profile';
 
       // Upload license image if provided
       String? licenseImageUrl;
       if (licenseImageFile != null) {
-        final ref = _storage.ref('professional_docs/${user.uid}/license.jpg');
+        final ref = _requireStorage.ref('professional_docs/${user.uid}/license.jpg');
         await ref.putFile(licenseImageFile);
         licenseImageUrl = await ref.getDownloadURL();
       }
@@ -64,7 +92,7 @@ class ProfessionalService {
       // Upload profile photo if provided
       String? profilePhotoUrl;
       if (profilePhotoFile != null) {
-        final ref = _storage.ref('professional_photos/${user.uid}/profile.jpg');
+        final ref = _requireStorage.ref('professional_photos/${user.uid}/profile.jpg');
         await ref.putFile(profilePhotoFile);
         profilePhotoUrl = await ref.getDownloadURL();
       }
@@ -90,10 +118,10 @@ class ProfessionalService {
         registeredAt: DateTime.now(),
       );
 
-      await _db.collection('professionals').doc(user.uid).set(profile.toMap());
+      await _requireDb.collection('professionals').doc(user.uid).set(profile.toMap());
 
       // Notify admin via a separate collection (admin monitors this)
-      await _db.collection('admin_notifications').add({
+      await _requireDb.collection('admin_notifications').add({
         'type': 'new_professional_application',
         'uid': user.uid,
         'phone': user.phoneNumber ?? '',
@@ -112,10 +140,10 @@ class ProfessionalService {
   // ─── Get Own Profile ───────────────────────────────────────────────────────
 
   Future<ProfessionalProfile?> getMyProfile() async {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return null;
     try {
-      final doc = await _db.collection('professionals').doc(user.uid).get();
+      final doc = await _requireDb.collection('professionals').doc(user.uid).get();
       if (!doc.exists) return null;
       return ProfessionalProfile.fromMap(doc.id, doc.data()!);
     } catch (_) {
@@ -124,9 +152,9 @@ class ProfessionalService {
   }
 
   Stream<ProfessionalProfile?> watchMyProfile() {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return const Stream.empty();
-    return _db
+    return _requireDb
         .collection('professionals')
         .doc(user.uid)
         .snapshots()
@@ -147,7 +175,7 @@ class ProfessionalService {
     String? whatsappNumber,
     File? profilePhotoFile,
   }) async {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return 'Not logged in';
     try {
       final updates = <String, dynamic>{};
@@ -160,12 +188,12 @@ class ProfessionalService {
       if (whatsappNumber != null) updates['whatsappNumber'] = whatsappNumber;
 
       if (profilePhotoFile != null) {
-        final ref = _storage.ref('professional_photos/${user.uid}/profile.jpg');
+        final ref = _requireStorage.ref('professional_photos/${user.uid}/profile.jpg');
         await ref.putFile(profilePhotoFile);
         updates['profilePhotoUrl'] = await ref.getDownloadURL();
       }
 
-      await _db.collection('professionals').doc(user.uid).update(updates);
+      await _requireDb.collection('professionals').doc(user.uid).update(updates);
       return null;
     } catch (e) {
       return 'Update failed: $e';
@@ -180,7 +208,7 @@ class ProfessionalService {
     String? district,
   }) async {
     try {
-      Query query = _db
+      Query query = _requireDb
           .collection('professionals')
           .where('status', isEqualTo: 'verified')
           .where('type', isEqualTo: type.name)
@@ -210,17 +238,20 @@ class ProfessionalService {
   /// Get all verified professionals across all types for a district.
   Future<Map<ProfessionalType, List<ProfessionalProfile>>> getAllForDistrict(
       String? district) async {
+    if (!_firebaseAvailable) return {};   // Firebase not available — return empty map gracefully
     final result = <ProfessionalType, List<ProfessionalProfile>>{};
-    await Future.wait(ProfessionalType.values.map((type) async {
-      result[type] = await getVerifiedProfessionals(type: type, district: district);
-    }));
+    try {
+      await Future.wait(ProfessionalType.values.map((type) async {
+        result[type] = await getVerifiedProfessionals(type: type, district: district);
+      }));
+    } catch (_) {}
     return result;
   }
 
   /// Get single professional profile.
   Future<ProfessionalProfile?> getProfile(String uid) async {
     try {
-      final doc = await _db.collection('professionals').doc(uid).get();
+      final doc = await _requireDb.collection('professionals').doc(uid).get();
       if (!doc.exists) return null;
       return ProfessionalProfile.fromMap(doc.id, doc.data()!);
     } catch (_) {
@@ -237,7 +268,7 @@ class ProfessionalService {
     String? district,
     String? message,
   }) async {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return false;
     try {
       final lead = ProfessionalLead(
@@ -252,15 +283,15 @@ class ProfessionalService {
       );
 
       // Save to global leads collection (professional reads this)
-      await _db.collection('professional_leads').add(lead.toMap());
+      await _requireDb.collection('professional_leads').add(lead.toMap());
 
       // Increment lead count on professional profile
-      await _db.collection('professionals').doc(professionalUid).update({
+      await _requireDb.collection('professionals').doc(professionalUid).update({
         'leadCount': FieldValue.increment(1),
       });
 
       // Save under buyer's history
-      await _db
+      await _requireDb
           .collection('users')
           .doc(user.uid)
           .collection('professional_requests')
@@ -275,9 +306,9 @@ class ProfessionalService {
   // ─── Leads — Professional reads their leads ────────────────────────────────
 
   Stream<List<ProfessionalLead>> watchMyLeads() {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return const Stream.empty();
-    return _db
+    return _requireDb
         .collection('professional_leads')
         .where('professionalUid', isEqualTo: user.uid)
         .orderBy('requestedAt', descending: true)
@@ -289,11 +320,11 @@ class ProfessionalService {
   }
 
   Future<void> markLeadViewed(String leadId) async {
-    await _db.collection('professional_leads').doc(leadId).update({'status': 'viewed'});
+    await _requireDb.collection('professional_leads').doc(leadId).update({'status': 'viewed'});
   }
 
   Future<void> markLeadContacted(String leadId) async {
-    await _db.collection('professional_leads').doc(leadId).update({'status': 'contacted'});
+    await _requireDb.collection('professional_leads').doc(leadId).update({'status': 'contacted'});
   }
 
   // ─── Reviews ──────────────────────────────────────────────────────────────
@@ -303,10 +334,10 @@ class ProfessionalService {
     required double rating,
     required String review,
   }) async {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return false;
     try {
-      await _db
+      await _requireDb
           .collection('professionals')
           .doc(professionalUid)
           .collection('reviews')
@@ -320,8 +351,8 @@ class ProfessionalService {
       });
 
       // Recalculate average rating via Firestore transaction
-      await _db.runTransaction((tx) async {
-        final reviews = await _db
+      await _requireDb.runTransaction((tx) async {
+        final reviews = await _requireDb
             .collection('professionals')
             .doc(professionalUid)
             .collection('reviews')
@@ -331,7 +362,7 @@ class ProfessionalService {
             .toList();
         final avg = ratings.isEmpty ? 0.0
             : ratings.reduce((a, b) => a + b) / ratings.length;
-        tx.update(_db.collection('professionals').doc(professionalUid), {
+        tx.update(_requireDb.collection('professionals').doc(professionalUid), {
           'rating': double.parse(avg.toStringAsFixed(1)),
           'reviewCount': ratings.length,
         });
@@ -346,9 +377,9 @@ class ProfessionalService {
   // ─── Check if current user is a registered professional ───────────────────
 
   Future<bool> isRegisteredProfessional() async {
-    final user = _auth.currentUser;
+    final user = _auth!.currentUser;
     if (user == null) return false;
-    final doc = await _db.collection('professionals').doc(user.uid).get();
+    final doc = await _requireDb.collection('professionals').doc(user.uid).get();
     return doc.exists;
   }
 }

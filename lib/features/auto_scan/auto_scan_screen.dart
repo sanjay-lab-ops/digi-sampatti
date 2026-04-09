@@ -210,15 +210,19 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   }
 
   // ─── Risk level from full result ──────────────────────────────────────────
-  String get _riskLevel => _fullResult?['risk_level'] ?? 'UNKNOWN';
-  List get _riskFlags   => _fullResult?['risk_flags'] ?? [];
+  String get _riskLevel        => _fullResult?['risk_level'] ?? 'UNKNOWN';
+  List   get _riskFlags        => _fullResult?['risk_flags'] ?? [];
+  List   get _fraudPatterns    => _fullResult?['fraud_patterns'] ?? [];
+  int    get _investmentScore  => (_fullResult?['investment_score'] ?? 0) as int;
+  String get _investmentVerdict=> _fullResult?['investment_verdict'] ?? '';
 
   Color get _riskColor {
     switch (_riskLevel) {
-      case 'SAFE':    return AppColors.safe;
-      case 'CAUTION': return Colors.orange;
-      case 'HIGH':    return Colors.red;
-      default:        return Colors.grey;
+      case 'SAFE':     return AppColors.safe;
+      case 'CAUTION':  return Colors.orange;
+      case 'HIGH':     return Colors.red;
+      case 'CRITICAL': return const Color(0xFF7B0000);
+      default:         return Colors.grey;
     }
   }
 
@@ -511,68 +515,225 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   }
 
   Widget _buildRiskSummary() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _riskColor.withOpacity(0.07),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _riskColor.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final String riskLabel;
+    final IconData riskIcon;
+    switch (_riskLevel) {
+      case 'SAFE':
+        riskLabel = 'Property looks SAFE';
+        riskIcon  = Icons.verified;
+        break;
+      case 'CAUTION':
+        riskLabel = 'Proceed with CAUTION';
+        riskIcon  = Icons.warning_amber_rounded;
+        break;
+      case 'HIGH':
+        riskLabel = 'HIGH RISK — Do Not Proceed';
+        riskIcon  = Icons.dangerous;
+        break;
+      case 'CRITICAL':
+        riskLabel = 'CRITICAL — Likely Fraud Detected';
+        riskIcon  = Icons.gpp_bad;
+        break;
+      default:
+        riskLabel = 'Unknown';
+        riskIcon  = Icons.help_outline;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Investment Score Card ─────────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                _investmentScoreColor.withOpacity(0.12),
+                _investmentScoreColor.withOpacity(0.04),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _investmentScoreColor.withOpacity(0.4)),
+          ),
+          child: Row(
             children: [
-              Icon(
-                _riskLevel == 'SAFE'
-                    ? Icons.verified
-                    : _riskLevel == 'CAUTION'
-                        ? Icons.warning
-                        : Icons.dangerous,
-                color: _riskColor,
-                size: 24,
+              // Score circle
+              SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: _investmentScore / 100,
+                      strokeWidth: 6,
+                      backgroundColor: Colors.grey.shade200,
+                      color: _investmentScoreColor,
+                    ),
+                    Text(
+                      '$_investmentScore',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: _investmentScoreColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 10),
-              Text(
-                _riskLevel == 'SAFE'
-                    ? 'Property looks SAFE'
-                    : _riskLevel == 'CAUTION'
-                        ? 'Proceed with CAUTION'
-                        : 'HIGH RISK — Do Not Proceed',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: _riskColor,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Investment Score',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(
+                      _investmentVerdict,
+                      style: TextStyle(
+                          fontSize: 12, color: _investmentScoreColor),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          if (_riskFlags.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ..._riskFlags.map((flag) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+
+        const SizedBox(height: 12),
+
+        // ── Risk Level Banner ─────────────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: _riskColor.withOpacity(0.07),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _riskColor.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(riskIcon, color: _riskColor, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      riskLabel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: _riskColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_riskFlags.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                ..._riskFlags.map((flag) => Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.arrow_right, color: _riskColor, size: 16),
+                          Expanded(
+                            child: Text(flag.toString(),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: _riskColor.withOpacity(0.9))),
+                          ),
+                        ],
+                      ),
+                    )),
+              ] else ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'No encumbrance · No court cases · No mortgage found',
+                  style: TextStyle(fontSize: 12, color: AppColors.textLight),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        // ── Fraud Patterns ────────────────────────────────────────────────────
+        if (_fraudPatterns.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          const Text('Fraud Pattern Analysis',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          const SizedBox(height: 8),
+          ..._fraudPatterns.map((p) {
+            final pattern = p as Map<String, dynamic>;
+            final sev = pattern['severity'] as String? ?? 'CAUTION';
+            final Color sevColor = sev == 'CRITICAL'
+                ? const Color(0xFF7B0000)
+                : sev == 'HIGH'
+                    ? Colors.red
+                    : Colors.orange;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: sevColor.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: sevColor.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Icon(Icons.arrow_right, color: _riskColor, size: 18),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: sevColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          sev,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: Text(flag.toString(),
-                            style: TextStyle(
-                                fontSize: 12, color: _riskColor.withOpacity(0.9))),
+                        child: Text(
+                          (pattern['pattern'] as String? ?? '')
+                              .replaceAll('_', ' '),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              color: sevColor),
+                        ),
                       ),
                     ],
                   ),
-                )),
-          ] else ...[
-            const SizedBox(height: 8),
-            const Text(
-              'No encumbrance · No court cases · No mortgage found',
-              style: TextStyle(fontSize: 12, color: AppColors.textLight),
-            ),
-          ],
+                  const SizedBox(height: 6),
+                  Text(
+                    pattern['detail'] as String? ?? '',
+                    style: TextStyle(
+                        fontSize: 11, color: sevColor.withOpacity(0.85)),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
-      ),
+      ],
     );
+  }
+
+  Color get _investmentScoreColor {
+    if (_investmentScore >= 80) return AppColors.safe;
+    if (_investmentScore >= 60) return Colors.orange;
+    if (_investmentScore >= 40) return Colors.deepOrange;
+    return Colors.red.shade800;
   }
 
   Widget _buildError() {

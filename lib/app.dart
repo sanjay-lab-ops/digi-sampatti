@@ -91,7 +91,16 @@ final _router = GoRouter(
     GoRoute(
       path: '/scan/manual',
       name: 'manual-search',
-      builder: (context, state) => const ManualSearchScreen(),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return ManualSearchScreen(
+          prefillSurveyNumber: extra?['ocrSurveyNumber'] as String?,
+          prefillOwnerName:    extra?['ocrOwnerName']    as String?,
+          prefillDistrict:     extra?['ocrDistrict']     as String?,
+          prefillTaluk:        extra?['ocrTaluk']        as String?,
+          prefillDocumentType: extra?['ocrDocumentType'] as String?,
+        );
+      },
     ),
     GoRoute(
       path: '/checklist',
