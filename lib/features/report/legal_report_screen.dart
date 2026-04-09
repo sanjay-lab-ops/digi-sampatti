@@ -38,6 +38,17 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     _paymentService.initialize();
     _paymentService.onSuccess = _onPaymentSuccess;
     _paymentService.onFailure = _onPaymentFailure;
+    // When opened from history, reportData contains the saved report JSON.
+    // Load it into currentReportProvider so the screen can render it.
+    if (widget.reportData != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          final report = LegalReport.fromJson(widget.reportData!);
+          ref.read(currentReportProvider.notifier).state = report;
+          if (report.isPaid) setState(() => _isPaid = true);
+        } catch (_) {}
+      });
+    }
     _scoreCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),

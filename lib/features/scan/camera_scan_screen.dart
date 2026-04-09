@@ -427,16 +427,37 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
               onCapture: _capturePhoto,
               onGallery: () async {
                 final path = await _cameraService.pickFromGallery();
-                if (path != null && mounted) {
-                  final scan = PropertyScan(
-                    id: const Uuid().v4(),
-                    photoPath: path,
-                    location: _currentLocation,
-                    scanMethod: ScanMethod.camera,
-                    scannedAt: DateTime.now(),
-                  );
-                  ref.read(currentScanProvider.notifier).state = scan;
-                  context.push('/scan/manual');
+                if (path == null || !mounted) return;
+
+                // Run OCR on the gallery image — same as camera path
+                setState(() { _isRunningOcr = true; });
+                OcrResult ocrResult;
+                try {
+                  ocrResult = await _ocrService.extractFromDocument(path);
+                } catch (e) {
+                  ocrResult = const OcrResult();
+                }
+                if (mounted) setState(() { _isRunningOcr = false; });
+
+                final scan = PropertyScan(
+                  id: const Uuid().v4(),
+                  photoPath: path,
+                  location: _currentLocation,
+                  scanMethod: ScanMethod.camera,
+                  scannedAt: DateTime.now(),
+                  surveyNumber: ocrResult.surveyNumber,
+                );
+                ref.read(currentScanProvider.notifier).state = scan;
+                ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
+
+                if (mounted) {
+                  context.push('/scan/manual', extra: {
+                    'ocrSurveyNumber': ocrResult.surveyNumber,
+                    'ocrOwnerName':    ocrResult.ownerName,
+                    'ocrDistrict':     ocrResult.district,
+                    'ocrTaluk':        ocrResult.taluk,
+                    'ocrDocumentType': ocrResult.documentType,
+                  });
                 }
               },
             ),
