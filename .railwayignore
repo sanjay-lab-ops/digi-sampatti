@@ -1,3 +1,5 @@
+# Exclude Flutter mobile app files from Railway Docker build context
+# Railway only needs the backend/ folder + root index.html
 android/
 ios/
 lib/
@@ -5,5 +7,9 @@ pubspec.yaml
 pubspec.lock
 .dart_tool/
 build/
-*.dart
+keytool/
+DigiSampatti_Documents/
 *.md
+run_on_phone.bat
+build_log.txt
+test_screenshot.png

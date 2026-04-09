@@ -1,19 +1,11 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 
 // ─── Bhoomi Service ────────────────────────────────────────────────────────────
-// Integrates with Karnataka Bhoomi portal (bhoomi.karnataka.gov.in)
-// Fetches: RTC, Mutation records, Owner details, Land type, Kharab land status
-//
-// NOTE: The Bhoomi portal does not have a public documented REST API.
-// This service uses:
-//   1. HTTP requests matching Bhoomi portal's internal endpoints
-//   2. HTML parsing for data extraction
-//   3. Falls back to mock/demo data when portal is unavailable
-// For production, get an official MoU with Karnataka Government's
-// SSLR (Survey Settlement and Land Records) department.
+// Routes all RTC/mutation requests through the DigiSampatti Railway backend
+// (Playwright scraper at digi-sampatti-production.up.railway.app/rtc).
+// Falls back to demo data when backend is unreachable.
 
 class BhoomiService {
   static final BhoomiService _instance = BhoomiService._internal();
@@ -24,22 +16,19 @@ class BhoomiService {
 
   void initialize() {
     _dio = Dio(BaseOptions(
-      baseUrl: ApiConstants.bhoomiBaseUrl,
-      connectTimeout: ApiConstants.connectTimeout,
-      receiveTimeout: ApiConstants.receiveTimeout,
-      headers: ApiConstants.bhoomiHeaders,
+      baseUrl: ApiConstants.backendBaseUrl,
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 90),
+      headers: {'Content-Type': 'application/json'},
     ));
-
-    // Intercept for logging
     _dio.interceptors.add(LogInterceptor(
-      requestBody: false,
-      responseBody: false,
+      requestBody: true,
+      responseBody: true,
       error: true,
     ));
   }
 
-  // ─── Fetch RTC (Record of Rights, Tenancy & Crops) ─────────────────────────
-  // This is the primary land record document in Karnataka
+  // ─── Fetch RTC via Railway backend scraper ──────────────────────────────────
   Future<LandRecord?> fetchRtc({
     required String district,
     required String taluk,
@@ -47,26 +36,104 @@ class BhoomiService {
     required String village,
     required String surveyNumber,
   }) async {
-    // Bhoomi portal does not have a public REST API.
-    // Use realistic data immediately — a short delay simulates the fetch.
-    await Future.delayed(const Duration(milliseconds: 1200));
+    try {
+      final response = await _dio.post(
+        ApiConstants.backendRtcEndpoint,
+        data: {
+          'district': district,
+          'taluk': taluk,
+          'hobli': hobli,
+          'village': village,
+          'survey_number': surveyNumber,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['source'] != 'bhoomi_no_data') {
+          return _parseBackendRtc(data,
+              district: district, taluk: taluk,
+              hobli: hobli, village: village, surveyNumber: surveyNumber);
+        }
+      }
+    } catch (_) {}
     return _getDemoRecord(
-      district: district,
-      taluk: taluk,
-      hobli: hobli,
-      village: village,
-      surveyNumber: surveyNumber,
+      district: district, taluk: taluk, hobli: hobli,
+      village: village, surveyNumber: surveyNumber,
     );
   }
 
-  // ─── Fetch Mutation History ────────────────────────────────────────────────
+  // ─── Fetch Mutations via Railway backend ───────────────────────────────────
   Future<List<MutationEntry>> fetchMutations({
     required String district,
     required String taluk,
     required String surveyNumber,
   }) async {
-    // Mutations are included in the RTC demo record — return empty here
+    try {
+      final response = await _dio.post(
+        ApiConstants.backendRtcEndpoint,
+        data: {'district': district, 'taluk': taluk, 'survey_number': surveyNumber},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final mutations = (response.data as Map)['mutations'];
+        if (mutations is List) return _parseMutations(mutations);
+      }
+    } catch (_) {}
     return [];
+  }
+
+  // ─── Parse backend RTC response ────────────────────────────────────────────
+  LandRecord _parseBackendRtc(
+    Map<String, dynamic> data, {
+    required String district, required String taluk,
+    required String hobli, required String village, required String surveyNumber,
+  }) {
+    final owners = <LandOwner>[];
+    final rawOwners = data['owners'];
+    if (rawOwners is List) {
+      for (final o in rawOwners) {
+        if (o is Map) {
+          owners.add(LandOwner(
+            name: o['name']?.toString() ?? 'Unknown',
+            fatherName: o['father_name']?.toString(),
+            address: o['address']?.toString(),
+            surveyShare: o['share']?.toString(),
+          ));
+        }
+      }
+    } else if (data['owner_name'] != null) {
+      owners.add(LandOwner(name: data['owner_name'].toString()));
+    }
+
+    final mutations = <MutationEntry>[];
+    final rawMut = data['mutations'];
+    if (rawMut is List) {
+      mutations.addAll(_parseMutations(rawMut));
+    }
+
+    return LandRecord(
+      surveyNumber: data['survey_number']?.toString() ?? surveyNumber,
+      district: data['district']?.toString() ?? district,
+      taluk: data['taluk']?.toString() ?? taluk,
+      hobli: data['hobli']?.toString() ?? hobli,
+      village: data['village']?.toString() ?? village,
+      khataNumber: data['khata_number']?.toString(),
+      khataType: _parseKhataType(data['khata_type']?.toString()),
+      owners: owners.isEmpty
+          ? [LandOwner(name: data['owner_name']?.toString() ?? 'See Bhoomi portal')]
+          : owners,
+      landType: data['land_type']?.toString(),
+      totalAreaAcres: double.tryParse(data['area_acres']?.toString() ?? ''),
+      cropDetails: data['crop']?.toString(),
+      mutations: mutations,
+      encumbrances: const [],
+      isRevenueSite: data['is_revenue_site'] == true,
+      isGovernmentLand: data['is_govt_land'] == true,
+      isForestLand: data['is_forest'] == true,
+      isLakeBed: data['is_lake_bed'] == true,
+      remarks: data['remarks']?.toString(),
+      fetchedAt: DateTime.now(),
+      guidanceValuePerSqft: double.tryParse(data['guidance_value']?.toString() ?? ''),
+    );
   }
 
   // ─── Check Revenue Site Status ────────────────────────────────────────────

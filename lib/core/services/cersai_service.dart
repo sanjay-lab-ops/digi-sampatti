@@ -92,26 +92,19 @@ class CersaiService {
 
   late final Dio _dio;
   bool _initialized = false;
-
-  // Cache to avoid repeat calls for same property in same session
   final Map<String, CersaiResult> _cache = {};
 
   void initialize() {
     if (_initialized) return;
     _dio = Dio(BaseOptions(
-      baseUrl: 'https://cersai.org.in',
-      connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {
-        'User-Agent':
-            'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36',
-        'Accept': 'application/json, text/html',
-      },
+      baseUrl: 'https://digi-sampatti-production.up.railway.app',
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 90),
+      headers: {'Content-Type': 'application/json'},
     ));
     _initialized = true;
   }
 
-  // ─── Search by Survey Number + District ───────────────────────────────────
   Future<CersaiResult> searchBySurveyNumber({
     required String surveyNumber,
     required String district,
@@ -119,134 +112,76 @@ class CersaiService {
     String? pinCode,
   }) async {
     if (!_initialized) initialize();
-
     final cacheKey = '$surveyNumber|$district';
     if (_cache.containsKey(cacheKey)) return _cache[cacheKey]!;
 
     try {
-      // CERSAI public search endpoint
-      // Parameters: state_id, district_id, property_type, survey_no
-      final response = await _dio.get(
-        '/CERSAI/searchProperty.htm',
-        queryParameters: {
-          'state': state,
-          'district': district,
-          'surveyNo': surveyNumber,
-          if (pinCode != null) 'pinCode': pinCode,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final result = _parseResponse(response.data.toString(), surveyNumber);
+      final response = await _dio.post('/cersai', data: {
+        'state': state,
+        'district': district,
+        'survey_no': surveyNumber,
+      });
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        final result = _parseBackendResponse(data);
         _cache[cacheKey] = result;
         return result;
       }
     } on DioException catch (e) {
-      // CERSAI portal is often slow/down — treat as error, not as clean
       final isTimeout = e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout;
-
       final result = CersaiResult(
         status: CersaiStatus.error,
         errorMessage: isTimeout
-            ? 'CERSAI portal timed out. Verify manually at cersai.org.in'
+            ? 'CERSAI check timed out. Verify manually at cersai.org.in'
             : 'CERSAI unavailable: ${e.message}',
         checkedAt: DateTime.now(),
       );
       _cache[cacheKey] = result;
       return result;
     }
-
     return const CersaiResult(status: CersaiStatus.error);
   }
 
-  // ─── Parse HTML/JSON Response ─────────────────────────────────────────────
-  CersaiResult _parseResponse(String responseBody, String surveyNumber) {
-    final lower = responseBody.toLowerCase();
-
-    // CERSAI returns structured data indicating charges
-    // Patterns to detect from their response pages:
-    if (lower.contains('no record found') ||
-        lower.contains('no charge registered') ||
-        lower.contains('0 records')) {
+  CersaiResult _parseBackendResponse(Map<String, dynamic> data) {
+    final statusStr = data['status']?.toString().toLowerCase() ?? '';
+    if (statusStr == 'clean' || data['charges'] == null || (data['charges'] as List?)?.isEmpty == true) {
       return CersaiResult(
         status: CersaiStatus.clean,
         checkedAt: DateTime.now(),
-        searchReference: 'CERSAI-${DateTime.now().millisecondsSinceEpoch}',
+        searchReference: data['ref']?.toString(),
       );
     }
-
-    if (lower.contains('sarfaesi') || lower.contains('possession notice')) {
+    if (statusStr == 'sarfaesi') {
       return CersaiResult(
         status: CersaiStatus.sarfaesiAction,
-        charges: [
-          CersaiCharge(
-            bankName: _extractBankName(responseBody),
-            chargeType: 'SARFAESI Proceeding',
-            chargeDate: _extractDate(responseBody),
-            chargeAmount: _extractAmount(responseBody),
-            status: CersaiStatus.sarfaesiAction,
-            sarfaesiNotice: _extractDate(responseBody),
-          ),
-        ],
+        charges: _parseCharges(data['charges'] as List),
         checkedAt: DateTime.now(),
       );
     }
-
-    if (lower.contains('mortgage') ||
-        lower.contains('hypothecation') ||
-        lower.contains('charge created')) {
-      // Check if it's discharged
-      final isActive = !lower.contains('discharged') &&
-          !lower.contains('charge satisfied') &&
-          !lower.contains('released');
-
-      return CersaiResult(
-        status: isActive ? CersaiStatus.charged : CersaiStatus.discharged,
-        charges: [
-          CersaiCharge(
-            bankName: _extractBankName(responseBody),
-            chargeType: lower.contains('hypothecation')
-                ? 'Hypothecation'
-                : 'Mortgage',
-            chargeDate: _extractDate(responseBody),
-            chargeAmount: _extractAmount(responseBody),
-            status: isActive ? CersaiStatus.charged : CersaiStatus.discharged,
-          ),
-        ],
-        checkedAt: DateTime.now(),
-      );
-    }
-
-    // Unknown response — treat as error, not clean
+    final isActive = statusStr == 'charged';
     return CersaiResult(
-      status: CersaiStatus.error,
-      errorMessage: 'Unexpected response from CERSAI. Verify manually.',
+      status: isActive ? CersaiStatus.charged : CersaiStatus.discharged,
+      charges: _parseCharges((data['charges'] as List?) ?? []),
       checkedAt: DateTime.now(),
     );
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  String _extractBankName(String body) {
-    final banks = [
-      'SBI', 'HDFC', 'ICICI', 'Axis', 'Canara', 'Union', 'PNB',
-      'Bank of Baroda', 'Kotak', 'Yes Bank', 'IndusInd', 'Federal',
-    ];
-    for (final b in banks) {
-      if (body.contains(b)) return b;
-    }
-    return 'Bank (name not extracted)';
-  }
-
-  String _extractDate(String body) {
-    final dateRegex = RegExp(r'\d{2}[/-]\d{2}[/-]\d{4}');
-    final match = dateRegex.firstMatch(body);
-    return match?.group(0) ?? 'Date not available';
-  }
-
-  String _extractAmount(String body) {
-    final amtRegex = RegExp(r'₹[\d,]+|Rs\.?\s*[\d,]+|INR\s*[\d,]+');
-    final match = amtRegex.firstMatch(body);
-    return match?.group(0) ?? 'Amount not available';
+  List<CersaiCharge> _parseCharges(List rawList) {
+    return rawList.map((c) {
+      final m = c as Map<String, dynamic>;
+      final s = m['status']?.toString().toLowerCase() ?? '';
+      return CersaiCharge(
+        bankName: m['bank']?.toString() ?? 'Unknown Bank',
+        chargeType: m['charge_type']?.toString() ?? 'Mortgage',
+        chargeDate: m['date']?.toString() ?? 'Unknown',
+        chargeAmount: m['amount']?.toString() ?? 'Unknown',
+        status: s == 'sarfaesi'
+            ? CersaiStatus.sarfaesiAction
+            : s == 'discharged'
+                ? CersaiStatus.discharged
+                : CersaiStatus.charged,
+      );
+    }).toList();
   }
 }

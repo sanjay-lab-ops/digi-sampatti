@@ -6,9 +6,21 @@ class ApiConstants {
   static const String claudeModel = 'claude-sonnet-4-6';
   static const int claudeMaxTokens = 4096;
 
-  // ─── Karnataka Bhoomi Portal ───────────────────────────────────────────────
-  // Official: bhoomi.karnataka.gov.in
-  // These endpoints mirror the Bhoomi portal's internal API structure
+  // ─── DigiSampatti Railway Backend ─────────────────────────────────────────
+  // Playwright scraper backend deployed on Railway
+  // Handles: RTC, EC, RERA, eCourts, BBMP, CERSAI, IGR, FMB, GPS→Survey
+  static const String backendBaseUrl = 'https://digi-sampatti-production.up.railway.app';
+  static const String backendRtcEndpoint = '/rtc';
+  static const String backendEcEndpoint = '/ec';
+  static const String backendReraEndpoint = '/rera';
+  static const String backendEcourtsEndpoint = '/ecourts';
+  static const String backendBbmpEndpoint = '/bbmp';
+  static const String backendCersaiEndpoint = '/cersai';
+  static const String backendGuidanceEndpoint = '/guidance-value';
+  static const String backendFmbEndpoint = '/fmb';
+  static const String backendSurveyFromGpsEndpoint = '/survey-from-gps';
+
+  // ─── Karnataka Bhoomi Portal (direct — fallback only) ─────────────────────
   static const String bhoomiBaseUrl = 'https://bhoomi.karnataka.gov.in';
   static const String bhoomiRtcEndpoint = '/bhoomi/RTCPrint.do';
   static const String bhoomiMutationEndpoint = '/bhoomi/MutationPrint.do';
