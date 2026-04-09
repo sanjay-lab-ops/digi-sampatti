@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
+import 'package:digi_sampatti/core/models/portal_findings_model.dart';
 import 'package:digi_sampatti/core/services/bhoomi_service.dart';
 import 'package:digi_sampatti/core/services/rera_service.dart';
 import 'package:digi_sampatti/core/services/ai_analysis_service.dart';
@@ -164,7 +165,10 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
   }
 
   // ─── Step 3: Run AI Analysis + Generate Report ────────────────────────────
-  Future<LegalReport?> runAnalysisAndGenerateReport() async {
+  // Uses real portal findings from the checklist — no simulated data.
+  Future<LegalReport?> runAnalysisAndGenerateReport({
+    PortalFindings? portalFindings,
+  }) async {
     final scan = ref.read(currentScanProvider);
     if (scan == null) return null;
 
@@ -173,38 +177,22 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
 
     try {
       final aiService = ref.read(aiAnalysisServiceProvider);
-      final bhoomiService = ref.read(bhoomiServiceProvider);
-      final landRecord = ref.read(currentLandRecordProvider);
-      final reraRecord = ref.read(currentReraRecordProvider);
-      final location = ref.read(currentLocationProvider);
 
-      // Check revenue site + government notifications
-      RevenueSiteStatus? revenueSiteStatus;
-      GovernmentNotificationStatus? govtStatus;
+      // Build a land record from portal findings (what the user actually saw)
+      // Only used for labelling in the report — AI uses portalFindings directly
+      final landRecord = _buildRecordFromFindings(scan, portalFindings);
 
-      if (location != null && landRecord != null) {
-        revenueSiteStatus = await bhoomiService.checkRevenueSiteStatus(
-          district: landRecord.district,
-          surveyNumber: landRecord.surveyNumber,
-          latitude: location.latitude,
-          longitude: location.longitude,
-        );
+      // Build RERA record from findings
+      final reraRecord = portalFindings != null
+          ? _buildReraFromFindings(portalFindings)
+          : null;
 
-        govtStatus = await bhoomiService.checkGovernmentNotifications(
-          latitude: location.latitude,
-          longitude: location.longitude,
-          district: landRecord.district,
-          surveyNumber: landRecord.surveyNumber,
-        );
-      }
-
-      // Run AI analysis
-      final riskAssessment = await aiService.analyzeProperty(
+      // Run AI analysis using real user-verified findings
+      final riskAssessment = await aiService.analyzePropertyFromFindings(
         scan: scan,
+        findings: portalFindings ?? const PortalFindings(),
         landRecord: landRecord,
         reraRecord: reraRecord,
-        revenueSiteStatus: revenueSiteStatus,
-        govtNotificationStatus: govtStatus,
       );
 
       // Build report
@@ -253,6 +241,39 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
     } finally {
       ref.read(isGeneratingReportProvider.notifier).state = false;
     }
+  }
+
+  // ─── Build minimal LandRecord from what user saw on Bhoomi ───────────────
+  LandRecord? _buildRecordFromFindings(
+      PropertyScan scan, PortalFindings? f) {
+    if (f == null) return null;
+    return LandRecord(
+      surveyNumber: scan.surveyNumber ?? '',
+      district: scan.district ?? '',
+      taluk: scan.taluk ?? '',
+      hobli: scan.hobli ?? '',
+      village: scan.village ?? '',
+      khataType: switch (f.khataFound) {
+        KhataFound.aKhata => KhataType.aKhata,
+        KhataFound.bKhata => KhataType.bKhata,
+        _ => null,
+      },
+      owners: const [],
+      mutations: const [],
+      encumbrances: const [],
+      isRevenueSite: false,
+      isGovernmentLand: false,
+      isForestLand: false,
+      isLakeBed: false,
+      remarks: f.bhoomiHasRemarks == true
+          ? 'User found remarks/notices in RTC'
+          : null,
+    );
+  }
+
+  ReraRecord? _buildReraFromFindings(PortalFindings f) {
+    if (f.isApartmentProject != true) return null;
+    return ReraRecord(isRegistered: f.reraRegistered ?? false);
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────

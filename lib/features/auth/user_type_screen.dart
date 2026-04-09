@@ -88,20 +88,8 @@ class UserTypeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Demo
-                    OutlinedButton.icon(
-                      onPressed: () => context.push('/demo'),
-                      icon: const Icon(Icons.play_circle_outline,
-                          color: AppColors.primary, size: 18),
-                      label: const Text('View Demo Report',
-                          style: TextStyle(color: AppColors.primary, fontSize: 14)),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
-                        side: const BorderSide(color: AppColors.primary),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
+                    // Sample report — shown after login via home screen
+
                     const Spacer(),
                     const Center(
                       child: Text(

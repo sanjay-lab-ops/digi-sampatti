@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
+import 'package:digi_sampatti/core/models/portal_findings_model.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/services/bhoomi_service.dart';
 import 'package:digi_sampatti/core/services/cersai_service.dart';
@@ -28,8 +29,8 @@ class AiAnalysisService {
   void initialize() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConstants.claudeBaseUrl,
-      connectTimeout: ApiConstants.connectTimeout,
-      receiveTimeout: ApiConstants.aiTimeout,
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 20),
     ));
   }
 
@@ -37,6 +38,234 @@ class AiAnalysisService {
   // Step 1: Run ContradictionEngine on raw portal data (deterministic rules)
   // Step 2: Feed everything + contradiction report to Claude for final verdict
   // Step 3: If Claude API unavailable, fall back to rule-based assessment
+  // ─── Analyse from real user-verified portal findings ─────────────────────
+  // This is the primary method used by the new portal checklist flow.
+  // Input = what user actually saw on each government portal (no simulation).
+  Future<RiskAssessment> analyzePropertyFromFindings({
+    required PropertyScan scan,
+    required PortalFindings findings,
+    LandRecord? landRecord,
+    ReraRecord? reraRecord,
+  }) async {
+    // Build a clear-text summary of findings for AI prompt
+    final findingsSummary = _buildFindingsSummary(scan, findings);
+
+    // Instant rule-based verdict from real data
+    final instant = _ruleBasedFromFindings(findings, scan, landRecord, reraRecord);
+
+    // Try Claude for richer language / explanation
+    final apiKey = dotenv.env['ANTHROPIC_API_KEY'] ?? '';
+    if (apiKey.isEmpty) return instant;
+
+    try {
+      final response = await _dio.post(
+        '/messages',
+        options: Options(headers: ApiConstants.claudeHeaders(apiKey)),
+        data: json.encode({
+          'model': ApiConstants.claudeModel,
+          'max_tokens': 800,
+          'system': _systemPrompt,
+          'messages': [
+            {'role': 'user', 'content': findingsSummary},
+          ],
+        }),
+      );
+      if (response.statusCode == 200) {
+        final content = response.data['content'] as List;
+        final text = content.first['text'] as String;
+        return _parseAiResponse(text, landRecord, reraRecord);
+      }
+    } catch (_) {}
+
+    return instant;
+  }
+
+  String _buildFindingsSummary(PropertyScan scan, PortalFindings f) {
+    final buf = StringBuffer();
+    buf.writeln('Karnataka property due diligence — user-verified portal data:');
+    buf.writeln('Survey: ${scan.surveyNumber}, District: ${scan.district}, Taluk: ${scan.taluk}');
+    buf.writeln('GPS: ${scan.location?.latitude ?? 'N/A'}, ${scan.location?.longitude ?? 'N/A'}');
+    buf.writeln();
+    buf.writeln('BHOOMI RTC:');
+    buf.writeln('  Khata: ${f.khataFound?.name ?? 'not checked'}');
+    buf.writeln('  RTC remarks: ${f.bhoomiHasRemarks == true ? 'YES - has remarks' : f.bhoomiHasRemarks == false ? 'none' : 'not checked'}');
+    buf.writeln('KAVERI EC:');
+    buf.writeln('  Active loan/mortgage: ${f.hasActiveLoan == true ? 'YES' : f.hasActiveLoan == false ? 'no' : 'not checked'}');
+    buf.writeln('  Multiple recent sales: ${f.multipleSales == true ? 'YES' : f.multipleSales == false ? 'no' : 'not checked'}');
+    buf.writeln('RERA:');
+    buf.writeln('  Is apartment: ${f.isApartmentProject == true ? 'yes' : f.isApartmentProject == false ? 'no (plot)' : 'not checked'}');
+    buf.writeln('  RERA registered: ${f.reraRegistered == true ? 'yes' : f.reraRegistered == false ? 'NO' : 'N/A'}');
+    buf.writeln('ECOURTS:');
+    buf.writeln('  Court cases: ${f.hasCourtCases == true ? 'YES found' : f.hasCourtCases == false ? 'none' : 'not checked'}');
+    buf.writeln('BBMP TAX:');
+    buf.writeln('  Tax paid / khata ok: ${f.propertyTaxPaid == true ? 'yes' : f.propertyTaxPaid == false ? 'NO issues' : 'not checked'}');
+    buf.writeln('CERSAI:');
+    buf.writeln('  Bank charge: ${f.hasBankCharge == true ? 'YES registered' : f.hasBankCharge == false ? 'none' : 'not checked'}');
+    buf.writeln('FMB SKETCH:');
+    buf.writeln('  Boundaries match: ${f.boundariesCorrect == true ? 'yes' : f.boundariesCorrect == false ? 'NO mismatch' : 'not checked'}');
+    buf.writeln();
+    buf.writeln('Based on the above REAL user-verified data, provide a JSON risk assessment. '
+        'Focus on what the buyer should DO and NOT DO based on what was actually found.');
+    return buf.toString();
+  }
+
+  RiskAssessment _ruleBasedFromFindings(
+      PortalFindings f, PropertyScan scan, LandRecord? record, ReraRecord? rera) {
+    final flags = <String>[];
+    final dos = <String>[];
+    final donts = <String>[];
+    int score = 75; // start neutral
+
+    // Bhoomi
+    if (f.khataFound == KhataFound.aKhata) {
+      score += 10;
+      dos.add('Property has A Khata — legally valid for bank loans and registration');
+    } else if (f.khataFound == KhataFound.bKhata) {
+      score -= 15;
+      flags.add('B Khata property — limited legal standing');
+      donts.add('Do NOT pay full amount until B Khata is converted to A Khata');
+      dos.add('Ask seller to complete DC conversion and get A Khata before registration');
+    } else if (f.khataFound == KhataFound.noKhata) {
+      score -= 25;
+      flags.add('No Khata found — serious title issue');
+      donts.add('Do NOT proceed with purchase until Khata is established in seller\'s name');
+    }
+
+    if (f.bhoomiHasRemarks == true) {
+      score -= 15;
+      flags.add('RTC has remarks or government notices');
+      donts.add('Do NOT sign any agreement until you get all RTC remarks explained by a lawyer');
+    } else if (f.bhoomiHasRemarks == false) {
+      dos.add('RTC is clean — no government notices or disputes in land records');
+    }
+
+    // Kaveri EC
+    if (f.hasActiveLoan == true) {
+      score -= 20;
+      flags.add('Active loan/mortgage found in EC');
+      donts.add('Do NOT pay seller directly — loan must be cleared at the bank first');
+      dos.add('Demand NOC from lender bank before finalising deal');
+    } else if (f.hasActiveLoan == false) {
+      score += 5;
+      dos.add('Encumbrance Certificate shows no active loans — clean title history');
+    }
+
+    if (f.multipleSales == true) {
+      score -= 10;
+      flags.add('Multiple sale transactions in recent years — verify chain of title');
+      donts.add('Do NOT skip verifying every previous sale deed in the chain');
+    }
+
+    // RERA
+    if (f.isApartmentProject == true) {
+      if (f.reraRegistered == false) {
+        score -= 25;
+        flags.add('Apartment project NOT registered on RERA Karnataka');
+        donts.add('Do NOT buy an unregistered apartment — builder is operating illegally under RERA 2016');
+      } else if (f.reraRegistered == true) {
+        score += 10;
+        dos.add('Project is RERA registered — you can file complaints if builder delays');
+      }
+    }
+
+    // eCourts
+    if (f.hasCourtCases == true) {
+      score -= 20;
+      flags.add('Active court cases found');
+      donts.add('Do NOT register the property until all court cases are resolved and case history is reviewed by a lawyer');
+    } else if (f.hasCourtCases == false) {
+      score += 5;
+      dos.add('No active litigation found in eCourts — property is not under dispute');
+    }
+
+    // BBMP
+    if (f.propertyTaxPaid == false) {
+      score -= 10;
+      flags.add('Property tax dues or khata mismatch in BBMP');
+      donts.add('Do NOT pay final price until all BBMP tax dues are cleared by seller');
+      dos.add('Ask seller to provide latest BBMP tax paid receipt');
+    } else if (f.propertyTaxPaid == true) {
+      dos.add('BBMP property tax is up to date and khata is in seller\'s name');
+    }
+
+    // CERSAI
+    if (f.hasBankCharge == true) {
+      score -= 20;
+      flags.add('Bank charge registered on CERSAI — existing mortgage');
+      donts.add('Do NOT proceed without getting the CERSAI charge released by the bank first');
+    } else if (f.hasBankCharge == false) {
+      score += 5;
+      dos.add('CERSAI shows no registered bank mortgage — property is unencumbered');
+    }
+
+    // FMB
+    if (f.boundariesCorrect == false) {
+      score -= 10;
+      flags.add('Physical boundaries do not match FMB/sketch map');
+      donts.add('Do NOT register without a licensed surveyor confirming the actual boundaries');
+    } else if (f.boundariesCorrect == true) {
+      dos.add('Survey map boundaries match physical property — no encroachment visible');
+    }
+
+    score = score.clamp(0, 100);
+
+    // Determine recommendation
+    final String recommendation;
+    final bool bankLoanEligible;
+    if (score >= 80) {
+      recommendation = 'Safe to Proceed';
+      bankLoanEligible = true;
+    } else if (score >= 60) {
+      recommendation = 'Proceed with Caution';
+      bankLoanEligible = flags.isEmpty || !flags.any((f) => f.contains('loan') || f.contains('court'));
+    } else {
+      recommendation = 'Do Not Proceed';
+      bankLoanEligible = false;
+    }
+
+    // Add always-applicable advice
+    dos.addAll([
+      'Get a legal opinion from a qualified property lawyer before registration',
+      'Verify seller\'s identity documents (Aadhaar, PAN) match all records',
+      'Pay stamp duty based on guidance value — not below it',
+    ]);
+    donts.addAll([
+      'Do NOT hand over any cash without a proper sale agreement',
+      'Do NOT skip mutation (khata transfer) after registration',
+    ]);
+
+    final portalsChecked = f.portalsChecked;
+    final summary = 'Verified across $portalsChecked government portals. '
+        '${flags.isEmpty ? 'No critical issues found.' : 'Issues found: ${flags.join('; ')}.'} '
+        'Score: $score/100.';
+
+    final riskLevel = score >= 80
+        ? RiskLevel.low
+        : score >= 60
+            ? RiskLevel.medium
+            : RiskLevel.high;
+
+    return RiskAssessment(
+      score: score,
+      level: riskLevel,
+      isSafeToBuy: score >= 60,
+      recommendation: recommendation,
+      summary: summary,
+      flags: flags
+          .map((f) => LegalFlag(
+                category: 'Portal Check',
+                title: f,
+                details: f,
+                status: FlagStatus.warning,
+              ))
+          .toList(),
+      positives: dos.take(4).toList(),
+      concerns: donts.take(4).toList(),
+      actionItems: [...dos, ...donts],
+      isBankLoanEligible: bankLoanEligible,
+    );
+  }
+
   Future<RiskAssessment> analyzeProperty({
     required PropertyScan scan,
     LandRecord? landRecord,
@@ -69,12 +298,13 @@ class AiAnalysisService {
           contradictionReport, landRecord, reraRecord, cersaiResult, benamiResult);
     }
 
-    // ── Step 2: Claude AI deep analysis ─────────────────────────────────────
+    // ── Step 2: Rule-based assessment first (instant result) ────────────────
+    final instant = _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
+        contradictionReport: contradictionReport);
+
+    // ── Step 3: Try Claude AI for deeper analysis (with strict timeout) ──────
     final apiKey = dotenv.env['ANTHROPIC_API_KEY'] ?? '';
-    if (apiKey.isEmpty) {
-      return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
-          contradictionReport: contradictionReport);
-    }
+    if (apiKey.isEmpty) return instant;
 
     try {
       final prompt = _buildAnalysisPrompt(
@@ -111,11 +341,10 @@ class AiAnalysisService {
         return _mergeWithContradictions(assessment, contradictionReport);
       }
     } catch (_) {
-      // Fall back to rule-based assessment
+      // Claude unavailable — return instant rule-based result
     }
 
-    return _buildFallbackAssessment(landRecord, reraRecord, revenueSiteStatus,
-        contradictionReport: contradictionReport);
+    return instant;
   }
 
   // ─── Build assessment directly from contradiction report ──────────────────

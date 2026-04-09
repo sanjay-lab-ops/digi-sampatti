@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/core/services/user_service.dart';
 import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -31,6 +32,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     super.dispose();
   }
 
+  // ─── After login: save to Firestore, route to setup if first time ──────────
+  Future<void> _afterLogin() async {
+    if (!mounted) return;
+    try {
+      final user = await UserService().getOrCreateProfile();
+      if (!mounted) return;
+      if (user.isFirstLogin) {
+        context.go('/setup');   // new user → choose type + name
+      } else {
+        context.go('/home');
+      }
+    } catch (_) {
+      if (mounted) context.go('/home');
+    }
+  }
+
   // ─── Send OTP ──────────────────────────────────────────────────────────────
   Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
@@ -42,7 +59,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
           await FirebaseAuth.instance.signInWithCredential(credential);
-          if (mounted) context.go('/home');
+          await _afterLogin();
         },
         verificationFailed: (FirebaseAuthException e) {
           setState(() {
@@ -81,7 +98,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         smsCode: _otpController.text.trim(),
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) context.go('/home');
+      await _afterLogin();
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
@@ -136,7 +153,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   child: Text(l.platformTagline,
                     style: const TextStyle(color: AppColors.textMedium, fontSize: 14)),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+
+                // Feature chips
+                _FeatureChips(),
+
+                const SizedBox(height: 28),
 
                 // Phone Input
                 if (!_otpSent) ...[
@@ -219,6 +241,116 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Feature Chips ────────────────────────────────────────────────────────────
+class _FeatureChips extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // AI Legal Score — highlighted chip
+        GestureDetector(
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(children: [
+                Icon(Icons.psychology_outlined, color: Color(0xFF1B5E20)),
+                SizedBox(width: 8),
+                Text('AI Legal Score', style: TextStyle(fontWeight: FontWeight.bold)),
+              ]),
+              content: const Text(
+                'Our AI analyses RTC ownership, EC transaction history, RERA registration, '
+                'eCourt cases, and CERSAI mortgage data to give a 0–100 property safety score.\n\n'
+                '🟢 80–100 : Safe to buy\n'
+                '🟡 50–79  : Verify before buying\n'
+                '🔴 0–49   : High risk — consult advocate',
+                style: TextStyle(height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Got it'),
+                ),
+              ],
+            ),
+          ),
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.psychology_outlined, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('AI Legal Score',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text('0–100 property safety score from 7 govt portals',
+                        style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.info_outline, color: Colors.white54, size: 16),
+              ],
+            ),
+          ),
+        ),
+        // Small feature chips row
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: const [
+            _Chip(icon: Icons.account_balance_outlined, label: '7 Govt Portals'),
+            _Chip(icon: Icons.shield_outlined,           label: '8 Fraud Types'),
+            _Chip(icon: Icons.timer_outlined,            label: '90 Seconds'),
+            _Chip(icon: Icons.location_off_outlined,     label: 'Zero Office Visits'),
+            _Chip(icon: Icons.gavel_outlined,            label: 'DPDP Act 2023'),
+            _Chip(icon: Icons.workspace_premium_outlined, label: 'Patent Pending'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _Chip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F7F0),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFB8D8B8)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: const Color(0xFF2E7D32)),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

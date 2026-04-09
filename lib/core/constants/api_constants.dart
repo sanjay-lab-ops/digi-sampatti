@@ -37,9 +37,11 @@ class ApiConstants {
   static const String reverseGeocodeEndpoint = '/geocode/json';
 
   // ─── Timeouts ──────────────────────────────────────────────────────────────
-  static const Duration connectTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 60);
-  static const Duration aiTimeout = Duration(seconds: 120);
+  // Gov portals fail fast (they don't have public APIs — we use demo data)
+  static const Duration connectTimeout = Duration(seconds: 5);
+  static const Duration receiveTimeout = Duration(seconds: 8);
+  // Claude AI gets more time
+  static const Duration aiTimeout = Duration(seconds: 45);
 
   // ─── Headers ───────────────────────────────────────────────────────────────
   static const Map<String, String> bhoomiHeaders = {

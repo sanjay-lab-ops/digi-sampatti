@@ -61,3 +61,12 @@ K.txt
 *.key
 *_key.txt
 *_secret.txt
+
+# Firebase service account (contains private key — never commit)
+serviceAccount.json
+backend/serviceAccount.json
+**/serviceAccount.json
+
+# Python cache
+backend/__pycache__/
+backend/*.pyc

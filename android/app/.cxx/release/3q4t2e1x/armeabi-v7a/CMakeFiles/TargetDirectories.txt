@@ -1,0 +1,2 @@
+C:/Users/Dell/digi-sampatti/android/app/.cxx/release/3q4t2e1x/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Dell/digi-sampatti/android/app/.cxx/release/3q4t2e1x/armeabi-v7a/CMakeFiles/rebuild_cache.dir

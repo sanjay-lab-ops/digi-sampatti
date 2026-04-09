@@ -1,0 +1,2 @@
+C:/Users/Dell/digi-sampatti/android/app/.cxx/debug/g161e1q7/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Dell/digi-sampatti/android/app/.cxx/debug/g161e1q7/arm64-v8a/CMakeFiles/rebuild_cache.dir

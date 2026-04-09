@@ -5,6 +5,7 @@ import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/features/splash/splash_screen.dart';
 import 'package:digi_sampatti/features/onboarding/onboarding_screen.dart';
 import 'package:digi_sampatti/features/auth/auth_screen.dart';
+import 'package:digi_sampatti/features/auth/user_setup_screen.dart';
 import 'package:digi_sampatti/features/home/home_screen.dart';
 import 'package:digi_sampatti/features/scan/camera_scan_screen.dart';
 import 'package:digi_sampatti/features/scan/manual_search_screen.dart';
@@ -34,6 +35,8 @@ import 'package:digi_sampatti/features/guides/legal_glossary_screen.dart';
 import 'package:digi_sampatti/features/guides/red_flags_screen.dart';
 import 'package:digi_sampatti/features/guides/faq_screen.dart';
 import 'package:digi_sampatti/features/ecourts/ecourts_screen.dart';
+import 'package:digi_sampatti/features/ecourts/court_tracker_screen.dart';
+import 'package:digi_sampatti/features/government/application_tracker_screen.dart';
 import 'package:digi_sampatti/features/legal/privacy_terms_screen.dart';
 import 'package:digi_sampatti/features/subscription/subscription_screen.dart';
 import 'package:digi_sampatti/features/profile/profile_screen.dart';
@@ -44,6 +47,12 @@ import 'package:digi_sampatti/features/nri/nri_mode_screen.dart';
 import 'package:digi_sampatti/features/demo/demo_report_screen.dart';
 import 'package:digi_sampatti/features/auth/user_type_screen.dart';
 import 'package:digi_sampatti/features/gov/gov_dashboard_screen.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
+import 'package:digi_sampatti/features/next_steps/next_steps_screen.dart';
+import 'package:digi_sampatti/features/auto_scan/auto_scan_screen.dart';
+import 'package:digi_sampatti/features/professional/professional_register_screen.dart';
+import 'package:digi_sampatti/features/professional/professional_dashboard_screen.dart';
+import 'package:digi_sampatti/features/professional/professional_detail_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -65,6 +74,11 @@ final _router = GoRouter(
       builder: (context, state) => const AuthScreen(),
     ),
     GoRoute(
+      path: '/setup',
+      name: 'setup',
+      builder: (context, state) => const UserSetupScreen(),
+    ),
+    GoRoute(
       path: '/home',
       name: 'home',
       builder: (context, state) => const HomeScreen(),
@@ -77,7 +91,31 @@ final _router = GoRouter(
     GoRoute(
       path: '/scan/manual',
       name: 'manual-search',
-      builder: (context, state) => const ManualSearchScreen(),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return ManualSearchScreen(
+          prefillSurveyNumber: extra?['ocrSurveyNumber'] as String?,
+          prefillOwnerName:    extra?['ocrOwnerName']    as String?,
+          prefillDistrict:     extra?['ocrDistrict']     as String?,
+          prefillTaluk:        extra?['ocrTaluk']        as String?,
+          prefillDocumentType: extra?['ocrDocumentType'] as String?,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/checklist',
+      name: 'portal-checklist',
+      builder: (context, state) => const PortalChecklistScreen(),
+    ),
+    GoRoute(
+      path: '/auto-scan',
+      name: 'auto-scan',
+      builder: (context, state) => const AutoScanScreen(),
+    ),
+    GoRoute(
+      path: '/next-steps',
+      name: 'next-steps',
+      builder: (context, state) => const NextStepsScreen(),
     ),
     GoRoute(
       path: '/records',
@@ -288,6 +326,38 @@ final _router = GoRouter(
         return EcourtsScreen(
           ownerName: extra?['ownerName'] as String?,
           surveyNumber: extra?['surveyNumber'] as String?,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/court-tracker',
+      name: 'court-tracker',
+      builder: (context, state) => const CourtTrackerScreen(),
+    ),
+    GoRoute(
+      path: '/application-tracker',
+      name: 'application-tracker',
+      builder: (context, state) => const ApplicationTrackerScreen(),
+    ),
+    GoRoute(
+      path: '/professional/register',
+      name: 'professional-register',
+      builder: (context, state) => const ProfessionalRegisterScreen(),
+    ),
+    GoRoute(
+      path: '/professional/dashboard',
+      name: 'professional-dashboard',
+      builder: (context, state) => const ProfessionalDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/professional/:uid',
+      name: 'professional-detail',
+      builder: (context, state) {
+        final uid = state.pathParameters['uid']!;
+        final extra = state.extra as Map<String, dynamic>?;
+        return ProfessionalDetailScreen(
+          professionalUid: uid,
+          reportContext: extra,
         );
       },
     ),

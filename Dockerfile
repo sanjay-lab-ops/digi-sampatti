@@ -1,20 +1,15 @@
-FROM nginx:alpine
+FROM python:3.11-slim
 
-# Copy landing page and assets
-COPY index.html /usr/share/nginx/html/index.html
-COPY assets/ /usr/share/nginx/html/assets/
+WORKDIR /app
 
-# Railway injects PORT env var — nginx must listen on it
-RUN echo 'server { \
-  listen $PORT; \
-  root /usr/share/nginx/html; \
-  index index.html; \
-  location / { try_files $uri $uri/ /index.html; } \
-  gzip on; \
-  gzip_types text/html text/css application/javascript image/svg+xml; \
-}' > /etc/nginx/conf.d/default.conf
+# Build context = repo root, so prefix paths with backend/
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Use shell form so $PORT is expanded at runtime
-CMD sh -c "sed -i 's/\$PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+COPY backend/ .
 
-EXPOSE 8080
+ENV PORT=8080
+EXPOSE $PORT
+
+# Install Chromium at container START — bypasses Cloud Build network restrictions
+CMD bash -c "playwright install chromium --with-deps && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app"

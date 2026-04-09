@@ -78,21 +78,7 @@ class ReraService {
     required double longitude,
     double radiusKm = 1.0,
   }) async {
-    try {
-      final response = await _dio.get(
-        ApiConstants.reraProjectSearch,
-        queryParameters: {
-          'lat': latitude,
-          'lon': longitude,
-          'radius': radiusKm,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List data = response.data['projects'] ?? [];
-        return data.map((p) => _parseReraRecord(p)).toList();
-      }
-    } catch (_) {}
+    // RERA portal does not have a public location API. Return empty for individual plots.
     return [];
   }
 
@@ -160,35 +146,7 @@ class EncumbranceService {
     required int fromYear,
     required int toYear,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.igrsEcEndpoint,
-        data: {
-          'district': district,
-          'sro': sroOffice,
-          'surveyNo': surveyNumber,
-          'fromYear': fromYear,
-          'toYear': toYear,
-          'searchType': 'survey',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List data = response.data['encumbrances'] ?? [];
-        return data.map<EncumbranceEntry>((e) => EncumbranceEntry(
-          ecNumber: e['docNumber']?.toString() ?? '',
-          type: e['natureOfDocument']?.toString() ?? 'Unknown',
-          partyName: e['executantName']?.toString() ?? '',
-          amount: double.tryParse(e['considerationValue']?.toString() ?? ''),
-          date: e['registrationDate'] != null
-              ? DateTime.tryParse(e['registrationDate'].toString())
-              : null,
-          bankName: e['claimantName']?.toString(),
-          isActive: _isActiveEncumbrance(e['natureOfDocument']?.toString()),
-          remarks: e['remarks']?.toString(),
-        )).toList();
-      }
-    } catch (_) {}
+    // IGRS portal does not have a public API — EC data is included in Bhoomi record
     return [];
   }
 
