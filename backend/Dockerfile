@@ -1,14 +1,16 @@
-FROM python:3.11-slim
+FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
 
 WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-install Chromium during build (base image already has all system deps)
+RUN playwright install chromium
+
 COPY . .
 
 ENV PORT=8080
 EXPOSE $PORT
 
-# Install Chromium at container START (not build time) — bypasses Railway build network restrictions
-CMD bash -c "playwright install chromium --with-deps && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app"
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app
