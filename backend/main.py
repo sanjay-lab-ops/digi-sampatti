@@ -276,7 +276,11 @@ def fetch_rtc():
     if cached:
         return jsonify(cached)
 
-    result = asyncio.run(_scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no))
+    try:
+        result = asyncio.run(asyncio.wait_for(
+            _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no), timeout=22))
+    except (asyncio.TimeoutError, Exception):
+        result = None
     if result:
         cache_set("rtc_cache", key, result)
         return jsonify(result)
@@ -1675,11 +1679,15 @@ def fetch_fmb():
     if cached:
         return jsonify(cached)
 
-    result = asyncio.run(_scrape_fmb(district, taluk, village, survey_no))
+    try:
+        result = asyncio.run(asyncio.wait_for(
+            _scrape_fmb(district, taluk, village, survey_no), timeout=25))
+    except (asyncio.TimeoutError, Exception):
+        result = None
     if result:
         cache_set("fmb_cache", key, result)
         return jsonify(result)
-    return jsonify({"error": "FMB sketch unavailable"}), 503
+    return jsonify({"error": "FMB sketch unavailable — landrecords.karnataka.gov.in blocked from cloud", "source": "fmb_blocked"}), 503
 
 
 async def _scrape_fmb(district, taluk, village, survey_no) -> Optional[dict]:
