@@ -2202,6 +2202,191 @@ def ping():
     return jsonify({"status": "ok"})
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# RTC FROM IMAGE — Claude Vision reads scanned RTC document directly
+# Bypasses Bhoomi portal entirely. Works for physical documents the user has.
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/rtc-from-image", methods=["POST"])
+def rtc_from_image():
+    """
+    Accepts a base64-encoded photo of an RTC/EC/Sale Deed.
+    Uses Claude Vision to extract ALL fields:
+      - Survey number, owner, extent, khata, land type, liabilities
+      - EC: transaction list, encumbrance status
+      - Sale Deed: parties, consideration, date, SRO
+    Returns structured JSON — no Bhoomi portal needed.
+    """
+    d = request.get_json()
+    image_b64  = d.get("image_base64", "")
+    image_type = d.get("image_type", "image/jpeg")   # image/jpeg or image/png
+    doc_hint   = d.get("document_hint", "")           # optional: "RTC", "EC", "Sale Deed"
+
+    if not image_b64:
+        return jsonify({"error": "image_base64 required"}), 400
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 500
+
+    result = asyncio.run(_claude_extract_document(image_b64, image_type, doc_hint, api_key))
+    return jsonify(result)
+
+
+async def _claude_extract_document(image_b64: str, image_type: str,
+                                    doc_hint: str, api_key: str) -> dict:
+    """Use Claude Vision to extract all fields from a scanned property document."""
+    prompt = f"""You are a Karnataka property document expert. Analyze this scanned document image.
+{"Hint: This is likely a " + doc_hint + " document." if doc_hint else ""}
+
+Extract ALL visible information and return ONLY valid JSON in this format:
+
+{{
+  "document_type": "RTC" | "EC" | "Sale Deed" | "Khata" | "Mutation" | "Tax Receipt" | "Other",
+  "confidence": 0.0-1.0,
+  "language": "Kannada" | "English" | "Both",
+
+  "rtc_fields": {{
+    "survey_number": "e.g. 49/2 or null",
+    "hissa_number": "e.g. * or 1 or null",
+    "owner_name": "transliterated to English if Kannada",
+    "total_extent_acres": "e.g. 0.30 or null",
+    "total_extent_text": "full extent string e.g. 0.30.00 Acres",
+    "dry_land": "acres or null",
+    "wet_land": "acres or null",
+    "garden_land": "acres or null",
+    "kharab": "kharab area or null",
+    "khata_number": "or null",
+    "mutation_number": "MR H13/2018 2019 etc or null",
+    "village": "transliterated or null",
+    "hobli": "transliterated or null",
+    "taluk": "transliterated or null",
+    "district": "transliterated or null",
+    "liabilities": "any loans/encumbrances listed or null",
+    "crops": "any crop information or null",
+    "remarks": "any remarks from RTC or null",
+    "valid_from": "date string or null",
+    "valid_to": "date string or null",
+    "digitally_signed": true | false,
+    "signed_by": "officer name and designation or null",
+    "signed_date": "date or null"
+  }},
+
+  "ec_fields": {{
+    "property_description": "or null",
+    "period_from": "year or null",
+    "period_to": "year or null",
+    "encumbrance_free": true | false | null,
+    "transaction_count": 0,
+    "transactions": [
+      {{"date": "...", "type": "Sale/Mortgage/Gift/...", "parties": "...", "amount": "...or null"}}
+    ]
+  }},
+
+  "sale_deed_fields": {{
+    "deed_number": "or null",
+    "registration_date": "or null",
+    "sro": "Sub-Registrar Office name or null",
+    "seller_name": "or null",
+    "buyer_name": "or null",
+    "consideration_amount": "₹ amount or null",
+    "property_description": "or null",
+    "survey_number": "or null"
+  }},
+
+  "raw_text_snippet": "first 500 chars of all readable text"
+}}
+
+Rules:
+- For Kannada text: transliterate names to English (e.g. ಮಾರೆಗೌಡ → Maregowda)
+- Extract EXACTLY what is written — do not guess
+- If field is not visible or not applicable, use null
+- confidence: 0.9=clear printed, 0.6=partially visible, 0.3=blurry/handwritten"""
+
+    try:
+        async with httpx.AsyncClient(timeout=45) as c:
+            r = await c.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 2000,
+                    "messages": [{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": image_type,
+                                    "data": image_b64,
+                                }
+                            },
+                            {"type": "text", "text": prompt}
+                        ]
+                    }]
+                }
+            )
+            if r.status_code == 200:
+                text = r.json()["content"][0]["text"].strip()
+                # Extract JSON
+                import json as _json
+                start = text.find("{")
+                end   = text.rfind("}") + 1
+                if start != -1 and end > start:
+                    data = _json.loads(text[start:end])
+                    # Flatten RTC fields to top level for app compatibility
+                    rtc = data.get("rtc_fields", {}) or {}
+                    return {
+                        "source": "claude_vision",
+                        "document_type": data.get("document_type"),
+                        "confidence": data.get("confidence", 0.5),
+                        # RTC top-level fields (app expects these)
+                        "survey_number":       rtc.get("survey_number"),
+                        "owner_name":          rtc.get("owner_name"),
+                        "extent":              rtc.get("total_extent_text"),
+                        "land_type":           _rtc_land_type(rtc),
+                        "kharab":              rtc.get("kharab"),
+                        "khata_number":        rtc.get("khata_number"),
+                        "mutation_no":         rtc.get("mutation_number"),
+                        "liabilities":         rtc.get("liabilities"),
+                        "village":             rtc.get("village"),
+                        "hobli":               rtc.get("hobli"),
+                        "taluk":               rtc.get("taluk"),
+                        "district":            rtc.get("district"),
+                        "valid_from":          rtc.get("valid_from"),
+                        "valid_to":            rtc.get("valid_to"),
+                        "digitally_signed":    rtc.get("digitally_signed"),
+                        "signed_by":           rtc.get("signed_by"),
+                        "crops":               rtc.get("crops"),
+                        "remarks":             rtc.get("remarks"),
+                        # EC fields
+                        "ec": data.get("ec_fields"),
+                        # Sale Deed fields
+                        "sale_deed": data.get("sale_deed_fields"),
+                        # Raw for debugging
+                        "raw_text": data.get("raw_text_snippet"),
+                        "full_extraction": data,
+                    }
+    except Exception as e:
+        logger.error(f"Claude Vision extraction: {e}")
+
+    return {"source": "claude_vision_error", "error": "Extraction failed"}
+
+
+def _rtc_land_type(rtc: dict) -> str:
+    """Summarize land type from dry/wet/garden acres."""
+    parts = []
+    if rtc.get("dry_land"):  parts.append(f"Dry: {rtc['dry_land']}")
+    if rtc.get("wet_land"):  parts.append(f"Wet: {rtc['wet_land']}")
+    if rtc.get("garden_land"): parts.append(f"Garden: {rtc['garden_land']}")
+    return ", ".join(parts) if parts else None
+
+
 @app.route("/health")
 def health():
     import os as _os

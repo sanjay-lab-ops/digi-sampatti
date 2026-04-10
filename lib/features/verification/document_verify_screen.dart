@@ -87,15 +87,15 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
         expectedSurveyNumber: widget.surveyNumber,
       );
     } else {
-      // Demo mode — simulate portal response
-      await Future.delayed(const Duration(milliseconds: 900));
+      // No QR code on document — cannot auto-verify, tell user to verify manually
       result = SignatureVerification(
-        status: SignatureStatus.authentic,
+        status: SignatureStatus.unverified,
         documentType: 'RTC',
-        signerName: 'Sri Prakash Hegde',
-        signerDesignation: 'Tahsildar, Yelahanka',
-        signedAt: DateTime.now().subtract(const Duration(days: 2)),
-        verifyUrl: 'https://land.kar.nic.in/landrecords/rtcprint/verify?token=DEMO',
+        signerName: null,
+        signerDesignation: null,
+        signedAt: null,
+        verifyUrl: 'https://landrecords.karnataka.gov.in/service53/',
+        note: 'No QR code found on this RTC. Verify manually at Bhoomi portal — scan the QR on the original printed RTC.',
       );
     }
 
@@ -115,14 +115,14 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
         expectedOwner: widget.ownerName,
       );
     } else {
-      await Future.delayed(const Duration(milliseconds: 1200));
       result = SignatureVerification(
-        status: SignatureStatus.authentic,
+        status: SignatureStatus.unverified,
         documentType: 'EC',
-        signerName: 'Sri Venkatesh Rao',
-        signerDesignation: 'Sub-Registrar, Bengaluru North',
-        signedAt: DateTime.now().subtract(const Duration(days: 5)),
-        verifyUrl: 'https://kaverionline.karnataka.gov.in/ecVerify?docNo=DEMO',
+        signerName: null,
+        signerDesignation: null,
+        signedAt: null,
+        verifyUrl: 'https://kaveri.karnataka.gov.in/',
+        note: 'No QR code on this EC. Verify at Kaveri Online portal or ask Sub-Registrar office to stamp it.',
       );
     }
 
@@ -142,14 +142,14 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
         expectedOwner: widget.ownerName,
       );
     } else {
-      await Future.delayed(const Duration(milliseconds: 800));
       result = SignatureVerification(
-        status: SignatureStatus.authentic,
+        status: SignatureStatus.unverified,
         documentType: 'Khata',
-        signerName: 'Smt. Lalitha Devi',
-        signerDesignation: 'ARO, BBMP Ward 42',
-        signedAt: DateTime.now().subtract(const Duration(days: 10)),
-        verifyUrl: 'https://bbmpeaasthi.karnataka.gov.in/verify?id=DEMO',
+        signerName: null,
+        signerDesignation: null,
+        signedAt: null,
+        verifyUrl: 'https://bbmpeaasthi.karnataka.gov.in/',
+        note: 'No QR code on this Khata. Verify at BBMP eAasthi portal using the PID number.',
       );
     }
 

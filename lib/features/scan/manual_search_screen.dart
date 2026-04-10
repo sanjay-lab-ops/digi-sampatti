@@ -446,6 +446,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     if (owner != null && owner.isNotEmpty) {
       _ownerNameController.text = owner;
       _prefillApplied = true;
+      // Also switch to village/name mode so the owner field is visible
+      if (sv == null || sv.isEmpty) _searchMode = 1;
     }
     if (district != null && district.isNotEmpty) {
       // Try exact match first, then case-insensitive

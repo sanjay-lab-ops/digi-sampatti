@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 class EcourtsScreen extends StatefulWidget {
@@ -42,21 +45,41 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
   }
 
   Future<void> _search() async {
-    if (_nameController.text.trim().isEmpty && _surveyController.text.trim().isEmpty) {
+    final name   = _nameController.text.trim();
+    final survey = _surveyController.text.trim();
+    if (name.isEmpty && survey.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter owner name or survey number')));
       return;
     }
     setState(() { _isSearching = true; _result = null; });
-    await Future.delayed(const Duration(seconds: 2));
 
-    // Demo: name containing "test" or survey "999" returns mock cases
-    final hasCase = _nameController.text.toLowerCase().contains('test') ||
-        _surveyController.text.contains('999');
+    try {
+      final resp = await http.post(
+        Uri.parse('${ApiConstants.backendBaseUrl}/ecourts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'owner_name': name, 'survey_number': survey, 'district': ''}),
+      ).timeout(const Duration(seconds: 30));
 
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        final hasCases = data['has_pending_cases'] == true;
+        final count    = (data['cases_found'] ?? 0) as int;
+        final cases    = (data['case_numbers'] as List?)?.cast<String>() ?? [];
+        setState(() {
+          _isSearching = false;
+          _result = hasCases
+              ? _SearchResult.withCasesReal(count, cases)
+              : _SearchResult.clean();
+        });
+        return;
+      }
+    } catch (_) {}
+
+    // Backend unreachable — show actionable message instead of fake data
     setState(() {
       _isSearching = false;
-      _result = hasCase ? _SearchResult.withCases() : _SearchResult.clean();
+      _result = _SearchResult.backendDown();
     });
   }
 
@@ -198,6 +221,33 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
   }
 
   Widget _buildResult(_SearchResult result) {
+    if (result.isBackendDown) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.orange.shade300),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(children: [
+              Icon(Icons.wifi_off, color: Colors.orange, size: 22),
+              SizedBox(width: 10),
+              Text('eCourts server not reachable',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+            ]),
+            const SizedBox(height: 8),
+            const Text(
+              'Check directly at services.ecourts.gov.in → Case Status → Party Name search.',
+              style: TextStyle(fontSize: 12, height: 1.4),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
         Container(
@@ -217,7 +267,7 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(result.isClean ? 'No Cases Found' : '${result.cases.length} Case(s) Found',
+                    Text(result.isClean ? 'No Cases Found' : '${result.cases.length} Case(s) Found — Verify',
                       style: TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 16,
                         color: result.isClean ? AppColors.safe : AppColors.danger,
@@ -450,29 +500,33 @@ class _CourtCase {
 
 class _SearchResult {
   final bool isClean;
+  final bool isBackendDown;
   final List<_CourtCase> cases;
-  const _SearchResult({required this.isClean, required this.cases});
+  const _SearchResult({
+    required this.isClean,
+    required this.cases,
+    this.isBackendDown = false,
+  });
 
   factory _SearchResult.clean() => const _SearchResult(isClean: true, cases: []);
 
-  factory _SearchResult.withCases() => _SearchResult(isClean: false, cases: [
-    _CourtCase(
-      type: 'Title Dispute',
-      caseNumber: 'O.S. 1452/2021',
-      parties: 'Ramesh Kumar vs Suresh Kumar & Others',
-      filingDate: '14 Mar 2021',
-      nextHearing: '28 Apr 2026',
-      status: 'Pending',
-      advice: 'Title is disputed. Court has not given final order. Do NOT buy until case is resolved. Consult a property lawyer immediately.',
-    ),
-    _CourtCase(
-      type: 'Injunction',
-      caseNumber: 'I.A. 203/2022',
-      parties: 'Lakshmi Devi vs Ramesh Kumar',
-      filingDate: '02 Jun 2022',
-      nextHearing: '15 Apr 2026',
-      status: 'Active Injunction',
-      advice: 'Court has issued an injunction stopping sale of this property. Any sale during this period is legally void.',
-    ),
-  ]);
+  factory _SearchResult.backendDown() =>
+      const _SearchResult(isClean: false, cases: [], isBackendDown: true);
+
+  factory _SearchResult.withCasesReal(int count, List<String> caseNumbers) =>
+      _SearchResult(
+        isClean: false,
+        cases: caseNumbers
+            .map((c) => _CourtCase(
+                  type: 'Pending Case',
+                  caseNumber: c,
+                  parties: '— (see eCourts portal for party details)',
+                  filingDate: '—',
+                  nextHearing: '—',
+                  status: 'Active',
+                  advice:
+                      'Pending case found. Check services.ecourts.gov.in for full details before buying.',
+                ))
+            .toList(),
+      );
 }
