@@ -96,15 +96,20 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Could not open payment. Check internet connection.'),
+            content: Text('Could not open payment gateway. Please check your internet connection and try again.'),
             backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Payment error: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }

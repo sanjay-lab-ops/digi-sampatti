@@ -449,6 +449,22 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     setState(() { _loadingVillage = false; });
   }
 
+  // ─── Friendly display name for district dropdown ────────────────────────────
+  static String _districtLabel(String d) {
+    const aliases = {
+      'Bengaluru Urban': 'Bengaluru (Urban) — Bangalore City',
+      'Bengaluru Rural': 'Bengaluru (Rural) — Bangalore Outskirts',
+      'Mysuru':          'Mysuru (Mysore)',
+      'Kalaburagi':      'Kalaburagi (Gulbarga)',
+      'Belagavi':        'Belagavi (Belgaum)',
+      'Ballari':         'Ballari (Bellary)',
+      'Shivamogga':      'Shivamogga (Shimoga)',
+      'Vijayapura':      'Vijayapura (Bijapur)',
+      'Tumakuru':        'Tumakuru (Tumkur)',
+    };
+    return aliases[d] ?? d;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -509,17 +525,48 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
         if (result.hasSurveyNumber) {
           _surveyController.text = result.surveyNumber!;
           _gpsMessage = 'Survey number detected from GPS (${result.source})';
-        } else {
-          _gpsMessage = result.district != null
-              ? 'Location found — select district below'
-              : 'GPS detected but survey number not found. Please enter manually.';
         }
-        // Auto-fill district/taluk/village regardless
+        // Auto-fill district — case-insensitive match
         if (result.district != null) {
-          final normalized = result.district!;
-          if (AppStrings.karnatakaDistricts.contains(normalized)) {
-            _selectedDistrict = normalized;
+          final raw = result.district!;
+          String matched = AppStrings.karnatakaDistricts.firstWhere(
+            (d) => d.toLowerCase() == raw.toLowerCase(),
+            orElse: () => '',
+          );
+          if (matched.isEmpty) {
+            // Partial match: "bangalore" → "Bengaluru Urban"
+            final lower = raw.toLowerCase();
+            matched = AppStrings.karnatakaDistricts.firstWhere(
+              (d) => d.toLowerCase().contains(lower) ||
+                     lower.contains(d.split(' ').first.toLowerCase()),
+              orElse: () => '',
+            );
+          }
+          if (matched.isNotEmpty) {
+            _selectedDistrict = matched;
             _selectedTaluk = null;
+            if (!result.hasSurveyNumber) {
+              _gpsMessage = 'Location found — district set to $matched';
+            }
+          } else {
+            if (!result.hasSurveyNumber) {
+              _gpsMessage = 'Location found — please select district manually';
+            }
+          }
+        } else if (!result.hasSurveyNumber) {
+          _gpsMessage = 'GPS detected but location unclear. Please select district manually.';
+        }
+        // Auto-fill taluk
+        if (result.taluk != null && result.taluk!.isNotEmpty && _selectedDistrict != null) {
+          final taluks = districtTaluks[_selectedDistrict] ?? [];
+          final matchedTaluk = taluks.firstWhere(
+            (t) => t.toLowerCase() == result.taluk!.toLowerCase() ||
+                   result.taluk!.toLowerCase().contains(t.toLowerCase()),
+            orElse: () => '',
+          );
+          if (matchedTaluk.isNotEmpty) {
+            _selectedTaluk = matchedTaluk;
+            _loadHoblis(_selectedDistrict!, matchedTaluk);
           }
         }
         if (result.village != null && result.village!.isNotEmpty) {
@@ -527,7 +574,6 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
         }
         if (result.hobli != null && result.hobli!.isNotEmpty) {
           _selectedHobli = result.hobli;
-          // Trigger village list load
           if (_selectedDistrict != null && _selectedTaluk != null) {
             _loadVillages(_selectedDistrict!, _selectedTaluk!, result.hobli!);
           }
@@ -969,7 +1015,10 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                 hint: const Text('ಜಿಲ್ಲೆ ಆಯ್ಕೆ ಮಾಡಿ / Select District'),
                 isExpanded: true,
                 items: AppStrings.karnatakaDistricts
-                    .map((d) => DropdownMenuItem(value: d, child: Text(d)))
+                    .map((d) => DropdownMenuItem(
+                          value: d,
+                          child: Text(_districtLabel(d)),
+                        ))
                     .toList(),
                 onChanged: (v) => setState(() {
                   _selectedDistrict = v;

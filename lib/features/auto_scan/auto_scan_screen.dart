@@ -10,6 +10,7 @@ import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 import 'package:digi_sampatti/features/bhoomi/bhoomi_device_scraper_screen.dart';
+import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 // ─── Auto Scan Screen ─────────────────────────────────────────────────────────
 // ZERO manual intervention.
@@ -636,9 +637,14 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         break;
     }
 
+    // These portals are blocked from cloud — show "Open on Device" when they fail
+    final isBhoomiBlocked  = p.name == 'Bhoomi RTC'     && p.status == _PortalStatus.failed;
+    final isKaveriBlocked  = p.name == 'Kaveri EC'      && p.status == _PortalStatus.failed;
+    final isFmbBlocked     = p.name == 'FMB Sketch'     && p.status == _PortalStatus.failed;
+    final isCersaiBlocked  = p.name == 'CERSAI'         && p.status == _PortalStatus.failed;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked) ? 0 : 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -648,45 +654,624 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
               : AppColors.borderColor,
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: p.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(p.icon, color: p.color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
               children: [
-                Text(p.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13)),
-                if (p.summary != null)
-                  Text(p.summary!,
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: p.hasIssue == true
-                              ? Colors.orange.shade700
-                              : AppColors.textLight))
-                else if (p.status == _PortalStatus.scanning)
-                  const Text('Fetching...',
-                      style: TextStyle(fontSize: 11, color: AppColors.textLight))
-                else
-                  const Text('Waiting...',
-                      style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: p.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(p.icon, color: p.color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(p.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13)),
+                      if (p.summary != null)
+                        Text(p.summary!,
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: p.hasIssue == true
+                                    ? Colors.orange.shade700
+                                    : AppColors.textLight))
+                      else if (p.status == _PortalStatus.scanning)
+                        const Text('Fetching...',
+                            style: TextStyle(fontSize: 11, color: AppColors.textLight))
+                      else
+                        const Text('Waiting...',
+                            style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+                statusWidget,
               ],
             ),
           ),
-          statusWidget,
+          // ── Bhoomi blocked: show "Open on Device" CTA ──────────────────────
+          if (isBhoomiBlocked) _onDeviceButton(
+            context,
+            portal: GovPortal.bhoomi,
+            label: 'Open Bhoomi on Device (Real RTC Data)',
+            color: const Color(0xFF1B5E20),
+          ),
+          if (isKaveriBlocked) _onDeviceButton(
+            context,
+            portal: GovPortal.kaveri,
+            label: 'Open Kaveri EC on Device (Real Data)',
+            color: const Color(0xFF0D47A1),
+          ),
+          if (isFmbBlocked) _onDeviceButton(
+            context,
+            portal: GovPortal.dishank,
+            label: 'Open FMB / Sketch Map on Device',
+            color: const Color(0xFF37474F),
+          ),
+          if (isCersaiBlocked) _onDeviceButton(
+            context,
+            portal: GovPortal.cersai,
+            label: 'Open CERSAI in Browser (Bank Mortgage)',
+            color: const Color(0xFF880E4F),
+          ),
+          if (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked)
+            const SizedBox(height: 10),
         ],
       ),
     );
+  }
+
+  // ─── On-device button for cloud-blocked portals ───────────────────────────
+  Widget _onDeviceButton(BuildContext context, {
+    required GovPortal portal,
+    required String label,
+    required Color color,
+  }) {
+    final scan = ref.read(currentScanProvider);
+    // Bhoomi: use automated device scraper (fills form, returns parsed data)
+    if (portal == GovPortal.bhoomi && scan != null &&
+        scan.district != null && scan.taluk != null && scan.surveyNumber != null) {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: ElevatedButton.icon(
+          onPressed: () async {
+            final result = await Navigator.push<Map<String, dynamic>?>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BhoomiDeviceScraperScreen(
+                  district:     scan.district!,
+                  taluk:        scan.taluk!,
+                  hobli:        scan.hobli ?? '',
+                  village:      scan.village ?? '',
+                  surveyNumber: scan.surveyNumber!,
+                ),
+              ),
+            );
+            if (result != null && mounted) {
+              setState(() {
+                final p = _portals.firstWhere((p) => p.name == 'Bhoomi RTC');
+                p.status = _PortalStatus.done;
+                p.summary = _rtcSummary(result);
+                p.hasIssue = false;
+              });
+            }
+          },
+          icon: const Icon(Icons.auto_fix_high, size: 16),
+          label: Text(label, style: const TextStyle(fontSize: 12)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      );
+    }
+    // Other portals: open WebView manually
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: ElevatedButton.icon(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => GovWebViewScreen(
+              portal: portal,
+              surveyNumber: scan?.surveyNumber,
+              district:     scan?.district,
+              taluk:        scan?.taluk,
+              hobli:        scan?.hobli,
+              village:      scan?.village,
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.open_in_browser, size: 16),
+        label: Text(label, style: const TextStyle(fontSize: 12)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+
+  // ─── What you still need to do (online vs. physical presence) ────────────
+  Widget _buildNextStepsCard() {
+    final hasFraud    = _fraudPatterns.isNotEmpty;
+    final hasCourts   = (_fullResult?['courts'] as Map?)?.containsKey('has_pending_cases') == true
+        && (_fullResult!['courts']['has_pending_cases'] as bool? ?? false);
+    final hasMortgage = (_fullResult?['cersai'] as Map?)?.containsKey('is_mortgaged') == true
+        && (_fullResult!['cersai']['is_mortgaged'] as bool? ?? false);
+    final ecDown      = _fullResult?['ec'] == null;
+    final cersaiDown  = _fullResult?['cersai'] == null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.07),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.checklist, size: 16, color: AppColors.primary),
+                SizedBox(width: 8),
+                Text('ಮುಂದಿನ ಹಂತಗಳು  /  What You Still Need To Do',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.primary)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Online — can be done from phone
+                const _SectionLabel('📱 Can be done online / on this app'),
+                const SizedBox(height: 8),
+                _NextStep(
+                  done: _fullResult?['rtc'] != null,
+                  label: 'Bhoomi RTC fetched ✓',
+                  note: 'Owner, extent, liabilities — visible above',
+                  physical: false,
+                ),
+                _NextStep(
+                  done: !ecDown,
+                  label: ecDown
+                      ? 'Kaveri EC — verify manually at kaveri.karnataka.gov.in'
+                      : 'Kaveri EC checked ✓',
+                  note: ecDown ? 'Kaveri portal is frequently down. Get EC from the sub-registrar office.' : null,
+                  physical: ecDown,
+                  isWarning: ecDown,
+                ),
+                _NextStep(
+                  done: !cersaiDown,
+                  label: cersaiDown
+                      ? 'CERSAI — ask seller to show CERSAI screenshot or check at cersai.org.in'
+                      : 'CERSAI mortgage check ✓',
+                  note: cersaiDown ? 'CERSAI login is required. A lawyer can get this for ₹200.' : null,
+                  physical: false,
+                  isWarning: cersaiDown,
+                ),
+                _NextStep(
+                  done: !hasCourts,
+                  label: hasCourts
+                      ? 'Court cases found — read details in report ⚠'
+                      : 'eCourts search done ✓',
+                  note: hasCourts ? 'Get a lawyer to review the case status before buying.' : null,
+                  physical: false,
+                  isWarning: hasCourts,
+                ),
+
+                const SizedBox(height: 14),
+                // Physical presence required
+                const _SectionLabel('🏢 Requires physical presence'),
+                const SizedBox(height: 8),
+                const _NextStep(
+                  done: false,
+                  label: 'Visit the sub-registrar office (SRO)',
+                  note: 'Get the original EC, check sale deed history in person. Bring survey number + Aadhaar.',
+                  physical: true,
+                ),
+                const _NextStep(
+                  done: false,
+                  label: 'Visit the property site',
+                  note: 'Verify boundary markers match FMB sketch. Check if any encroachment.',
+                  physical: true,
+                ),
+                const _NextStep(
+                  done: false,
+                  label: 'Check with village accountant (VA)',
+                  note: 'Ask if there are any oral/unregistered transactions or disputes on this survey.',
+                  physical: true,
+                ),
+                if (hasFraud) ...[
+                  const SizedBox(height: 14),
+                  const _SectionLabel('🚨 Fraud patterns detected — additional steps'),
+                  const SizedBox(height: 8),
+                  const _NextStep(
+                    done: false,
+                    label: 'Hire a property lawyer immediately',
+                    note: 'Do NOT pay any advance until a lawyer reviews the RTC, EC, and mutation history.',
+                    physical: false,
+                    isWarning: true,
+                  ),
+                  const _NextStep(
+                    done: false,
+                    label: 'Do NOT sign any agreement yet',
+                    note: 'Suspicious patterns detected. Get police verification of the seller\'s identity.',
+                    physical: true,
+                    isWarning: true,
+                  ),
+                ],
+
+                if (hasMortgage) ...[
+                  const SizedBox(height: 14),
+                  const _SectionLabel('🏦 Mortgage found — additional steps'),
+                  const SizedBox(height: 8),
+                  const _NextStep(
+                    done: false,
+                    label: 'Get NOC from the bank before sale',
+                    note: 'Seller must show No-Objection Certificate from the bank clearing the mortgage.',
+                    physical: true,
+                    isWarning: true,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Raw Government Records ────────────────────────────────────────────────
+  Widget _buildRawDataSection() {
+    final scan   = ref.read(currentScanProvider);
+    final rtc    = _fullResult!['rtc']    as Map<String, dynamic>?;
+    final ec     = _fullResult!['ec']     as Map<String, dynamic>?;
+    final courts = _fullResult!['courts'] as Map<String, dynamic>?;
+    final cersai = _fullResult!['cersai'] as Map<String, dynamic>?;
+    final gv     = _fullResult!['guidance_value'] as Map<String, dynamic>?;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.account_balance, size: 18, color: Color(0xFF1B5E20)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('ಸರ್ಕಾರಿ ದಾಖಲೆಗಳು  /  Raw Government Records',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        const Text('Live data fetched from Karnataka portals — shown inline',
+            style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+        const SizedBox(height: 12),
+
+        // ── Scan vs. Live comparison (only if RTC available + scan has OCR data) ─
+        if (rtc != null && scan != null && scan.surveyNumber != null)
+          _buildComparisonCard(scan, rtc),
+        if (rtc != null && scan != null && scan.surveyNumber != null)
+          const SizedBox(height: 10),
+
+        // ── RTC (Bhoomi) ──────────────────────────────────────────────────────
+        rtc != null
+            ? _buildRtcCard(rtc)
+            : _buildUnavailableCard(
+                'Bhoomi RTC  /  ಪಹಣಿ',
+                'Bhoomi portal did not respond. Survey No: ${scan?.surveyNumber ?? "—"}',
+                Icons.article_outlined, const Color(0xFF1B5E20)),
+
+        const SizedBox(height: 10),
+
+        // ── EC (Kaveri) — frequently down ─────────────────────────────────────
+        ec != null
+            ? _buildEcCard(ec)
+            : _buildUnavailableCard(
+                'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
+                'Kaveri portal is currently unavailable (frequent maintenance). '
+                'Verify EC manually at kaveri.karnataka.gov.in',
+                Icons.account_balance_outlined, const Color(0xFF0D47A1),
+                isKaveriDown: true),
+
+        const SizedBox(height: 10),
+
+        // ── eCourts ───────────────────────────────────────────────────────────
+        courts != null
+            ? _buildCourtsCard(courts)
+            : _buildUnavailableCard(
+                'eCourts India  /  ನ್ಯಾಯಾಲಯ',
+                'eCourts search was not reachable. Check manually at services.ecourts.gov.in',
+                Icons.gavel_outlined, const Color(0xFFBF360C)),
+
+        const SizedBox(height: 10),
+
+        // ── CERSAI — requires login/OTP ───────────────────────────────────────
+        cersai != null
+            ? _buildCersaiCard(cersai)
+            : _buildUnavailableCard(
+                'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
+                'CERSAI requires OTP login and cannot be automated. '
+                'Ask the seller to provide CERSAI screenshot, or check at cersai.org.in',
+                Icons.lock_outline, const Color(0xFF37474F),
+                isCersaiLogin: true),
+
+        const SizedBox(height: 10),
+
+        // ── Guidance Value — zone rate, not plot-specific ─────────────────────
+        _buildGuidanceCard(gv, scan?.district ?? '', scan?.taluk ?? ''),
+      ],
+    );
+  }
+
+  // ── Scan document vs. live portal — side by side ─────────────────────────
+  Widget _buildComparisonCard(PropertyScan scan, Map<String, dynamic> rtc) {
+    final scanSurvey   = scan.surveyNumber ?? '—';
+    final scanDistrict = scan.district ?? '—';
+    final scanTaluk    = scan.taluk ?? '—';
+    final liveSurvey   = _val(rtc['survey_number']).isNotEmpty ? _val(rtc['survey_number']) : '—';
+    final liveOwner    = _val(rtc['owner_name']).isNotEmpty ? _val(rtc['owner_name']) : '—';
+    final liveExtent   = _val(rtc['extent']).isNotEmpty ? _val(rtc['extent']) : '—';
+    final liveVillage  = _val(rtc['village']).isNotEmpty ? _val(rtc['village']) : '—';
+
+    bool match(String a, String b) =>
+        a != '—' && b != '—' && a.toLowerCase().trim() == b.toLowerCase().trim();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8E9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B5E20).withOpacity(0.08),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.compare_arrows, size: 16, color: Color(0xFF1B5E20)),
+                SizedBox(width: 8),
+                Text('Scanned Document  vs  Live Portal',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1B5E20))),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                // Header row
+                Row(
+                  children: [
+                    const SizedBox(width: 100),
+                    Expanded(
+                      child: Text('📄 Scanned',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700)),
+                    ),
+                    Expanded(
+                      child: Text('🏛 Bhoomi Live',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1B5E20))),
+                    ),
+                  ],
+                ),
+                const Divider(height: 14),
+                _CompRow('Survey No.', scanSurvey, liveSurvey,
+                    match: match(scanSurvey, liveSurvey)),
+                _CompRow('District', scanDistrict, _val(rtc['district']).isNotEmpty ? _val(rtc['district']) : '—',
+                    match: match(scanDistrict, _val(rtc['district']))),
+                _CompRow('Taluk', scanTaluk, _val(rtc['taluk']).isNotEmpty ? _val(rtc['taluk']) : '—',
+                    match: match(scanTaluk, _val(rtc['taluk']))),
+                _CompRow('Village', '—', liveVillage),
+                _CompRow('Owner', '—', liveOwner),
+                _CompRow('Extent', '—', liveExtent),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRtcCard(Map<String, dynamic> rtc) {
+    final owner       = _val(rtc['owner_name']);
+    final extent      = _val(rtc['extent']);
+    final landType    = _val(rtc['land_type']);
+    final kharab      = _val(rtc['kharab']);
+    final liabilities = _val(rtc['liabilities']);
+    final khata       = _val(rtc['khata_number']);
+    final village     = _val(rtc['village']);
+
+    return _RawCard(
+      title: 'Bhoomi RTC  /  ಪಹಣಿ',
+      subtitle: 'Record of Rights, Tenancy & Crops',
+      icon: Icons.article_outlined,
+      color: const Color(0xFF1B5E20),
+      children: [
+        _RawRow('Survey No.',   _val(rtc['survey_number']).isNotEmpty ? _val(rtc['survey_number']) : '—'),
+        if (village.isNotEmpty)   _RawRow('Village / ಗ್ರಾಮ', village),
+        _RawRow('Owner / ಮಾಲೀಕ', owner.isNotEmpty ? owner : '— (not returned)'),
+        _RawRow('Total Extent',   extent.isNotEmpty ? extent : '—'),
+        if (landType.isNotEmpty)  _RawRow('Land Type', landType),
+        if (kharab.isNotEmpty)    _RawRow('Kharab / Govt Share', kharab),
+        if (khata.isNotEmpty)     _RawRow('Khata No.', khata),
+        _RawRow('Liabilities',
+          liabilities.isNotEmpty ? liabilities : 'None on record ✓',
+          valueColor: liabilities.isNotEmpty ? Colors.red : AppColors.safe),
+      ],
+    );
+  }
+
+  Widget _buildEcCard(Map<String, dynamic> ec) {
+    final free  = ec['encumbrance_free'] == true;
+    final count = ec['transaction_count'] ?? 0;
+    final txns  = (ec['transactions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+    return _RawCard(
+      title: 'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
+      subtitle: 'Encumbrance Certificate — last 25 years',
+      icon: Icons.account_balance_outlined,
+      color: const Color(0xFF0D47A1),
+      children: [
+        _RawRow('EC Status',
+          free ? 'Encumbrance Free ✓' : '$count transaction(s) on record',
+          valueColor: free ? AppColors.safe : Colors.orange),
+        if (!free && count == 0)
+          _RawRow('Note', 'Portal returned data but no entries — re-verify manually', small: true),
+        ...txns.take(5).map((t) => _RawRow(
+          t['date']?.toString() ?? 'Entry',
+          '${t['type'] ?? 'Transaction'} — ${t['party'] ?? ''}',
+          small: true)),
+        if (txns.length > 5)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 0),
+            child: Text('+${txns.length - 5} more entries',
+                style: const TextStyle(fontSize: 11, color: AppColors.textLight))),
+      ],
+    );
+  }
+
+  Widget _buildCourtsCard(Map<String, dynamic> courts) {
+    final hasCases = courts['has_pending_cases'] == true;
+    final count    = courts['cases_found'] ?? 0;
+    final cases    = (courts['case_numbers'] as List?)?.cast<String>() ?? [];
+
+    return _RawCard(
+      title: 'eCourts India  /  ನ್ಯಾಯಾಲಯ',
+      subtitle: 'Active civil/criminal cases on owner name',
+      icon: Icons.gavel_outlined,
+      color: const Color(0xFFBF360C),
+      children: [
+        _RawRow('Litigation',
+          hasCases ? '$count case(s) found — verify before buying' : 'No cases found ✓',
+          valueColor: hasCases ? Colors.red : AppColors.safe),
+        ...cases.take(4).map((c) => _RawRow('Case No.', c, small: true)),
+      ],
+    );
+  }
+
+  Widget _buildCersaiCard(Map<String, dynamic> cersai) {
+    final mortgaged = cersai['is_mortgaged'] == true;
+    final lenders   = (cersai['lenders'] as List?)?.cast<String>() ?? [];
+
+    return _RawCard(
+      title: 'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
+      subtitle: 'Central Registry — bank mortgage & liens',
+      icon: Icons.lock_outline,
+      color: const Color(0xFF37474F),
+      children: [
+        _RawRow('Mortgage',
+          mortgaged ? 'Active charge registered ⚠' : 'No lien / charge found ✓',
+          valueColor: mortgaged ? Colors.red : AppColors.safe),
+        if (lenders.isNotEmpty) _RawRow('Lender(s)', lenders.join(', ')),
+      ],
+    );
+  }
+
+  Widget _buildGuidanceCard(Map<String, dynamic>? gv, String district, String taluk) {
+    final val    = gv?['value_per_sqft'];
+    final source = _val(gv?['source']);
+    final isFallback = source == 'igr_gazette_2024' || gv == null;
+
+    return _RawCard(
+      title: 'Guidance Value  /  ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ',
+      subtitle: 'Karnataka IGR — minimum stamp duty rate',
+      icon: Icons.currency_rupee,
+      color: const Color(0xFF006064),
+      children: [
+        _RawRow('Rate',
+          val != null ? '₹$val / sqft' : '—'),
+        _RawRow('Zone / Area',
+          taluk.isNotEmpty ? '$taluk, $district' : district),
+        _RawRow('Important',
+          isFallback
+            ? 'Zone-level estimate (IGR gazette 2024). Same rate applies to entire taluk — not plot-specific'
+            : 'Live from IGR portal',
+          valueColor: isFallback ? Colors.orange.shade700 : AppColors.safe,
+          small: true),
+      ],
+    );
+  }
+
+  Widget _buildUnavailableCard(String title, String reason, IconData icon, Color color,
+      {bool isKaveriDown = false, bool isCersaiLogin = false}) {
+    return _RawCard(
+      title: title,
+      subtitle: isKaveriDown
+          ? 'Portal frequently under maintenance'
+          : isCersaiLogin
+              ? 'OTP login required — cannot automate'
+              : 'Portal unavailable',
+      icon: icon,
+      color: color,
+      statusBadge: 'UNAVAILABLE',
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isCersaiLogin ? Icons.info_outline : Icons.wifi_off_outlined,
+              size: 14,
+              color: color.withOpacity(0.6),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(reason,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: color.withOpacity(0.8),
+                      height: 1.5)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _val(dynamic v) {
+    if (v == null) return '';
+    final s = v.toString().trim();
+    if (s.isEmpty || s == 'null' || s == 'N/A') return '';
+    return s;
   }
 
   Widget _buildRiskSummary() {

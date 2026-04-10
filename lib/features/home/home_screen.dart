@@ -110,40 +110,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )),
             const SizedBox(height: 20),
 
-            // ── How It Works Banner
-            _animated(2, GestureDetector(
-              onTap: () => context.push('/checklist'),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.verified_user, color: Colors.amber, size: 28),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Check a Property Now',
-                              style: TextStyle(color: Colors.white,
-                                  fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('Enter survey number → check 7 govt portals → get legal verdict',
-                              style: TextStyle(color: Colors.white70, fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
-                  ],
-                ),
-              ),
-            )),
-
             // ── Quick Action Buttons
             _animated(1, Column(
               crossAxisAlignment: CrossAxisAlignment.start,

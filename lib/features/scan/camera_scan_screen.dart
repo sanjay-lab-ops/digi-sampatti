@@ -103,8 +103,20 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
       if (mounted) {
+        // If OCR returned no data (key missing/expired), warn the user
+        final ocrWorked = (surveyNum != null || ownerName != null || district != null);
+        if (!ocrWorked && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'AI scan needs Claude API key — photo captured with GPS. Enter details manually below.',
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
         if (ocrResult.isBuilding) {
-          // Building detected — show block selector first
           await _showBuildingBlockPicker(context, photoPath, location, ocrResult);
         } else {
           // Document detected — show GPS-stamped preview

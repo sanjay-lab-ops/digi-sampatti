@@ -74,14 +74,63 @@ class _NriModeScreenState extends ConsumerState<NriModeScreen> {
           ),
         ),
       ),
-      body: IndexedStack(
-        index: _tab,
-        children: [
-          _OverviewTab(countryData: countryData, country: country),
-          const _FemaTab(),
-          const _RequestVerifyTab(),
-          _PricingTab(countryData: countryData, country: country),
-        ],
+      body: isNri
+          ? IndexedStack(
+              index: _tab,
+              children: [
+                _OverviewTab(countryData: countryData, country: country),
+                const _FemaTab(),
+                const _RequestVerifyTab(),
+                _PricingTab(countryData: countryData, country: country),
+              ],
+            )
+          : _NriOffScreen(onEnable: () => ref.read(nriModeProvider.notifier).state = true),
+    );
+  }
+}
+
+// ── NRI Mode OFF placeholder ───────────────────────────────────────────────
+class _NriOffScreen extends StatelessWidget {
+  final VoidCallback onEnable;
+  const _NriOffScreen({required this.onEnable});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🌍', style: TextStyle(fontSize: 56)),
+            const SizedBox(height: 20),
+            const Text('NRI Mode',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D47A1))),
+            const SizedBox(height: 12),
+            const Text(
+              'Turn on NRI Mode to see:\n'
+              '• Dual-currency pricing (AED / USD / GBP…)\n'
+              '• FEMA compliance rules for NRI buyers\n'
+              '• Remote verification & POA guidance\n'
+              '• WhatsApp-shareable PDF reports',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, height: 1.7, color: Color(0xFF555555)),
+            ),
+            const SizedBox(height: 28),
+            ElevatedButton.icon(
+              onPressed: onEnable,
+              icon: const Icon(Icons.flight_takeoff),
+              label: const Text('Turn On NRI Mode'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0D47A1),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -450,7 +499,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
         const SizedBox(height: 16),
 
         ElevatedButton.icon(
-          onPressed: () {
+          onPressed: () async {
             if (_surveyCtrl.text.isEmpty || _villageCtrl.text.isEmpty ||
                 _districtCtrl.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -458,12 +507,33 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               );
               return;
             }
-            setState(() => _submitted = true);
+            // Send real WhatsApp message to DigiSampatti verification team
+            final msg = Uri.encodeComponent(
+              '🏡 *DigiSampatti — NRI Verification Request*\n\n'
+              'Survey No: ${_surveyCtrl.text.trim()}\n'
+              'Village: ${_villageCtrl.text.trim()}\n'
+              'District: ${_districtCtrl.text.trim()}\n'
+              '${_contactCtrl.text.isNotEmpty ? "Local Contact: ${_contactCtrl.text.trim()}" : ""}'
+              '${_contactPhoneCtrl.text.isNotEmpty ? "\nContact Phone: ${_contactPhoneCtrl.text.trim()}" : ""}'
+              '${_notesCtrl.text.isNotEmpty ? "\nNotes: ${_notesCtrl.text.trim()}" : ""}\n\n'
+              '_Please arrange ground verification and send report to this WhatsApp._',
+            );
+            // Opens WhatsApp to DigiSampatti business number
+            final waUrl = Uri.parse('https://wa.me/919900000000?text=$msg');
+            if (await canLaunchUrl(waUrl)) {
+              await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+              setState(() => _submitted = true);
+            } else {
+              // Fallback: open WhatsApp without pre-filled number
+              final waFallback = Uri.parse('https://wa.me/?text=$msg');
+              await launchUrl(waFallback, mode: LaunchMode.externalApplication);
+              setState(() => _submitted = true);
+            }
           },
           icon: const Icon(Icons.send),
-          label: const Text('Submit Verification Request'),
+          label: const Text('Send Request via WhatsApp'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0D47A1),
+            backgroundColor: const Color(0xFF25D366),
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 50),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

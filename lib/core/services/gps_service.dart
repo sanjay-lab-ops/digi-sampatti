@@ -188,12 +188,20 @@ class GpsService {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        final district = _normalizeDistrict(place.administrativeArea ?? '');
+        // subAdministrativeArea is usually the district (e.g. "Bengaluru Urban")
+        // administrativeArea is usually the state (e.g. "Karnataka") — less useful
+        final rawArea = place.subAdministrativeArea?.isNotEmpty == true
+            ? place.subAdministrativeArea!
+            : (place.administrativeArea ?? '');
+        final district = _normalizeDistrict(rawArea);
+        final taluk    = place.subLocality?.isNotEmpty == true
+            ? place.subLocality
+            : place.locality;
         final village  = place.subLocality ?? place.locality ?? '';
         return SurveyDetectionResult(
           surveyNumber: null,
-          district: district.isNotEmpty ? district : place.administrativeArea,
-          taluk:    place.locality,
+          district: district.isNotEmpty ? district : rawArea,
+          taluk:    taluk,
           village:  village,
           confidence: 0.5,
           source: 'geocode',

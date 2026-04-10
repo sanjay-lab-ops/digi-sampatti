@@ -69,18 +69,23 @@ class InstamojoService {
 
         if (paymentUrl != null) {
           await _openUrl(paymentUrl);
+        } else {
+          throw Exception('Payment gateway did not return a payment URL');
         }
 
         return InstamojoPaymentRequest(
           id: requestId ?? '',
-          url: paymentUrl ?? '',
+          url: paymentUrl,
           amount: amountInRupees,
           purpose: purpose,
           status: req['status']?.toString() ?? 'Pending',
         );
+      } else {
+        throw Exception('Payment gateway error (${response.statusCode}). Please try again.');
       }
-    } catch (_) {}
-    return null;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // ─── Check payment status ─────────────────────────────────────────────────
@@ -118,8 +123,13 @@ class InstamojoService {
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      // Fallback: try in-app browser
+      final launched2 = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!launched2) {
+        throw Exception('Could not open payment page. Please visit: $url');
+      }
     }
   }
 }
