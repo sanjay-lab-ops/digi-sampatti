@@ -46,7 +46,7 @@ class InstamojoService {
         'purpose': purpose,
         'amount': amountInRupees.toString(),
         'buyer_name': buyerName.isNotEmpty ? buyerName : 'Customer',
-        'phone': buyerPhone.isNotEmpty ? buyerPhone : '9999999999',
+        'phone': buyerPhone,
         'email': buyerEmail.isNotEmpty ? buyerEmail : 'noreply@digisampatti.in',
         'send_email': 'false',
         'send_sms': 'false',

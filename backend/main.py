@@ -1867,15 +1867,27 @@ def full_check():
     return jsonify(result)
 
 
+async def _with_timeout(coro, seconds, label):
+    """Wrap a coroutine with a timeout; return None on timeout/exception."""
+    try:
+        return await asyncio.wait_for(coro, timeout=seconds)
+    except asyncio.TimeoutError:
+        logger.warning(f"{label}: timed out after {seconds}s")
+        return None
+    except Exception as e:
+        logger.warning(f"{label}: exception — {e}")
+        return None
+
+
 async def _run_full_check(district, taluk, hobli, village, survey_no, owner_name, project_name):
-    """Run all portal scrapes concurrently."""
+    """Run all portal scrapes concurrently with per-portal timeouts."""
     tasks = await asyncio.gather(
-        _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no),
-        _scrape_kaveri_ec(district, taluk, village, survey_no, "2000", "2025"),
-        _scrape_ecourts(owner_name, survey_no, district),
-        _scrape_cersai("Karnataka", district, survey_no),
-        _scrape_igr(district, taluk, village, "residential"),
-        _scrape_fmb(district, taluk, village, survey_no),
+        _with_timeout(_scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no), 22, "Bhoomi"),
+        _with_timeout(_scrape_kaveri_ec(district, taluk, village, survey_no, "2000", "2025"), 30, "KaveriEC"),
+        _with_timeout(_scrape_ecourts(owner_name, survey_no, district), 28, "eCourts"),
+        _with_timeout(_scrape_cersai("Karnataka", district, survey_no), 30, "CERSAI"),
+        _with_timeout(_scrape_igr(district, taluk, village, "residential"), 20, "GuidanceValue"),
+        _with_timeout(_scrape_fmb(district, taluk, village, survey_no), 25, "FMB"),
         return_exceptions=True,
     )
 
