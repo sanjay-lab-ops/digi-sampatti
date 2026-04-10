@@ -9,6 +9,7 @@ import 'package:digi_sampatti/core/models/portal_findings_model.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
+import 'package:digi_sampatti/features/bhoomi/bhoomi_device_scraper_screen.dart';
 
 // ─── Auto Scan Screen ─────────────────────────────────────────────────────────
 // ZERO manual intervention.
@@ -50,6 +51,13 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   bool _done = false;
   String? _error;
   Map<String, dynamic>? _fullResult;
+
+  // Stored for on-device Bhoomi scraper
+  String _scanDistrict = '';
+  String _scanTaluk = '';
+  String _scanHobli = '';
+  String _scanVillage = '';
+  String _scanSurveyNo = '';
 
   late final AnimationController _pulseCtrl;
 
@@ -102,16 +110,23 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         setState(() => p.status = _PortalStatus.scanning);
       }
 
+      // Store scan params for on-device Bhoomi fallback
+      _scanDistrict = scan.district ?? '';
+      _scanTaluk    = scan.taluk ?? '';
+      _scanHobli    = scan.hobli ?? '';
+      _scanVillage  = scan.village ?? '';
+      _scanSurveyNo = scan.surveyNumber ?? '';
+
       // ── Single call to /full-check — backend runs all portals in parallel ─
       final resp = await http.post(
         Uri.parse('$backendUrl/full-check'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'district':      scan.district ?? '',
-          'taluk':         scan.taluk ?? '',
-          'hobli':         scan.hobli ?? '',
-          'village':       scan.village ?? '',
-          'survey_number': scan.surveyNumber ?? '',
+          'district':      _scanDistrict,
+          'taluk':         _scanTaluk,
+          'hobli':         _scanHobli,
+          'village':       _scanVillage,
+          'survey_number': _scanSurveyNo,
           'owner_name':    '',
         }),
       ).timeout(const Duration(seconds: 90));
@@ -172,7 +187,52 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     }
   }
 
-  bool _bhoomiFailed = false; // track if Bhoomi specifically failed
+  bool _bhoomiFailed = false;
+  bool _bhoomiFetchingOnDevice = false;
+
+  Future<void> _fetchBhoomiOnDevice() async {
+    setState(() => _bhoomiFetchingOnDevice = true);
+    final result = await Navigator.push<Map<String, dynamic>?>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BhoomiDeviceScraperScreen(
+          district:     _scanDistrict,
+          taluk:        _scanTaluk,
+          hobli:        _scanHobli,
+          village:      _scanVillage,
+          surveyNumber: _scanSurveyNo,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (result != null) {
+      final src = result['source']?.toString() ?? '';
+      if (!src.contains('no_data') && !src.contains('error')) {
+        // Update Bhoomi portal card with on-device result
+        _updatePortal('Bhoomi RTC', result, (d) {
+          final owner = d['owner_name'] ?? '';
+          final extent = d['extent'] ?? '';
+          return owner.isNotEmpty ? 'Owner: $owner${extent.isNotEmpty ? ' · $extent' : ''}' : 'Record fetched';
+        });
+        // Merge into fullResult
+        if (_fullResult != null) {
+          setState(() {
+            _fullResult = {..._fullResult!, 'rtc': result};
+            _bhoomiFailed = false;
+          });
+        }
+      } else {
+        setState(() => _bhoomiFetchingOnDevice = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No RTC data found for this survey number on Bhoomi.')),
+          );
+        }
+      }
+    } else {
+      setState(() => _bhoomiFetchingOnDevice = false);
+    }
+  }
 
   void _updatePortal(String name, dynamic data, String Function(Map) summarize) {
     final p = _portals.firstWhere((p) => p.name == name);
@@ -346,14 +406,34 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                         style: TextStyle(fontSize: 12, height: 1.4),
                       ),
                       const SizedBox(height: 10),
+                      // Primary CTA: fetch directly from Bhoomi using device IP
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () => context.push('/scan/camera'),
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Scan RTC / Pahani Document'),
+                          onPressed: _bhoomiFetchingOnDevice ? null : _fetchBhoomiOnDevice,
+                          icon: _bhoomiFetchingOnDevice
+                              ? const SizedBox(
+                                  width: 16, height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.travel_explore),
+                          label: Text(_bhoomiFetchingOnDevice
+                              ? 'Fetching from Bhoomi...'
+                              : 'Fetch from Bhoomi (on device)'),
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange.shade700),
+                              backgroundColor: const Color(0xFF1B5E20)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Fallback: scan physical document
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.push('/scan/camera'),
+                          icon: const Icon(Icons.camera_alt, color: Colors.orange),
+                          label: const Text('Scan Physical RTC Document',
+                              style: TextStyle(color: Colors.orange)),
+                          style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.orange.shade400)),
                         ),
                       ),
                     ],

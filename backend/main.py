@@ -2308,6 +2308,26 @@ async def _debug_bhoomi_playwright() -> dict:
 # Bypasses Bhoomi portal entirely. Works for physical documents the user has.
 # ══════════════════════════════════════════════════════════════════════════════
 
+@app.route("/parse-rtc-html", methods=["POST"])
+def parse_rtc_html():
+    """
+    Accepts raw HTML captured from the user's device WebView (which can access
+    Bhoomi directly since it has an Indian ISP IP). Parses it and returns
+    structured RTC data using the same _parse_rtc() function as the scraper.
+    """
+    d = request.get_json()
+    html = d.get("html", "")
+    if not html:
+        return jsonify({"error": "html required"}), 400
+    district   = d.get("district", "")
+    taluk      = d.get("taluk", "")
+    hobli      = d.get("hobli", "")
+    village    = d.get("village", "")
+    survey_no  = d.get("survey_number", "")
+    result = _parse_rtc(html, district, taluk, hobli, village, survey_no)
+    return jsonify(result)
+
+
 @app.route("/rtc-from-image", methods=["POST"])
 def rtc_from_image():
     """
