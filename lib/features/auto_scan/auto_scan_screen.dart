@@ -1537,3 +1537,265 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     );
   }
 }
+
+// ── Card / row widgets used in portal detail cards ───────────────────────────
+
+class _RawCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final List<Widget> children;
+  final String? statusBadge;
+
+  const _RawCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.children,
+    this.statusBadge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+              color: color.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: color)),
+                      Text(subtitle,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: color.withValues(alpha: 0.7))),
+                    ],
+                  ),
+                ),
+                if (statusBadge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(statusBadge!,
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade600)),
+                  ),
+              ],
+            ),
+          ),
+          // Body
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _RawRow(String label, String value,
+    {Color? valueColor, bool small = false}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 110,
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: small ? 10 : 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500)),
+        ),
+        Expanded(
+          child: Text(value,
+              style: TextStyle(
+                  fontSize: small ? 10 : 12,
+                  color: valueColor ?? const Color(0xFF1A1A1A),
+                  fontWeight:
+                      valueColor != null ? FontWeight.w600 : FontWeight.normal,
+                  height: 1.3)),
+        ),
+      ],
+    ),
+  );
+}
+
+// ── Helper widgets used in next-steps & comparison panels ────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF37474F)));
+  }
+}
+
+class _NextStep extends StatelessWidget {
+  final bool done;
+  final String label;
+  final String? note;
+  final bool physical;
+  final bool isWarning;
+
+  const _NextStep({
+    required this.done,
+    required this.label,
+    this.note,
+    this.physical = false,
+    this.isWarning = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = done
+        ? const Color(0xFF1B5E20)
+        : isWarning
+            ? Colors.red.shade700
+            : Colors.grey.shade700;
+    final icon = done
+        ? Icons.check_circle
+        : isWarning
+            ? Icons.warning_amber_rounded
+            : physical
+                ? Icons.directions_walk
+                : Icons.radio_button_unchecked;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: color)),
+                if (note != null) ...[
+                  const SizedBox(height: 2),
+                  Text(note!,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                          height: 1.4)),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompRow extends StatelessWidget {
+  final String label;
+  final String scanned;
+  final String live;
+  final bool? match;
+
+  const _CompRow(this.label, this.scanned, this.live, {this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final matched = match;
+    final rowColor = matched == null
+        ? null
+        : matched
+            ? const Color(0xFFE8F5E9)
+            : const Color(0xFFFFEBEE);
+
+    return Container(
+      color: rowColor,
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF37474F))),
+          ),
+          Expanded(
+            child: Text(scanned,
+                style:
+                    const TextStyle(fontSize: 11, color: Color(0xFF546E7A))),
+          ),
+          Expanded(
+            child: Text(live,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: matched == false
+                        ? Colors.red.shade700
+                        : const Color(0xFF1B5E20))),
+          ),
+          if (matched != null)
+            Icon(
+              matched ? Icons.check : Icons.close,
+              size: 14,
+              color: matched
+                  ? const Color(0xFF1B5E20)
+                  : Colors.red.shade700,
+            ),
+        ],
+      ),
+    );
+  }
+}
