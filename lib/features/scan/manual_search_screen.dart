@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:geocoding/geocoding.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/services/user_service.dart';
@@ -595,11 +596,24 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     }
   }
 
-  void _search() {
+  Future<void> _search() async {
     if (!_formKey.currentState!.validate()) return;
     final surveyNo = _searchMode == 0
         ? _surveyController.text.trim()
         : (_selectedVillage ?? '');
+
+    // If user didn't tap GPS button, geocode the village to show property on map.
+    // This gives the PROPERTY location (where the land is), not the user's phone location.
+    if (ref.read(currentLocationProvider) == null &&
+        _selectedVillage != null &&
+        _selectedVillage!.isNotEmpty) {
+      _geocodePropertyLocation(
+        village: _selectedVillage!,
+        taluk: _selectedTaluk,
+        district: _selectedDistrict,
+      );
+    }
+
     final scan = PropertyScan(
       id: const Uuid().v4(),
       surveyNumber: surveyNo,
@@ -625,6 +639,29 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     ref.read(propertyTypeProvider.notifier).state = _propertyType;
     // Go to Auto Scan — fetches all portals automatically, zero manual steps
     context.push('/auto-scan');
+  }
+
+  // Geocodes village+taluk+district to approximate property coordinates.
+  // Runs in background — map will update when result arrives.
+  void _geocodePropertyLocation({
+    required String village,
+    String? taluk,
+    String? district,
+  }) {
+    final query = [village, taluk, district, 'Karnataka, India']
+        .where((s) => s != null && s.isNotEmpty)
+        .join(', ');
+    locationFromAddress(query).then((locations) {
+      if (locations.isEmpty || !mounted) return;
+      final loc = locations.first;
+      ref.read(currentLocationProvider.notifier).state = GpsLocation(
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        accuracy: 1000, // village-level, ~1 km radius shown on map
+        capturedAt: DateTime.now(),
+        address: '$village${taluk != null ? ", $taluk" : ""}${district != null ? ", $district" : ""}',
+      );
+    }).catchError((_) {});
   }
 
   String get _propertyTypeHint {

@@ -24,7 +24,8 @@ class PropertyRecordsScreen extends ConsumerStatefulWidget {
 
 class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
     with WidgetsBindingObserver {
-  bool _isPaid = false;
+  // Records are shown immediately — payment is for PDF export only
+  bool _isPaid = true;
   bool _isProcessing = false;
   String? _pendingRequestId;
   final PaymentService _paymentService = PaymentService();
@@ -115,12 +116,11 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
         title: const Text('Property Records'),
         backgroundColor: Colors.white,
         actions: [
-          if (_isPaid)
-            TextButton.icon(
-              onPressed: () => context.push('/report'),
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('PDF ₹149'),
-            ),
+          TextButton.icon(
+            onPressed: () => context.push('/report'),
+            icon: const Icon(Icons.picture_as_pdf),
+            label: const Text('Get PDF'),
+          ),
         ],
       ),
       body: _isPaid ? _buildRecords() : _buildPaywall(),
@@ -299,13 +299,20 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
     );
   }
 
-  // ─── Full Records View (after payment) ───────────────────────────────────────
+  // ─── Full Records View ────────────────────────────────────────────────────────
   Widget _buildRecords() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── What you're looking at — first-time buyer guide ─────────────────
+          _buildBuyerGuide(),
+          const SizedBox(height: 16),
+
+          // ── CRITICAL alert for injunctions / litigation ─────────────────────
+          _buildInjunctionAlert(),
+
           // ── Bhoomi RTC ──────────────────────────────────────────────────────
           _sectionHeader('Bhoomi RTC — Land Record',
               Icons.article_outlined, const Color(0xFF1B5E20)),
@@ -400,7 +407,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
                     foregroundColor: AppColors.primary,
                     minimumSize: const Size(double.infinity, 48),
                   ),
-                  child: const Text('Download PDF Report — ₹149',
+                  child: const Text('Download Full PDF Report',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -542,6 +549,159 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
               color: isOk ? AppColors.safe : Colors.red,
               fontWeight: FontWeight.bold,
               fontSize: 13)),
+    );
+  }
+
+  // ─── First-time buyer guide ───────────────────────────────────────────────────
+  Widget _buildBuyerGuide() {
+    const steps = [
+      (Icons.article_outlined, '1. Bhoomi RTC',
+        'The Revenue/Tenancy Certificate (RTC) is the master record for agricultural land. '
+        'It tells you WHO owns the land, HOW MUCH they own, what TYPE of land it is, '
+        'and whether there are any government NOTICES against it. '
+        'This is the first document any lawyer or bank will ask for.'),
+      (Icons.account_balance_outlined, '2. Kaveri EC',
+        'The Encumbrance Certificate (EC) lists every TRANSACTION on this property for the last 30 years — '
+        'every sale, mortgage, loan, partition, gift deed. '
+        'If someone else sold this land before, or took a loan against it, it shows here. '
+        'A clean EC means nobody else has a hidden claim on this land.'),
+      (Icons.gavel_outlined, '3. eCourts',
+        'Checks if the land or the owner is involved in ANY active court case. '
+        'If a court has frozen the land (injunction), you cannot register it — '
+        'the registrar will reject your sale deed. Always verify this BEFORE paying any advance.'),
+      (Icons.lock_outlined, '4. CERSAI',
+        'The Central Registry of Securitisation — a national database of bank mortgages. '
+        'If the owner took a home loan and gave this land as security, it appears here. '
+        'Banks must clear their charge before you can buy.'),
+      (Icons.attach_money, '5. Guidance Value',
+        'This is the government\'s MINIMUM price per sq.ft for stamp duty calculation. '
+        'You cannot register a sale below this value. '
+        'If the seller quotes far below guidance value, something is wrong.'),
+      (Icons.map_outlined, '6. FMB Sketch',
+        'The Field Measurement Book sketch shows the EXACT boundary of the survey number on a map. '
+        'Use this to physically verify the land — walk the boundary, check for encroachments, '
+        'verify the shape matches what the seller is showing you.'),
+    ];
+    return ExpansionTile(
+      initiallyExpanded: false,
+      leading: const Icon(Icons.school_outlined, color: Color(0xFF1B5E20)),
+      title: const Text('What do these documents mean?',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+      subtitle: const Text('Tap to understand each record — read before buying',
+          style: TextStyle(fontSize: 11, color: Colors.grey)),
+      backgroundColor: const Color(0xFFF1F8E9),
+      collapsedBackgroundColor: const Color(0xFFF1F8E9),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFF1B5E20), width: 0.5)),
+      collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFF1B5E20), width: 0.5)),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            children: steps.map((s) => Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B5E20).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(s.$1, color: const Color(0xFF1B5E20), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.$2,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 3),
+                        Text(s.$3,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54, height: 1.4)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Injunction / critical flag detector ─────────────────────────────────────
+  Widget _buildInjunctionAlert() {
+    final remarks = _rtc?['remarks']?.toString() ?? '';
+    final mutations = _rtc?['mutations'] as List? ?? [];
+    // Check for court order keywords in remarks or mutation entries
+    final allText = [
+      remarks,
+      ...mutations.map((m) => m.toString()),
+    ].join(' ').toLowerCase();
+
+    final hasInjunction = allText.contains('injunction') ||
+        allText.contains('temporary stay') ||
+        allText.contains('thadeyajne') ||
+        allText.contains('ತಡೆಯಾಜ್ಞೆ') ||
+        allText.contains('os ') ||
+        allText.contains('court order') ||
+        allText.contains('trgn');
+
+    if (!hasInjunction) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF7B0000).withOpacity(0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF7B0000), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.gavel, color: Color(0xFF7B0000), size: 22),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'CRITICAL: Court Injunction Recorded in RTC',
+                  style: TextStyle(
+                      color: Color(0xFF7B0000),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'A Temporary Injunction (ತಡೆಯಾಜ್ಞೆ) means a civil court has issued an ORDER '
+            'stopping any transaction on this property until the case is resolved.\n\n'
+            'What this means for you:\n'
+            '• The Sub-Registrar WILL REJECT your sale deed — you cannot register this property\n'
+            '• Even if you pay the seller, you cannot get legal title\n'
+            '• The injunction case must be FULLY RESOLVED in court before any sale\n\n'
+            'What to do:\n'
+            '1. Get the exact OS (Original Suit) case number from the RTC mutation entry\n'
+            '2. Search eCourts (services.ecourts.gov.in) to see the current case status\n'
+            '3. Consult a property lawyer — DO NOT pay any advance until this is cleared\n'
+            '4. Ask the seller for a certified copy of the "Vaad Nispatti" (case disposal order)',
+            style: TextStyle(
+                fontSize: 12, height: 1.6, color: Color(0xFF4A0000)),
+          ),
+        ],
+      ),
     );
   }
 

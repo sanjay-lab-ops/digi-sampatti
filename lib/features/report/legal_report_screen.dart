@@ -24,7 +24,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   String? _pdfPath;
   bool _isGeneratingPdf = false;
-  bool _isPaid = false;
+  bool _isPaid = true; // PDF generation is free — payment gate removed
   bool _isVerifyingPayment = false;
   String? _pendingRequestId;
   final _paymentService = PaymentService();

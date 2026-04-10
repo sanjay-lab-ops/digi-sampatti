@@ -490,25 +490,25 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 ),
               ],
               const SizedBox(height: 16),
-              // ₹99 — View All Records on screen
+              // View All Records (free during beta)
               ElevatedButton.icon(
                 onPressed: () => context.push(
                   '/property-records',
                   extra: _fullResult,
                 ),
                 icon: const Icon(Icons.list_alt),
-                label: const Text('View All Records — ₹99'),
+                label: const Text('View All Records'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 52),
                   backgroundColor: const Color(0xFF0D47A1),
                 ),
               ),
               const SizedBox(height: 10),
-              // ₹149 — Full AI Analysis + PDF
+              // AI Analysis + PDF Report (free during beta)
               ElevatedButton.icon(
                 onPressed: () => context.push('/analysis'),
                 icon: const Icon(Icons.auto_awesome),
-                label: const Text('AI Analysis + PDF Report — ₹149'),
+                label: const Text('AI Analysis + PDF Report'),
                 style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52)),
               ),
