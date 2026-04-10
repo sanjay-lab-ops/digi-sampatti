@@ -2391,13 +2391,16 @@ def _rtc_land_type(rtc: dict) -> str:
 def health():
     import os as _os
     key = _anticaptcha_key()
+    ai_key = _os.environ.get("ANTHROPIC_API_KEY", "")
     return jsonify({
         "status": "ok",
         "service": "digisampatti-backend",
         "portals": ["bhoomi", "kaveri", "rera", "ecourts", "bbmp", "cersai", "igr", "fmb", "nadakacheri"],
         "dropdowns": ["hoblis", "villages"],
+        "vision_extraction": "enabled" if ai_key else "disabled (set ANTHROPIC_API_KEY)",
         "captcha_solver": "configured" if key else "not configured (RTC/EC/FMB/CERSAI need this)",
         "captcha_key_preview": key[:8] + "..." if key else "EMPTY",
+        "ai_key_preview": ai_key[:8] + "..." if ai_key else "NOT SET",
         "firestore": "connected" if db else "not connected",
         "cwd": _os.getcwd(),
         "env_file_found": str(Path(__file__).resolve().parent / ".env"),
