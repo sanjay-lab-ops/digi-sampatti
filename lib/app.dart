@@ -14,6 +14,7 @@ import 'package:digi_sampatti/features/analysis/ai_analysis_screen.dart';
 import 'package:digi_sampatti/features/report/legal_report_screen.dart';
 import 'package:digi_sampatti/features/map/map_view_screen.dart';
 import 'package:digi_sampatti/features/verification/physical_verification_screen.dart';
+import 'package:digi_sampatti/features/verification/qr_verify_screen.dart';
 import 'package:digi_sampatti/features/partners/partners_screen.dart';
 import 'package:digi_sampatti/features/history/report_history_screen.dart';
 import 'package:digi_sampatti/features/broker/broker_screen.dart';
@@ -159,6 +160,18 @@ final _router = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
         return PhysicalVerificationScreen(reportData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/qr-verify',
+      name: 'qr-verify',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return QrVerifyScreen(
+          documentType:          extra?['documentType']  as String? ?? 'RTC',
+          expectedOwner:         extra?['ownerName']     as String?,
+          expectedSurveyNumber:  extra?['surveyNumber']  as String?,
+        );
       },
     ),
     GoRoute(

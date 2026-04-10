@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/services/digital_signature_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -282,6 +283,70 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
 
             // ── What we verify ──
             _WhatWeVerifyBox(),
+            const SizedBox(height: 16),
+
+            // ── Scan QR for Real Verification ──
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.25)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(children: [
+                    Icon(Icons.qr_code_scanner, color: AppColors.primary, size: 20),
+                    SizedBox(width: 8),
+                    Text('Scan QR on Document for Real Verification',
+                        style: TextStyle(fontWeight: FontWeight.bold,
+                            fontSize: 13, color: AppColors.primary)),
+                  ]),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Every digitally-signed Bhoomi RTC, Kaveri EC, and BBMP Khata '
+                    'has a QR code. Scan it to verify directly against the '
+                    'government portal — detects forgery instantly.',
+                    style: TextStyle(fontSize: 11, height: 1.4),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.push('/qr-verify', extra: {
+                            'documentType': 'RTC',
+                            'ownerName': widget.ownerName,
+                            'surveyNumber': widget.surveyNumber,
+                          }),
+                          icon: const Icon(Icons.qr_code_2, size: 16),
+                          label: const Text('Scan RTC QR'),
+                          style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(0, 40),
+                              textStyle: const TextStyle(fontSize: 12)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.push('/qr-verify', extra: {
+                            'documentType': 'EC',
+                            'ownerName': widget.ownerName,
+                            'surveyNumber': widget.surveyNumber,
+                          }),
+                          icon: const Icon(Icons.qr_code_2, size: 16),
+                          label: const Text('Scan EC QR'),
+                          style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 40),
+                              textStyle: const TextStyle(fontSize: 12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
 
             // ── Document cards ──
