@@ -13,10 +13,15 @@ import 'package:digi_sampatti/features/bhoomi/bhoomi_device_scraper_screen.dart'
 import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 // ─── Auto Scan Screen ─────────────────────────────────────────────────────────
-// ZERO manual intervention.
-// User enters survey number → app automatically fetches from ALL 8 portals:
-//   Bhoomi RTC, Kaveri EC, RERA, eCourts, BBMP, CERSAI, IGR, FMB Sketch
-// Results displayed IN-APP — no website opening required.
+// Automatically checks ALL relevant government portals for a given survey number.
+//
+// Portals checked:
+//   Site / Plot:  Bhoomi RTC · Kaveri EC · eCourts · BBMP Khata · CERSAI ·
+//                 Guidance Value · FMB Sketch · BDA/BMRDA (peri-urban)
+//   Apartment:    All above + RERA (mandatory for builder projects)
+//   House/Villa:  All above + BBMP building plan approval
+//
+// Note: RERA is NOT required for agricultural sites, revenue sites or individual plots.
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum _PortalStatus { waiting, scanning, done, failed }
@@ -385,14 +390,14 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             // ── Portal Results ───────────────────────────────────────────────
             if (_scanning || _done) ...[
               const SizedBox(height: 20),
-              const Text('Fetching from Government Portals',
+              const Text('Government Portal Checks',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 4),
               Text(
                 _scanning
-                    ? 'Running all checks automatically — no action needed from you'
-                    : 'All checks complete',
-                style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+                    ? 'Checking Bhoomi · Kaveri EC · eCourts · BBMP · CERSAI · Guidance Value · FMB'
+                    : 'Done — RERA shown only if apartment project name provided',
+                style: const TextStyle(fontSize: 11, color: AppColors.textLight),
               ),
               const SizedBox(height: 12),
               ..._portals.map(_buildPortalCard),
