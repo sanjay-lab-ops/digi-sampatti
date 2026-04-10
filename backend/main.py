@@ -2039,6 +2039,87 @@ def ping():
     return jsonify({"status": "ok"})
 
 
+@app.route("/debug-bhoomi", methods=["GET"])
+def debug_bhoomi():
+    """Run Playwright against Bhoomi Service2 and return exactly what the browser sees."""
+    result = asyncio.run(_debug_bhoomi_playwright())
+    return jsonify(result)
+
+
+async def _debug_bhoomi_playwright() -> dict:
+    logs = []
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page(extra_http_headers=BROWSER_HEADERS)
+
+            logs.append("Navigating to Service2...")
+            try:
+                await page.goto("https://landrecords.karnataka.gov.in/Service2",
+                                wait_until="networkidle", timeout=25000)
+                logs.append("Page loaded OK")
+            except Exception as e:
+                logs.append(f"Page load error: {e}")
+                await browser.close()
+                return {"status": "page_load_failed", "logs": logs}
+
+            # Get district options
+            try:
+                dist_opts = await page.evaluate(
+                    "Array.from(document.querySelector('#ctl00_MainContent_ddlCDistrict').options)"
+                    ".map(o => o.text)"
+                )
+                logs.append(f"District options ({len(dist_opts)}): {dist_opts}")
+            except Exception as e:
+                logs.append(f"District dropdown error: {e}")
+                dist_opts = []
+
+            # Try to select BENGALURU
+            if "BENGALURU" in dist_opts or any("BENGALURU" in d for d in dist_opts):
+                best = next((d for d in dist_opts if "BENGALURU" in d and "SOUTH" not in d and "RURAL" not in d), None)
+                if best:
+                    try:
+                        await page.select_option('#ctl00_MainContent_ddlCDistrict', label=best)
+                        await page.wait_for_timeout(2500)
+                        logs.append(f"Selected district: {best}")
+                    except Exception as e:
+                        logs.append(f"District select error: {e}")
+
+                # Get taluk options after selecting district
+                try:
+                    taluk_opts = await page.evaluate(
+                        "Array.from(document.querySelector('#ctl00_MainContent_ddlCTaluk').options)"
+                        ".map(o => o.text)"
+                    )
+                    logs.append(f"Taluk options ({len(taluk_opts)}): {taluk_opts}")
+                except Exception as e:
+                    logs.append(f"Taluk dropdown error: {e}")
+                    taluk_opts = []
+
+                # Select BANGALORE-NORTH taluk
+                bn = next((t for t in taluk_opts if "NORTH" in t.upper() or "BANGALORE-N" in t.upper()), None)
+                if bn:
+                    try:
+                        await page.select_option('#ctl00_MainContent_ddlCTaluk', label=bn)
+                        await page.wait_for_timeout(2500)
+                        logs.append(f"Selected taluk: {bn}")
+
+                        # Get hobli options
+                        hobli_opts = await page.evaluate(
+                            "Array.from(document.querySelector('#ctl00_MainContent_ddlCHobli').options)"
+                            ".map(o => o.text)"
+                        )
+                        logs.append(f"Hobli options ({len(hobli_opts)}): {hobli_opts}")
+                    except Exception as e:
+                        logs.append(f"Taluk select / hobli error: {e}")
+
+            await browser.close()
+    except Exception as e:
+        logs.append(f"Fatal: {e}")
+
+    return {"status": "done", "logs": logs}
+
+
 @app.route("/health")
 def health():
     import os as _os
