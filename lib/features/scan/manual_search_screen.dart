@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/services/user_service.dart';
 import 'package:digi_sampatti/core/services/gps_service.dart';
@@ -393,9 +393,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     // Try Bhoomi API
     setState(() { _loadingHobli = true; _hobliList = []; _selectedHobli = null; });
     try {
-      final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
       final r = await http.post(
-        Uri.parse('$backendUrl/hoblis'),
+        Uri.parse('${ApiConstants.backendBaseUrl}/hoblis'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'district': district, 'taluk': taluk}),
       ).timeout(const Duration(seconds: 8));
@@ -418,9 +417,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     }
     setState(() { _loadingVillage = true; _villageList = []; _selectedVillage = null; });
     try {
-      final backendUrl = dotenv.env['BACKEND_URL'] ?? 'http://192.168.29.151:8080';
       final r = await http.post(
-        Uri.parse('$backendUrl/villages'),
+        Uri.parse('${ApiConstants.backendBaseUrl}/villages'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'district': district, 'taluk': taluk, 'hobli': hobli}),
       ).timeout(const Duration(seconds: 8));
@@ -448,6 +446,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     if (owner != null && owner.isNotEmpty) {
       _ownerNameController.text = owner;
       _prefillApplied = true;
+      // Also switch to village/name mode so the owner field is visible
+      if (sv == null || sv.isEmpty) _searchMode = 1;
     }
     if (district != null && district.isNotEmpty) {
       // Try exact match first, then case-insensitive

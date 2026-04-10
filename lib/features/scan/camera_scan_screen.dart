@@ -62,15 +62,33 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
       final freshLocation = await _gpsService.getCurrentLocation();
       final location = freshLocation ?? _currentLocation;
 
-      // Await OCR so survey number is available before showing preview
+      // Step 1: Quick local OCR (Claude Vision via app) for scan type detection
       setState(() { _isRunningOcr = true; });
       OcrResult ocrResult;
+      Map<String, dynamic>? backendExtraction;
       try {
-        ocrResult = await _ocrService.extractFromDocument(photoPath);
+        // Run both in parallel — local OCR for building detection, backend for full RTC fields
+        final results = await Future.wait([
+          _ocrService.extractFromDocument(photoPath),
+          _ocrService.extractFullDocumentFromBackend(photoPath),
+        ]);
+        ocrResult = results[0] as OcrResult;
+        backendExtraction = results[1] as Map<String, dynamic>?;
       } catch (e) {
         ocrResult = const OcrResult();
+        backendExtraction = null;
       }
       if (mounted) setState(() { _isRunningOcr = false; });
+
+      // Merge backend extraction into OCR result (backend has more complete data)
+      final surveyNum = backendExtraction?['survey_number'] as String?
+          ?? ocrResult.surveyNumber;
+      final ownerName = backendExtraction?['owner_name'] as String?
+          ?? ocrResult.ownerName;
+      final district  = backendExtraction?['district'] as String?
+          ?? ocrResult.district;
+      final taluk     = backendExtraction?['taluk'] as String?
+          ?? ocrResult.taluk;
 
       final scan = PropertyScan(
         id: const Uuid().v4(),
@@ -78,7 +96,7 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
         location: location,
         scanMethod: ScanMethod.camera,
         scannedAt: DateTime.now(),
-        surveyNumber: ocrResult.surveyNumber,
+        surveyNumber: surveyNum,
       );
 
       ref.read(currentScanProvider.notifier).state = scan;
@@ -328,12 +346,16 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
             'longitude': location?.longitude,
             'address': location?.address,
             'photoPath': photoPath,
-            'ocrSurveyNumber': ocrResult.surveyNumber,
-            'ocrOwnerName': ocrResult.ownerName,
-            'ocrTaluk': ocrResult.taluk,
-            'ocrDistrict': ocrResult.district,
-            'ocrDocumentType': ocrResult.documentType,
+            // Use richer backend extraction first, fall back to local OCR
+            'ocrSurveyNumber': surveyNum,
+            'ocrOwnerName':    ownerName,
+            'ocrTaluk':        taluk,
+            'ocrDistrict':     district,
+            'ocrDocumentType': ocrResult.documentType
+                ?? backendExtraction?['document_type'] as String?,
             'ocrConfidence': ocrResult.confidence,
+            // Pass full backend extraction for inline display
+            'backendRtcData': backendExtraction,
           });
         },
       ),
@@ -432,12 +454,24 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
                 // Run OCR on the gallery image — same as camera path
                 setState(() { _isRunningOcr = true; });
                 OcrResult ocrResult;
+                Map<String, dynamic>? backendData;
                 try {
-                  ocrResult = await _ocrService.extractFromDocument(path);
+                  final r = await Future.wait([
+                    _ocrService.extractFromDocument(path),
+                    _ocrService.extractFullDocumentFromBackend(path),
+                  ]);
+                  ocrResult = r[0] as OcrResult;
+                  backendData = r[1] as Map<String, dynamic>?;
                 } catch (e) {
                   ocrResult = const OcrResult();
+                  backendData = null;
                 }
                 if (mounted) setState(() { _isRunningOcr = false; });
+
+                final sv2 = backendData?['survey_number'] as String? ?? ocrResult.surveyNumber;
+                final own2 = backendData?['owner_name'] as String? ?? ocrResult.ownerName;
+                final dist2 = backendData?['district'] as String? ?? ocrResult.district;
+                final taluk2 = backendData?['taluk'] as String? ?? ocrResult.taluk;
 
                 final scan = PropertyScan(
                   id: const Uuid().v4(),
@@ -445,18 +479,19 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
                   location: _currentLocation,
                   scanMethod: ScanMethod.camera,
                   scannedAt: DateTime.now(),
-                  surveyNumber: ocrResult.surveyNumber,
+                  surveyNumber: sv2,
                 );
                 ref.read(currentScanProvider.notifier).state = scan;
                 ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
                 if (mounted) {
                   context.push('/scan/manual', extra: {
-                    'ocrSurveyNumber': ocrResult.surveyNumber,
-                    'ocrOwnerName':    ocrResult.ownerName,
-                    'ocrDistrict':     ocrResult.district,
-                    'ocrTaluk':        ocrResult.taluk,
-                    'ocrDocumentType': ocrResult.documentType,
+                    'ocrSurveyNumber': sv2,
+                    'ocrOwnerName':    own2,
+                    'ocrDistrict':     dist2,
+                    'ocrTaluk':        taluk2,
+                    'ocrDocumentType': ocrResult.documentType ?? backendData?['document_type'],
+                    'backendRtcData':  backendData,
                   });
                 }
               },

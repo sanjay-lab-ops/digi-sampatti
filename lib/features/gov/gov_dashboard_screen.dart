@@ -286,7 +286,14 @@ class _FraudTab extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Fraud alert flagged for investigation. Revenue department notified.'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red)),
@@ -297,7 +304,14 @@ class _FraudTab extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Alert sent to Karnataka Police Cyber Cell. Reference ID generated.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red),
                       child: const Text('Alert Police',

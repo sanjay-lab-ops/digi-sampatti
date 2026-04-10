@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 
 // ─── OCR Service ───────────────────────────────────────────────────────────────
@@ -86,6 +87,37 @@ class OcrService {
       receiveTimeout: const Duration(seconds: 60),
     ));
     _initialized = true;
+  }
+
+  // ─── Full Document Extraction via Backend (Claude Vision) ────────────────
+  // Sends image to Railway backend → Claude Vision → returns all RTC/EC/Deed fields
+  // This bypasses Bhoomi portal entirely — works for physical documents user has.
+  Future<Map<String, dynamic>?> extractFullDocumentFromBackend(String imagePath) async {
+    try {
+      final imageFile = File(imagePath);
+      if (!await imageFile.exists()) return null;
+
+      final bytes = await imageFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final mimeType = imagePath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+      final resp = await http.post(
+        Uri.parse('${ApiConstants.backendBaseUrl}/rtc-from-image'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'image_base64': base64Image,
+          'image_type': mimeType,
+          'document_hint': '',
+        }),
+      ).timeout(const Duration(seconds: 45));
+
+      if (resp.statusCode == 200) {
+        return json.decode(resp.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[OCR-backend] extractFullDocument failed: $e');
+    }
+    return null;
   }
 
   // ─── Extract Property Details from Document Photo ─────────────────────────

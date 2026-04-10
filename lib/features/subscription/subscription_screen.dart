@@ -358,7 +358,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Widget _buildFaq() {
     const faqs = [
       ('Can I cancel anytime?', 'Yes. Monthly plan can be cancelled anytime. No questions asked.'),
-      ('Is payment secure?', 'Yes. All payments via Razorpay — India\'s most trusted payment gateway. UPI, Card, Net Banking accepted.'),
+      ('Is payment secure?', 'Yes. All payments via Instamojo — trusted Indian payment gateway. UPI, Card, Net Banking, and Wallets accepted.'),
       ('What if I\'m not satisfied?', 'Contact support@digisampatti.com within 24 hours of purchase for a refund.'),
       ('Does the report work for all of Karnataka?', 'Yes — all 31 Karnataka districts. Bhoomi data covers the entire state.'),
     ];

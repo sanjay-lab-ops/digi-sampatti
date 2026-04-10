@@ -217,6 +217,49 @@ async def _dishank_gps(lat: float, lon: float) -> dict:
 # 2. BHOOMI — RTC (Record of Rights, Tenancy & Crops)
 # ══════════════════════════════════════════════════════════════════════════════
 
+@app.route("/debug-rtc", methods=["POST"])
+def debug_rtc():
+    """Debug endpoint — returns raw HTML snippet from Bhoomi for diagnosis."""
+    d = request.get_json()
+    district  = d.get("district", "")
+    taluk     = d.get("taluk", "")
+    hobli     = d.get("hobli", "")
+    village   = d.get("village", "")
+    survey_no = d.get("survey_number", "")
+
+    async def _run():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page(extra_http_headers=BROWSER_HEADERS)
+            try:
+                await page.goto("https://landrecords.karnataka.gov.in/Service2",
+                                wait_until="networkidle", timeout=30000)
+                # Select district
+                dist_map = {"bengaluru urban": "BENGALURU", "bangalore urban": "BENGALURU"}
+                dist_label = dist_map.get(district.lower(), district.upper())
+                await page.select_option('#ctl00_MainContent_ddlCDistrict', label=dist_label)
+                await page.wait_for_timeout(2000)
+                # Get taluk options
+                taluk_opts = await page.evaluate(
+                    "Array.from(document.querySelector('#ctl00_MainContent_ddlCTaluk')?.options || []).map(o=>o.text)"
+                )
+                # Select taluk
+                taluk_map = {"yelahanka": "YALAHANKA", "bengaluru north": "BANGALORE-NORTH"}
+                taluk_label = taluk_map.get(taluk.lower(), taluk.upper())
+                await page.select_option('#ctl00_MainContent_ddlCTaluk', label=taluk_label)
+                await page.wait_for_timeout(2000)
+                # Get hobli options
+                hobli_opts = await page.evaluate(
+                    "Array.from(document.querySelector('#ctl00_MainContent_ddlCHobli')?.options || []).map(o=>o.text)"
+                )
+                return {"taluk_options": taluk_opts, "hobli_options": hobli_opts}
+            finally:
+                await browser.close()
+
+    result = asyncio.run(_run())
+    return jsonify(result)
+
+
 @app.route("/rtc", methods=["POST"])
 def fetch_rtc():
     d = request.get_json()
@@ -242,17 +285,24 @@ def fetch_rtc():
 
 async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Optional[dict]:
     """
-    Bhoomi RTC scraper — tries two approaches:
-    1. Service2 (complex ASP.NET form, no CAPTCHA) — may fail due to ViewState
-    2. Service53 (simpler, requires reCAPTCHA solve via anticaptcha.com)
+    Bhoomi RTC scraper — tries three approaches in order:
+    1. Bhoomi mobile/JSON API (fast, no Playwright, no CAPTCHA)
+    2. Service2 (Playwright form, no CAPTCHA cost)
+    3. Service53 (Playwright + reCAPTCHA via anticaptcha.com)
     """
-    # ── Approach 1: Service2 (fast, no CAPTCHA cost) ────────────────────────
+    # ── Approach 0: Direct Bhoomi JSON API (mobile endpoint) ──────────────────
+    result0 = await _bhoomi_api(district, taluk, hobli, village, survey_no)
+    if result0 and (result0.get("owner_name") or result0.get("extent")):
+        logger.info("Bhoomi API succeeded")
+        return result0
+
+    # ── Approach 1: Service2 (Playwright form, no CAPTCHA cost) ──────────────
     result = await _bhoomi_service2(district, taluk, hobli, village, survey_no)
     if result and (result.get("owner_name") or result.get("extent")):
         logger.info("Bhoomi Service2 succeeded")
         return result
 
-    # ── Approach 2: Service53 (CAPTCHA, more reliable) ──────────────────────
+    # ── Approach 2: Service53 (CAPTCHA, most reliable) ────────────────────────
     logger.info("Bhoomi Service2 returned empty — trying Service53 with CAPTCHA")
     result2 = await _bhoomi_service53(district, taluk, hobli, village, survey_no)
     if result2:
@@ -260,6 +310,64 @@ async def _scrape_bhoomi_rtc(district, taluk, hobli, village, survey_no) -> Opti
 
     # Return whatever we got from Service2 (at minimum has district/taluk/village)
     return result or {"survey_number": survey_no, "district": district, "source": "bhoomi_no_data"}
+
+
+async def _bhoomi_api(district, taluk, hobli, village, survey_no) -> Optional[dict]:
+    """
+    Try Bhoomi's undocumented JSON endpoints used by their mobile app.
+    These don't need Playwright and return structured JSON.
+    """
+    # Bhoomi district code map (internal codes used by Bhoomi APIs)
+    dist_codes = {
+        "bengaluru urban": "572", "bangalore urban": "572",
+        "bengaluru rural": "573", "bangalore rural": "573",
+        "mysuru": "555", "mysore": "555",
+        "mangaluru": "514", "dakshina kannada": "514",
+        "tumakuru": "576", "shivamogga": "568",
+        "belagavi": "510", "hubballi-dharwad": "527",
+        "kalaburagi": "534", "raichur": "562",
+        "ballari": "511", "vijayapura": "579",
+        "hassan": "529", "kodagu": "540",
+        "udupi": "577", "uttara kannada": "578",
+        "chitradurga": "519", "davanagere": "521",
+        "gadag": "524", "haveri": "530",
+        "bidar": "512", "koppal": "541",
+        "chikkamagaluru": "518", "ramanagara": "563",
+        "kolar": "542", "chikkaballapura": "517",
+        "mandya": "549", "chamarajanagar": "515",
+    }
+    dist_code = dist_codes.get(district.lower(), "")
+
+    endpoints = []
+
+    # Endpoint 1: Dishank/Bhoomi RTC by survey number
+    if dist_code:
+        endpoints.append(
+            f"https://bhoomi.karnataka.gov.in/bhoomi/RTCReport.do"
+            f"?rpt=RTC&district={dist_code}&taluk={taluk}&hobli={hobli}"
+            f"&village={village}&surnoc={survey_no}&hissa=*&period=2024-25&year=2024"
+        )
+        # Alternate mobile API
+        endpoints.append(
+            f"https://landrecords.karnataka.gov.in/service53/rtcreport.aspx"
+            f"?district={dist_code}&taluk={taluk}&hobli={hobli}"
+            f"&village={village}&surnoc={survey_no}&hissa=*&year=2024-25"
+        )
+
+    async with httpx.AsyncClient(headers=BROWSER_HEADERS, timeout=15, follow_redirects=True) as c:
+        for url in endpoints:
+            try:
+                r = await c.get(url)
+                if r.status_code == 200 and len(r.text) > 500:
+                    logger.info(f"Bhoomi API {url}: {len(r.text)} chars")
+                    parsed = _parse_rtc(r.text, district, taluk, hobli, village, survey_no)
+                    if parsed.get("owner_name") or parsed.get("extent"):
+                        return parsed
+            except Exception as e:
+                logger.warning(f"Bhoomi API {url}: {e}")
+
+    # Try Dishank GPS→survey lookup as fallback for village resolution
+    return None
 
 
 async def _bhoomi_service53(district, taluk, hobli, village, survey_no) -> Optional[dict]:
@@ -755,50 +863,105 @@ async def _bhoomi_service2(district, taluk, hobli, village, survey_no) -> Option
 
 
 def _parse_rtc(html, district, taluk, hobli, village, survey_no) -> dict:
-    # Strip tags to get clean text for label:value extraction
+    """
+    Parse RTC HTML from Bhoomi Service2 / Service53 / direct API.
+    Handles both English and Kannada field labels (RTC Form 02 and Form 09).
+    """
     text = re.sub(r'<[^>]+>', ' ', html)
     text = re.sub(r'\s+', ' ', text)
 
-    def after(label):
-        """Find value after a label text in the page text."""
-        patterns = [
-            rf'{re.escape(label)}\s*:\s*([^\n:]{2,100}?)(?:\s{{2,}}|\s*:)',
-            rf'{re.escape(label)}\s+([A-Z][^\s:]+(?:\s+[A-Z][^\s:]+){{0,5}})',
-        ]
-        for p in patterns:
-            m = re.search(p, text, re.IGNORECASE)
+    def find_html(*patterns):
+        """Try multiple HTML patterns, return first match."""
+        for pat in patterns:
+            m = re.search(pat, html, re.IGNORECASE | re.DOTALL)
             if m:
-                v = m.group(1).strip().rstrip(':,')
-                if v and v.lower() not in ('select', 'n/a', ''):
+                v = m.group(1).strip()
+                if v and v.lower() not in ('select', 'n/a', 'null', ''):
                     return v
         return ""
 
-    def find_html(pattern):
-        m = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
-        return m.group(1).strip() if m else ""
+    def find_text(*labels):
+        """Find value after any of the given labels in plain text."""
+        for label in labels:
+            patterns = [
+                rf'{re.escape(label)}\s*[:\-]\s*([^\n:,]{2,120}?)(?:\s{{2,}}|$|\n)',
+                rf'{re.escape(label)}\s+([A-Z][^\s:,]+(?:\s+[A-Z0-9][^\s:,]+){{0,6}})',
+            ]
+            for p in patterns:
+                m = re.search(p, text, re.IGNORECASE)
+                if m:
+                    v = m.group(1).strip().rstrip(':,.')
+                    if v and v.lower() not in ('select', 'n/a', ''):
+                        return v
+        return ""
 
-    # Try HTML-based extraction first (table cells)
-    owner    = find_html(r'(?:Name of Owner|Owner Name|ಮಾಲೀಕ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{3,100})')
-    extent   = find_html(r'(?:Total Extent|Extent|ವಿಸ್ತಾರ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([0-9][^<]{0,40})')
-    land_use = find_html(r'(?:Land Use|Nature of Land|ಜಮೀನು)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,60})')
-    kharab   = find_html(r'(?:kharab|Karab)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,50})')
-    liab     = find_html(r'(?:Liabilit|Encumbrance|Loan)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,100})')
-
-    # Fallback to text-based extraction
+    # ── Owner name — English + Kannada labels ──────────────────────────────────
+    owner = find_html(
+        r'(?:Name of Owner|Owner Name|ಮಾಲೀಕರ ಹೆಸರು|ಭೂ ಮಾಲೀಕ)[^<]*</(?:td|th|div)>\s*<(?:td|th|div)[^>]*>([^<]{3,150})',
+        r'<td[^>]*>\s*(?:Name of Owner|ಮಾಲೀಕ)[^<]*</td>\s*<td[^>]*>([^<]{3,150})</td>',
+        r'OwnerName["\s:>]+([A-Z][a-zA-Z\s\.]{2,80})',
+    )
     if not owner:
-        owner = after("Name of Owner") or after("Owner")
+        owner = find_text("Name of Owner", "Owner Name", "Malik", "ಮಾಲೀಕ")
+
+    # ── Total extent ──────────────────────────────────────────────────────────
+    extent = find_html(
+        r'(?:Total Extent|ಒಟ್ಟು ವಿಸ್ತೀರ್ಣ|ಒಟ್ಟು ಕ್ಷೇತ್ರ|Net Extent)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([0-9][^<]{0,60})',
+        r'totalExtent["\s:>]+([0-9][0-9\.A-Za-z\s\-]{1,40})',
+    )
     if not extent:
-        extent = after("Total Extent") or after("Extent")
+        extent = find_text("Total Extent", "Net Extent", "ಒಟ್ಟು ವಿಸ್ತೀರ್ಣ")
+
+    # ── Land type / nature ────────────────────────────────────────────────────
+    land_use = find_html(
+        r'(?:Land Use|Nature of Land|ಭೂ ಬಳಕೆ|ಜಮೀನಿನ ಸ್ವಭಾವ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,80})',
+    )
+
+    # ── Kharab ───────────────────────────────────────────────────────────────
+    kharab = find_html(
+        r'(?:kharab|Karab|ಕರಾಬು)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,60})',
+    )
+
+    # ── Liabilities / Encumbrance ─────────────────────────────────────────────
+    liab = find_html(
+        r'(?:Liabilit|Encumbrance|Loan|ಋಣ|ಭಾರ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,200})',
+    )
+
+    # ── Khata number ──────────────────────────────────────────────────────────
+    khata = find_html(
+        r'(?:Khata No|ಖಾತಾ ನಂ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([0-9][^<]{0,30})',
+    )
+    if not khata:
+        khata = find_text("Khata No", "Khatha", "ಖಾತಾ")
+
+    # ── Mutation number ───────────────────────────────────────────────────────
+    mutation = find_html(
+        r'(?:Mutation No|MR No|ಮ್ಯುಟೇಷನ್)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,50})',
+    )
+
+    # ── Village from HTML (may be more accurate than input param) ─────────────
+    html_village = find_html(
+        r'(?:Village|ಗ್ರಾಮ)[^<]*</(?:td|th|label)>\s*<(?:td|th|span)[^>]*>([A-Za-z][^<]{2,60})',
+    )
+
+    source = "bhoomi_scrape"
+    if not owner and not extent:
+        source = "bhoomi_no_data"
 
     return {
         "survey_number": survey_no,
-        "district": district, "taluk": taluk, "hobli": hobli, "village": village,
-        "owner_name":  owner,
-        "extent":      extent,
-        "land_type":   land_use,
-        "kharab":      kharab,
-        "liabilities": liab,
-        "source": "bhoomi_scrape",
+        "district": district,
+        "taluk": taluk,
+        "hobli": hobli,
+        "village": html_village or village,
+        "owner_name":   owner   or None,
+        "extent":       extent  or None,
+        "land_type":    land_use or None,
+        "kharab":       kharab  or None,
+        "liabilities":  liab    or None,
+        "khata_number": khata   or None,
+        "mutation_no":  mutation or None,
+        "source": source,
     }
 
 
@@ -2120,17 +2283,205 @@ async def _debug_bhoomi_playwright() -> dict:
     return {"status": "done", "logs": logs}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# RTC FROM IMAGE — Claude Vision reads scanned RTC document directly
+# Bypasses Bhoomi portal entirely. Works for physical documents the user has.
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/rtc-from-image", methods=["POST"])
+def rtc_from_image():
+    """
+    Accepts a base64-encoded photo of an RTC/EC/Sale Deed.
+    Uses Claude Vision to extract ALL fields:
+      - Survey number, owner, extent, khata, land type, liabilities
+      - EC: transaction list, encumbrance status
+      - Sale Deed: parties, consideration, date, SRO
+    Returns structured JSON — no Bhoomi portal needed.
+    """
+    d = request.get_json()
+    image_b64  = d.get("image_base64", "")
+    image_type = d.get("image_type", "image/jpeg")   # image/jpeg or image/png
+    doc_hint   = d.get("document_hint", "")           # optional: "RTC", "EC", "Sale Deed"
+
+    if not image_b64:
+        return jsonify({"error": "image_base64 required"}), 400
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 500
+
+    result = asyncio.run(_claude_extract_document(image_b64, image_type, doc_hint, api_key))
+    return jsonify(result)
+
+
+async def _claude_extract_document(image_b64: str, image_type: str,
+                                    doc_hint: str, api_key: str) -> dict:
+    """Use Claude Vision to extract all fields from a scanned property document."""
+    prompt = f"""You are a Karnataka property document expert. Analyze this scanned document image.
+{"Hint: This is likely a " + doc_hint + " document." if doc_hint else ""}
+
+Extract ALL visible information and return ONLY valid JSON in this format:
+
+{{
+  "document_type": "RTC" | "EC" | "Sale Deed" | "Khata" | "Mutation" | "Tax Receipt" | "Other",
+  "confidence": 0.0-1.0,
+  "language": "Kannada" | "English" | "Both",
+
+  "rtc_fields": {{
+    "survey_number": "e.g. 49/2 or null",
+    "hissa_number": "e.g. * or 1 or null",
+    "owner_name": "transliterated to English if Kannada",
+    "total_extent_acres": "e.g. 0.30 or null",
+    "total_extent_text": "full extent string e.g. 0.30.00 Acres",
+    "dry_land": "acres or null",
+    "wet_land": "acres or null",
+    "garden_land": "acres or null",
+    "kharab": "kharab area or null",
+    "khata_number": "or null",
+    "mutation_number": "MR H13/2018 2019 etc or null",
+    "village": "transliterated or null",
+    "hobli": "transliterated or null",
+    "taluk": "transliterated or null",
+    "district": "transliterated or null",
+    "liabilities": "any loans/encumbrances listed or null",
+    "crops": "any crop information or null",
+    "remarks": "any remarks from RTC or null",
+    "valid_from": "date string or null",
+    "valid_to": "date string or null",
+    "digitally_signed": true | false,
+    "signed_by": "officer name and designation or null",
+    "signed_date": "date or null"
+  }},
+
+  "ec_fields": {{
+    "property_description": "or null",
+    "period_from": "year or null",
+    "period_to": "year or null",
+    "encumbrance_free": true | false | null,
+    "transaction_count": 0,
+    "transactions": [
+      {{"date": "...", "type": "Sale/Mortgage/Gift/...", "parties": "...", "amount": "...or null"}}
+    ]
+  }},
+
+  "sale_deed_fields": {{
+    "deed_number": "or null",
+    "registration_date": "or null",
+    "sro": "Sub-Registrar Office name or null",
+    "seller_name": "or null",
+    "buyer_name": "or null",
+    "consideration_amount": "₹ amount or null",
+    "property_description": "or null",
+    "survey_number": "or null"
+  }},
+
+  "raw_text_snippet": "first 500 chars of all readable text"
+}}
+
+Rules:
+- For Kannada text: transliterate names to English (e.g. ಮಾರೆಗೌಡ → Maregowda)
+- Extract EXACTLY what is written — do not guess
+- If field is not visible or not applicable, use null
+- confidence: 0.9=clear printed, 0.6=partially visible, 0.3=blurry/handwritten"""
+
+    try:
+        async with httpx.AsyncClient(timeout=45) as c:
+            r = await c.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 2000,
+                    "messages": [{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": image_type,
+                                    "data": image_b64,
+                                }
+                            },
+                            {"type": "text", "text": prompt}
+                        ]
+                    }]
+                }
+            )
+            if r.status_code == 200:
+                text = r.json()["content"][0]["text"].strip()
+                # Extract JSON
+                import json as _json
+                start = text.find("{")
+                end   = text.rfind("}") + 1
+                if start != -1 and end > start:
+                    data = _json.loads(text[start:end])
+                    # Flatten RTC fields to top level for app compatibility
+                    rtc = data.get("rtc_fields", {}) or {}
+                    return {
+                        "source": "claude_vision",
+                        "document_type": data.get("document_type"),
+                        "confidence": data.get("confidence", 0.5),
+                        # RTC top-level fields (app expects these)
+                        "survey_number":       rtc.get("survey_number"),
+                        "owner_name":          rtc.get("owner_name"),
+                        "extent":              rtc.get("total_extent_text"),
+                        "land_type":           _rtc_land_type(rtc),
+                        "kharab":              rtc.get("kharab"),
+                        "khata_number":        rtc.get("khata_number"),
+                        "mutation_no":         rtc.get("mutation_number"),
+                        "liabilities":         rtc.get("liabilities"),
+                        "village":             rtc.get("village"),
+                        "hobli":               rtc.get("hobli"),
+                        "taluk":               rtc.get("taluk"),
+                        "district":            rtc.get("district"),
+                        "valid_from":          rtc.get("valid_from"),
+                        "valid_to":            rtc.get("valid_to"),
+                        "digitally_signed":    rtc.get("digitally_signed"),
+                        "signed_by":           rtc.get("signed_by"),
+                        "crops":               rtc.get("crops"),
+                        "remarks":             rtc.get("remarks"),
+                        # EC fields
+                        "ec": data.get("ec_fields"),
+                        # Sale Deed fields
+                        "sale_deed": data.get("sale_deed_fields"),
+                        # Raw for debugging
+                        "raw_text": data.get("raw_text_snippet"),
+                        "full_extraction": data,
+                    }
+    except Exception as e:
+        logger.error(f"Claude Vision extraction: {e}")
+
+    return {"source": "claude_vision_error", "error": "Extraction failed"}
+
+
+def _rtc_land_type(rtc: dict) -> str:
+    """Summarize land type from dry/wet/garden acres."""
+    parts = []
+    if rtc.get("dry_land"):  parts.append(f"Dry: {rtc['dry_land']}")
+    if rtc.get("wet_land"):  parts.append(f"Wet: {rtc['wet_land']}")
+    if rtc.get("garden_land"): parts.append(f"Garden: {rtc['garden_land']}")
+    return ", ".join(parts) if parts else None
+
+
 @app.route("/health")
 def health():
     import os as _os
     key = _anticaptcha_key()
+    ai_key = _os.environ.get("ANTHROPIC_API_KEY", "")
     return jsonify({
         "status": "ok",
         "service": "digisampatti-backend",
         "portals": ["bhoomi", "kaveri", "rera", "ecourts", "bbmp", "cersai", "igr", "fmb", "nadakacheri"],
         "dropdowns": ["hoblis", "villages"],
+        "vision_extraction": "enabled" if ai_key else "disabled (set ANTHROPIC_API_KEY)",
         "captcha_solver": "configured" if key else "not configured (RTC/EC/FMB/CERSAI need this)",
         "captcha_key_preview": key[:8] + "..." if key else "EMPTY",
+        "ai_key_preview": ai_key[:8] + "..." if ai_key else "NOT SET",
         "firestore": "connected" if db else "not connected",
         "cwd": _os.getcwd(),
         "env_file_found": str(Path(__file__).resolve().parent / ".env"),

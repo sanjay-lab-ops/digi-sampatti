@@ -26,6 +26,9 @@ dependencies:
   image_picker: ^1.0.7
   image: ^4.1.7
 
+  # QR Code Scanner (for RTC/EC digital signature verification)
+  mobile_scanner: ^5.2.3
+
   # GPS & Maps
   geolocator: ^11.0.0
   geocoding: ^3.0.0
