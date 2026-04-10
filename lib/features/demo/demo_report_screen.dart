@@ -439,7 +439,7 @@ class _SignQrTab extends StatelessWidget {
             border: Border.all(color: Colors.amber.shade200),
           ),
           child: const Text(
-            'DigiSampatti directly accesses all 7 government databases as a public citizen right — '
+            'DigiSampatti directly accesses all government databases (Bhoomi, Kaveri, eCourts, BBMP, CERSAI, BDA/BMRDA, FMB) as a public citizen right — '
             'no MOU or government approval needed. VA and Tahsildar can co-sign reports '
             'using Aadhaar e-Sign directly from their phone.',
             style: TextStyle(fontSize: 12),

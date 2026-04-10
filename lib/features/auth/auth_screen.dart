@@ -302,7 +302,7 @@ class _FeatureChips extends StatelessWidget {
                     children: [
                       Text('AI Legal Score',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                      Text('0–100 property safety score from 7 govt portals',
+                      Text('0–100 property safety score from government portals',
                         style: TextStyle(color: Colors.white70, fontSize: 11)),
                     ],
                   ),

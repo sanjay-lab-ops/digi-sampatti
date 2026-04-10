@@ -397,7 +397,7 @@ class _PortalDownBox extends StatelessWidget {
           _PortalDownRow('Previously verified documents are shown from secure cache'),
           _PortalDownRow('Tap "Retry" on any failed document — portal may recover in minutes'),
           _PortalDownRow('Tap "Open in Browser" on any card to verify manually on the portal'),
-          _PortalDownRow('DigiSampatti has already checked 7 other portals — only this seal check is pending'),
+          _PortalDownRow('DigiSampatti has already checked other portals (Bhoomi, Kaveri, eCourts, BBMP, CERSAI) — only this seal check is pending'),
           const SizedBox(height: 10),
           GestureDetector(
             onTap: onRetryAll,

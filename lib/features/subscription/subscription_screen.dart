@@ -98,7 +98,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 'Safety Score 0–100',
                 'EC + RTC + Court case + RERA check',
                 'PDF download + WhatsApp share',
-                'Apply & Track — 7 government services',
+                'Apply & Track — Mutation · EC · RERA · Sakala',
                 'Buying Journey checklist',
               ],
               buttonText: 'Buy Report — ₹99',
