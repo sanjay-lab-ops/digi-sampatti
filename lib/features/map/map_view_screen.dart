@@ -95,9 +95,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
   }
 
   // Build Bhoomi map URL for this survey
-  String? get _bhoomiMapUrl {
-    final survey = widget.surveyNumber;
-    if (survey == null || survey.isEmpty) return null;
+  String _bhoomiMapUrl(String? survey) {
     // Bhoomi beta map with survey search
     return 'https://landrecords.karnataka.gov.in/service54/';
   }
@@ -105,12 +103,17 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
   @override
   Widget build(BuildContext context) {
     final location = ref.watch(currentLocationProvider);
-    final hasSurvey = widget.surveyNumber != null && widget.surveyNumber!.isNotEmpty;
+    final scan = ref.watch(currentScanProvider);
+    // Use widget param if passed, otherwise fall back to current scan
+    final effectiveSurveyNumber = (widget.surveyNumber != null && widget.surveyNumber!.isNotEmpty)
+        ? widget.surveyNumber
+        : scan?.surveyNumber;
+    final hasSurvey = effectiveSurveyNumber != null && effectiveSurveyNumber.isNotEmpty;
 
     if (_showBhoomiMap && hasSurvey) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Survey ${widget.surveyNumber} — Bhoomi Map'),
+          title: Text('Survey $effectiveSurveyNumber — Bhoomi Map'),
           backgroundColor: const Color(0xFF1B5E20),
           foregroundColor: Colors.white,
           leading: IconButton(
@@ -121,7 +124,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
         body: WebViewWidget(
           controller: WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..loadRequest(Uri.parse(_bhoomiMapUrl!)),
+            ..loadRequest(Uri.parse(_bhoomiMapUrl(effectiveSurveyNumber))),
         ),
       );
     }
@@ -139,7 +142,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
         ],
       ),
       body: location == null
-          ? _buildNoGps(hasSurvey)
+          ? _buildNoGps(hasSurvey, effectiveSurveyNumber)
           : Stack(
               children: [
                 GoogleMap(
@@ -171,14 +174,14 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
               onPressed: () => setState(() => _showBhoomiMap = true),
               backgroundColor: const Color(0xFF1B5E20),
               icon: const Icon(Icons.map, color: Colors.white),
-              label: Text('Survey ${widget.surveyNumber} Boundary Map',
+              label: Text('Survey $effectiveSurveyNumber Boundary Map',
                   style: const TextStyle(color: Colors.white)),
             )
           : null,
     );
   }
 
-  Widget _buildNoGps(bool hasSurvey) {
+  Widget _buildNoGps(bool hasSurvey, String? surveyNumber) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -193,7 +196,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
             hasSurvey
                 ? 'Tap below to view the actual survey boundary map from Bhoomi — '
                   'the same map with blue lines you see on landrecords.karnataka.gov.in'
-                : 'Use camera scan to capture GPS location and see property on map.',
+                : 'Use camera scan or tap GPS button on search screen to capture location.',
             style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.4),
             textAlign: TextAlign.center,
           ),
@@ -202,7 +205,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
             ElevatedButton.icon(
               onPressed: () => setState(() => _showBhoomiMap = true),
               icon: const Icon(Icons.satellite_alt),
-              label: Text('Open Survey ${widget.surveyNumber} Map on Bhoomi'),
+              label: Text('Open Survey $surveyNumber Map on Bhoomi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1B5E20),
                 foregroundColor: Colors.white,

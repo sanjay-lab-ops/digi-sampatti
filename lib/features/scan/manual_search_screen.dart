@@ -521,6 +521,11 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     setState(() { _isDetectingGps = true; _gpsMessage = null; });
     try {
       final gpsService = GpsService();
+      // Capture raw GPS first so map screen can show a pin
+      final rawLocation = await gpsService.getCurrentLocation();
+      if (rawLocation != null) {
+        ref.read(currentLocationProvider.notifier).state = rawLocation;
+      }
       final result = await gpsService.detectAndFill();
 
       setState(() {

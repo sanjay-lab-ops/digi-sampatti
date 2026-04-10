@@ -204,10 +204,17 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     } catch (e) {
       setState(() {
         _scanning = false;
-        _error = 'Backend not reachable. Make sure laptop backend is running.\n\n$e';
+        _done = true;   // allow fallback buttons to appear
+        _bhoomiFailed = true;  // show on-device Bhoomi CTA
+        _error = 'Cloud check failed — use on-device Bhoomi scan below.\n(${e.toString().split('\n').first})';
         for (final p in _portals) {
           if (p.status == _PortalStatus.scanning) {
             p.status = _PortalStatus.failed;
+            if (p.name == 'Bhoomi RTC') {
+              p.summary = 'Bhoomi blocked from cloud — tap "Scan RTC" below';
+            } else {
+              p.summary = 'Not available (cloud unreachable)';
+            }
           }
         }
       });
@@ -1555,35 +1562,45 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: Colors.orange.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: Colors.orange.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 18),
+              Icon(Icons.cloud_off, color: Colors.orange, size: 18),
               SizedBox(width: 8),
-              Text('Backend not reachable',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.red)),
+              Expanded(
+                child: Text('Cloud scan unavailable — use on-device scan below',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.deepOrange, fontSize: 13)),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Make sure the laptop backend is running:\n'
-            '  cd digi-sampatti/backend\n'
-            '  python main.py',
-            style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+          const SizedBox(height: 6),
+          Text(
+            _error ?? 'Unknown error',
+            style: const TextStyle(fontSize: 11, color: Colors.black54),
           ),
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: _startScan,
-              child: const Text('Retry'),
+              onPressed: () => setState(() {
+                _done = false;
+                _scanning = false;
+                _error = null;
+                _bhoomiFailed = false;
+                for (final p in _portals) {
+                  p.status = _PortalStatus.waiting;
+                  p.summary = null;
+                  p.hasIssue = null;
+                }
+              }),
+              child: const Text('Retry Cloud Scan'),
             ),
           ),
         ],

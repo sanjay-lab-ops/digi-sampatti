@@ -470,6 +470,7 @@ class _BhoomiDeviceScraperScreenState
       (_Step.connecting, 'Connect to Bhoomi portal'),
       (_Step.selectingDistrict, 'Select district'),
       (_Step.selectingTaluk, 'Select taluk'),
+      (_Step.selectingHobli, 'Select hobli'),
       (_Step.selectingVillage, 'Select village'),
       (_Step.fetchingDetails, 'Fetch RTC record'),
       (_Step.parsing, 'Extract & read data'),
