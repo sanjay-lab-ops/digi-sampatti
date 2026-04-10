@@ -16,10 +16,11 @@ class InstamojoService {
   factory InstamojoService() => _instance;
   InstamojoService._internal();
 
-  static const bool _testMode = false; // LIVE keys — www.instamojo.com
+  // TODO: switch to false + replace with live keys once Instamojo KYC is approved
+  static const bool _testMode = true;
   static const String _apiKey    = 'eb8569cf677c296bddfe91df0ef50452';
   static const String _authToken = 'ebd995857617ee96519bb5f961412e67';
-  static const String _privateSalt = 'a29ef5e7f0ce4b41802c8e1b13123673'; // for webhook verification
+  static const String _privateSalt = 'a29ef5e7f0ce4b41802c8e1b13123673';
 
   String get _baseUrl => _testMode
       ? 'https://test.instamojo.com/api/1.1'

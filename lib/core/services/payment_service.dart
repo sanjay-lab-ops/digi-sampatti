@@ -1,4 +1,5 @@
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/services/instamojo_service.dart';
 
 // ─── Payment Service ──────────────────────────────────────────────────────────
@@ -94,5 +95,42 @@ class PaymentService {
 
   void dispose() {
     _razorpay.clear();
+  }
+
+  // ─── UPI direct link — works immediately, no API key needed ──────────────
+  // Replace 'digisampatti@upi' with your real registered UPI ID.
+  static const String _upiId = 'digisampatti@upi';
+
+  /// Opens any UPI app (PhonePe / GPay / BHIM) directly.
+  /// Returns true if the intent launched, false if no UPI app found.
+  static Future<bool> openUpiPayment({
+    required int amountInRupees,
+    required String reportId,
+  }) async {
+    final uri = Uri.parse(
+      'upi://pay?pa=$_upiId&pn=DigiSampatti&am=$amountInRupees'
+      '&cu=INR&tn=DigiSampatti+Report+%23$reportId&tr=$reportId',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return true;
+    }
+    return false;
+  }
+
+  /// Opens WhatsApp to +91 number for manual payment confirmation.
+  static Future<void> openWhatsAppPayment({
+    required String reportId,
+    required int amountInRupees,
+  }) async {
+    const phone = '917090654322'; // replace with your WhatsApp business number
+    final msg = Uri.encodeComponent(
+      'Hi DigiSampatti, I want to pay ₹$amountInRupees for Report #$reportId. '
+      'Please share payment details.',
+    );
+    final uri = Uri.parse('https://wa.me/$phone?text=$msg');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

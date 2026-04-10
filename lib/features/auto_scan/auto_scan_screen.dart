@@ -67,6 +67,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     _PortalResult(name: 'Kaveri EC',     icon: Icons.account_balance_outlined, color: const Color(0xFF0D47A1)),
     _PortalResult(name: 'RERA',          icon: Icons.verified_outlined,        color: const Color(0xFF4A148C)),
     _PortalResult(name: 'eCourts',       icon: Icons.gavel_outlined,           color: const Color(0xFFBF360C)),
+    _PortalResult(name: 'BBMP / Khata',  icon: Icons.location_city_outlined,   color: const Color(0xFF1565C0)),
     _PortalResult(name: 'CERSAI',        icon: Icons.lock_outlined,            color: const Color(0xFF880E4F)),
     _PortalResult(name: 'Guidance Value',icon: Icons.attach_money,             color: const Color(0xFF006064)),
     _PortalResult(name: 'FMB Sketch',    icon: Icons.map_outlined,             color: const Color(0xFF37474F)),
@@ -157,6 +158,16 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         _portals.firstWhere((p) => p.name == 'RERA')
           ..status = _PortalStatus.done
           ..summary = 'Checked — add project name for RERA'
+          ..hasIssue = false;
+        // BBMP e-Aasthi: always show as "open on device" (requires login)
+        _portals.firstWhere((p) => p.name == 'BBMP / Khata')
+          ..status = _PortalStatus.failed
+          ..summary = 'Not available (portal down)'
+          ..hasIssue = null;
+        // RERA is only for apartments/builder projects — mark clearly for plots
+        _portals.firstWhere((p) => p.name == 'RERA')
+          ..status = _PortalStatus.done
+          ..summary = 'Only for apartments — not needed for sites/plots'
           ..hasIssue = false;
         _scanning = false;
         _done = true;
@@ -287,7 +298,10 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
 
   String _gvSummary(Map d) {
     final val = d['value_per_sqft'] ?? 0;
-    return '₹$val / sqft (${d['taluk'] ?? ''})';
+    final taluk = d['taluk'] ?? '';
+    // IGR guidance value is the sub-registrar's floor price for stamp duty,
+    // not the market rate. The actual figure is from the IGR Karnataka PDF.
+    return '~₹$val / sqft · ${taluk.isNotEmpty ? taluk : 'Area'} (IGR estimate — verify at igr.karnataka.gov.in)';
   }
 
   String _fmbSummary(Map d) {
@@ -309,8 +323,20 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   String get _riskLevel        => _fullResult?['risk_level'] ?? 'UNKNOWN';
   List   get _riskFlags        => _fullResult?['risk_flags'] ?? [];
   List   get _fraudPatterns    => _fullResult?['fraud_patterns'] ?? [];
-  int    get _investmentScore  => (_fullResult?['investment_score'] ?? 0) as int;
   String get _investmentVerdict=> _fullResult?['investment_verdict'] ?? '';
+
+  /// Investment score: only meaningful when Bhoomi + EC data is available.
+  /// Return null (show "—") when core portals failed — avoids misleading 100/100.
+  int? get _investmentScore {
+    final raw = _fullResult?['investment_score'];
+    if (raw == null) return null;
+    final score = raw as int;
+    // If Bhoomi failed (no owner data) and score is suspiciously perfect, hide it
+    final bhoomiOk = _portals.firstWhere((p) => p.name == 'Bhoomi RTC').status == _PortalStatus.done;
+    final ecOk     = _portals.firstWhere((p) => p.name == 'Kaveri EC').status == _PortalStatus.done;
+    if (!bhoomiOk && !ecOk) return null;
+    return score;
+  }
 
   Color get _riskColor {
     switch (_riskLevel) {
@@ -642,9 +668,10 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     final isKaveriBlocked  = p.name == 'Kaveri EC'      && p.status == _PortalStatus.failed;
     final isFmbBlocked     = p.name == 'FMB Sketch'     && p.status == _PortalStatus.failed;
     final isCersaiBlocked  = p.name == 'CERSAI'         && p.status == _PortalStatus.failed;
+    final isBbmpBlocked    = p.name == 'BBMP / Khata'   && p.status == _PortalStatus.failed;
 
     return Container(
-      margin: EdgeInsets.only(bottom: (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked) ? 0 : 10),
+      margin: EdgeInsets.only(bottom: (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked || isBbmpBlocked) ? 0 : 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -722,7 +749,13 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             label: 'Open CERSAI in Browser (Bank Mortgage)',
             color: const Color(0xFF880E4F),
           ),
-          if (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked)
+          if (isBbmpBlocked) _onDeviceButton(
+            context,
+            portal: GovPortal.bbmp,
+            label: 'Open BBMP e-Aasthi (Khata Check)',
+            color: const Color(0xFF1565C0),
+          ),
+          if (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked || isBbmpBlocked)
             const SizedBox(height: 10),
         ],
       ),
@@ -1303,64 +1336,68 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── Investment Score Card ─────────────────────────────────────────────
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                _investmentScoreColor.withOpacity(0.12),
-                _investmentScoreColor.withOpacity(0.04),
+        Builder(builder: (context) {
+          final score = _investmentScore;
+          final scoreColor = score != null ? _investmentScoreColor : Colors.grey;
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  scoreColor.withOpacity(0.12),
+                  scoreColor.withOpacity(0.04),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: scoreColor.withOpacity(0.4)),
+            ),
+            child: Row(
+              children: [
+                // Score circle
+                SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        value: score != null ? score / 100 : 0,
+                        strokeWidth: 6,
+                        backgroundColor: Colors.grey.shade200,
+                        color: scoreColor,
+                      ),
+                      Text(
+                        score != null ? '$score' : '—',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: score != null ? 18 : 22,
+                          color: scoreColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Investment Score',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text(
+                        score != null
+                            ? _investmentVerdict
+                            : 'Score unavailable — Bhoomi or EC data missing',
+                        style: TextStyle(fontSize: 12, color: scoreColor),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _investmentScoreColor.withOpacity(0.4)),
-          ),
-          child: Row(
-            children: [
-              // Score circle
-              SizedBox(
-                width: 64,
-                height: 64,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: _investmentScore / 100,
-                      strokeWidth: 6,
-                      backgroundColor: Colors.grey.shade200,
-                      color: _investmentScoreColor,
-                    ),
-                    Text(
-                      '$_investmentScore',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: _investmentScoreColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Investment Score',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(
-                      _investmentVerdict,
-                      style: TextStyle(
-                          fontSize: 12, color: _investmentScoreColor),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+          );
+        }),
 
         const SizedBox(height: 12),
 
@@ -1490,9 +1527,11 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   }
 
   Color get _investmentScoreColor {
-    if (_investmentScore >= 80) return AppColors.safe;
-    if (_investmentScore >= 60) return Colors.orange;
-    if (_investmentScore >= 40) return Colors.deepOrange;
+    final score = _investmentScore;
+    if (score == null) return Colors.grey;
+    if (score >= 80) return AppColors.safe;
+    if (score >= 60) return Colors.orange;
+    if (score >= 40) return Colors.deepOrange;
     return Colors.red.shade800;
   }
 

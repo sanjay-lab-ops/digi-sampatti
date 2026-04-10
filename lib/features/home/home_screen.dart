@@ -7,6 +7,8 @@ import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/core/services/report_history_service.dart';
+import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
 import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
@@ -29,6 +31,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
+    // Load saved reports from SharedPreferences into the in-memory provider.
+    // Without this, recentReportsProvider starts empty on every fresh app launch.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final existing = ref.read(recentReportsProvider);
+      if (existing.isEmpty) {
+        final saved = await ReportHistoryService().loadReports();
+        if (saved.isNotEmpty && mounted) {
+          ref.read(recentReportsProvider.notifier).state = saved;
+        }
+      }
+    });
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -185,6 +199,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.route, l.buyingJourney, 'Advance · Agreement · Registration', const Color(0xFF1B5E20), () => context.push('/buying-journey')),
                   const Divider(height: 1, indent: 56),
+                  _ToolRow(Icons.location_city, 'BDA / BMRDA Check', 'Layout approval · BDA tax · Peri-urban', const Color(0xFF1A237E), () => _showBdaSheet(context)),
+                  const Divider(height: 1, indent: 56),
                   _ToolRow(Icons.flight, l.nriMode, 'UAE · USA · UK · FEMA · Ground Verify', const Color(0xFF0D47A1), () => context.push('/nri')),
                 ],
               ),
@@ -218,6 +234,83 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ...recentReports.take(5).map((r) => _RecentReportCard(report: r)),
               ],
             )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBdaSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('BDA / BMRDA Portals',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text(
+              'Check layout approvals and property tax for BDA and BMRDA properties. '
+              'Not needed for Gram Panchayat or BBMP-limit properties.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            _BdaTile(
+              icon: Icons.home_work_outlined,
+              title: 'BDA Layout Approval (Housing)',
+              subtitle: 'housing.bdabangalore.org — verify layout approval',
+              color: const Color(0xFF1A237E),
+              onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebviewScreen(portal: GovPortal.bdaLayout))); },
+            ),
+            const SizedBox(height: 10),
+            _BdaTile(
+              icon: Icons.receipt_long_outlined,
+              title: 'BDA Property Tax',
+              subtitle: 'app.bda.karnataka.gov.in — tax dues & payment',
+              color: const Color(0xFF1565C0),
+              onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebviewScreen(portal: GovPortal.bdaTax))); },
+            ),
+            const SizedBox(height: 10),
+            _BdaTile(
+              icon: Icons.map_outlined,
+              title: 'BMRDA Layout Approval',
+              subtitle: 'bmrda.karnataka.gov.in — peri-urban area checks',
+              color: const Color(0xFF006064),
+              onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebviewScreen(portal: GovPortal.bmrda))); },
+            ),
+            const SizedBox(height: 10),
+            _BdaTile(
+              icon: Icons.picture_as_pdf,
+              title: 'IGR Guidance Value PDF',
+              subtitle: 'igr.karnataka.gov.in — official floor price for stamp duty',
+              color: const Color(0xFF006064),
+              onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebviewScreen(portal: GovPortal.igrGuidance))); },
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'BBMP area: Use BBMP e-Aasthi (in Auto Scan) for Khata.\n'
+                'BDA area: Check BDA layout + BDA tax here.\n'
+                'BMRDA/peri-urban (Yelahanka, Devanahalli): Check BMRDA approval.\n'
+                'RERA: Only for apartments/builder projects — NOT needed for sites.',
+                style: TextStyle(fontSize: 11, height: 1.5),
+              ),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -900,4 +993,45 @@ class _QA {
   final String question, answer;
   final IconData icon;
   const _QA(this.question, this.answer, this.icon);
+}
+
+class _BdaTile extends StatelessWidget {
+  final IconData icon;
+  final String title, subtitle;
+  final Color color;
+  final VoidCallback onTap;
+  const _BdaTile({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              ],
+            ),
+          ),
+          Icon(Icons.open_in_new, color: color, size: 16),
+        ],
+      ),
+    ),
+  );
 }

@@ -238,18 +238,57 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          const Row(
-            children: [
-              Icon(Icons.lock, size: 12, color: Colors.white70),
-              SizedBox(width: 4),
-              Text('Secured by Instamojo · UPI, Card, Net Banking accepted',
-                  style: TextStyle(fontSize: 10, color: Colors.white70)),
-            ],
+          const SizedBox(height: 12),
+          // ── UPI direct pay (works immediately)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final report = ref.read(currentReportProvider);
+                final id = report?.reportId ?? 'RPT';
+                final opened = await PaymentService.openUpiPayment(
+                  amountInRupees: PaymentService.reportPrice,
+                  reportId: id,
+                );
+                if (!opened && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No UPI app found. Use WhatsApp option below.')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.payments_outlined, color: Colors.white, size: 16),
+              label: const Text('Pay ₹149 via UPI (PhonePe / GPay)',
+                  style: TextStyle(color: Colors.white, fontSize: 12)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.white54),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+            ),
           ),
-          // Show "verify payment" button if user already went to Instamojo
+          const SizedBox(height: 8),
+          // ── WhatsApp fallback
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                final report = ref.read(currentReportProvider);
+                PaymentService.openWhatsAppPayment(
+                  reportId: report?.reportId ?? 'RPT',
+                  amountInRupees: PaymentService.reportPrice,
+                );
+              },
+              icon: const Icon(Icons.chat, color: Colors.white70, size: 14),
+              label: const Text('Pay via WhatsApp (manual confirm)',
+                  style: TextStyle(color: Colors.white70, fontSize: 11)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.white30),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+            ),
+          ),
+          // Show "verify payment" button if user went to Instamojo
           if (_pendingRequestId != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -258,7 +297,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white54),
                 ),
-                child: const Text('I completed payment — verify now'),
+                child: const Text('Verify Instamojo payment'),
               ),
             ),
           ],

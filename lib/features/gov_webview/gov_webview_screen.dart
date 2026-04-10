@@ -23,14 +23,17 @@ enum GovPortal {
   janaspandana, // Karnataka grievance portal
   rtiOnline,    // RTI filing
   benami,       // Benami property check / report
-  bdaLayout,    // BDA / BMRDA layout approval check
-  nocBank,      // Bank NOC / CERSAI mortgage check
+  bdaLayout,      // BDA layout approval check (housing.bdabangalore.org)
+  bdaTax,         // BDA property tax portal (app.bda.karnataka.gov.in)
+  bmrda,          // BMRDA — peri-urban layout approvals (bmrda.karnataka.gov.in)
+  nocBank,        // Bank NOC / CERSAI mortgage check
   kaveriGuidance, // Guidance value / stamp duty calculator
   bbmpPlan,       // BBMP building plan approval check
   dcConversion,   // DC Conversion / agricultural to residential
   wakfBoard,      // Wakf Board — check if Wakf land
   gramPanchayat,  // Gram Panchayat Khata (rural properties)
   digilocker,     // DigiLocker — access govt-issued property documents
+  igrGuidance,    // IGR Karnataka — guidance value PDFs
 }
 
 extension GovPortalInfo on GovPortal {
@@ -47,14 +50,17 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.janaspandana: return 'Janaspandana — File Grievance';
       case GovPortal.rtiOnline:    return 'RTI Online — File RTI';
       case GovPortal.benami:    return 'Benami — Property Check';
-      case GovPortal.bdaLayout: return 'BDA — Layout Approval';
-      case GovPortal.nocBank:   return 'CERSAI — Bank NOC Check';
-      case GovPortal.kaveriGuidance: return 'Kaveri — Guidance Value';
+      case GovPortal.bdaLayout:  return 'BDA — Layout Approval (Housing)';
+      case GovPortal.bdaTax:     return 'BDA — Property Tax Portal';
+      case GovPortal.bmrda:      return 'BMRDA — Peri-Urban Layout Approval';
+      case GovPortal.nocBank:    return 'CERSAI — Bank NOC Check';
+      case GovPortal.kaveriGuidance: return 'IGR / Kaveri — Guidance Value';
       case GovPortal.bbmpPlan:       return 'BBMP — Building Plan Approval';
       case GovPortal.dcConversion:   return 'Bhoomi — DC Conversion Status';
       case GovPortal.wakfBoard:      return 'Wakf Board Karnataka';
       case GovPortal.gramPanchayat:  return 'Gram Panchayat — Rural Khata';
       case GovPortal.digilocker:     return 'DigiLocker — Property Documents';
+      case GovPortal.igrGuidance:    return 'IGR Karnataka — Guidance Value PDFs';
     }
   }
 
@@ -84,7 +90,11 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.benami:
         return 'https://benami.gov.in/';
       case GovPortal.bdaLayout:
-        return 'https://bdabangalore.org/';
+        return 'https://housing.bdabangalore.org/';
+      case GovPortal.bdaTax:
+        return 'https://app.bda.karnataka.gov.in/bdaptax-citizen/login';
+      case GovPortal.bmrda:
+        return 'https://bmrda.karnataka.gov.in/en';
       case GovPortal.nocBank:
         return 'https://www.cersai.org.in/CERSAI/home.prg';
       case GovPortal.kaveriGuidance:
@@ -99,6 +109,8 @@ extension GovPortalInfo on GovPortal {
         return 'https://grpanchayat.karnataka.gov.in/';
       case GovPortal.digilocker:
         return 'https://digilocker.gov.in/';
+      case GovPortal.igrGuidance:
+        return 'https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en';
     }
   }
 
@@ -132,7 +144,11 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.benami:
         return 'Check if property is flagged as benami. You can also report suspected benami property here.';
       case GovPortal.bdaLayout:
-        return 'Verify if the layout/apartment project has BDA or BMRDA approval. Check approved plan vs actual construction.';
+        return 'For BDA-approved layouts: search your project name or layout number. Verify approval status and sanctioned plan.';
+      case GovPortal.bdaTax:
+        return 'Check BDA property tax payments and dues for your site. Login with property ID or owner details.';
+      case GovPortal.bmrda:
+        return 'For properties outside BBMP limits (Yelahanka, Devanahalli etc): check if layout has BMRDA approval. Unapproved layouts = illegal construction.';
       case GovPortal.nocBank:
         return 'Search if property has any registered mortgage or charge with a bank. Enter owner name and select Karnataka.';
       case GovPortal.kaveriGuidance:
@@ -147,6 +163,8 @@ extension GovPortalInfo on GovPortal {
         return 'Check Gram Panchayat Khata for rural properties outside BBMP limits.';
       case GovPortal.digilocker:
         return 'Access your Aadhaar, PAN, land records and other government documents. Sign in with Aadhaar OTP or mobile number.';
+      case GovPortal.igrGuidance:
+        return 'Download the official IGR Karnataka Revised Guideline Value PDF for your district. Find your area in the PDF to see the government floor price per sqft.';
     }
   }
 
@@ -163,14 +181,17 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.janaspandana: return const Color(0xFF4A148C);
       case GovPortal.rtiOnline:    return const Color(0xFF37474F);
       case GovPortal.benami:    return const Color(0xFFB71C1C);
-      case GovPortal.bdaLayout: return const Color(0xFF1A237E);
-      case GovPortal.nocBank:   return const Color(0xFF37474F);
+      case GovPortal.bdaLayout:  return const Color(0xFF1A237E);
+      case GovPortal.bdaTax:     return const Color(0xFF1565C0);
+      case GovPortal.bmrda:      return const Color(0xFF006064);
+      case GovPortal.nocBank:    return const Color(0xFF37474F);
       case GovPortal.kaveriGuidance: return const Color(0xFF0D47A1);
       case GovPortal.bbmpPlan:       return const Color(0xFF004D40);
       case GovPortal.dcConversion:   return const Color(0xFF4E342E);
       case GovPortal.wakfBoard:      return const Color(0xFF1A237E);
       case GovPortal.gramPanchayat:  return const Color(0xFF33691E);
       case GovPortal.digilocker:     return const Color(0xFF1565C0);
+      case GovPortal.igrGuidance:    return const Color(0xFF006064);
     }
   }
 }
@@ -257,8 +278,11 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
             case GovPortal.rtiOnline:
             case GovPortal.benami:
             case GovPortal.bdaLayout:
+            case GovPortal.bdaTax:
+            case GovPortal.bmrda:
             case GovPortal.nocBank:
             case GovPortal.kaveriGuidance:
+            case GovPortal.igrGuidance:
             case GovPortal.bbmpPlan:
             case GovPortal.dcConversion:
             case GovPortal.wakfBoard:
@@ -787,6 +811,29 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
           'Tap "Issued Documents" to see land records, EC, or property docs',
           'Download any document and share as PDF',
           'Use to get official RTC or EC without visiting office',
+        ];
+      case GovPortal.bdaTax:
+        return [
+          'Login with property ID or owner mobile number',
+          if (dist != null && dist.isNotEmpty) 'COPY:District|$dist' else 'Select Bengaluru',
+          'Check property tax payments and outstanding dues',
+          'Verify: Is tax in seller\'s name? Dues cleared?',
+        ];
+      case GovPortal.bmrda:
+        return [
+          'Search your layout name or survey number',
+          if (dist != null && dist.isNotEmpty) 'COPY:District|$dist' else 'Select district',
+          'Look for "Layout Approval" or "Regularisation" section',
+          'Verify: Is the layout BMRDA-approved?',
+          'No approval = illegal layout, bank will not give loan',
+        ];
+      case GovPortal.igrGuidance:
+        return [
+          'Select your district from the dropdown',
+          if (dist != null && dist.isNotEmpty) 'COPY:District|$dist' else 'Select district',
+          'Download the PDF for your taluk',
+          'Find your village/area name in the PDF table',
+          'Note the guideline value per sqft — this is the minimum stamp duty base',
         ];
     }
   }

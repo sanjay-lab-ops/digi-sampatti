@@ -58,6 +58,35 @@ class _BhoomiDeviceScraperScreenState
   static const _backendBase =
       'https://digi-sampatti-production.up.railway.app';
 
+  /// Maps user-facing taluk names (lowercase) → exact text in Bhoomi dropdown.
+  /// Without this, "North" matches "Bangalore North(Additional)" before
+  /// "BENGALURU-NORTH" because it appears first in the option list.
+  static const _talukToBhoomi = {
+    'bengaluru north':        'BENGALURU-NORTH',
+    'bangalore north':        'BENGALURU-NORTH',
+    'bengaluru-north':        'BENGALURU-NORTH',
+    'bangalore-north':        'BENGALURU-NORTH',
+    'bengaluru south':        'BENGALURU-South',
+    'bangalore south':        'BENGALURU-South',
+    'bengaluru east':         'BENGALURU-East',
+    'bangalore east':         'BENGALURU-East',
+    'yalahanka':              'YALAHANKA',
+    'anekal':                 'Anekal',
+    'bangalore north additional': 'Bangalore North(Additional)',
+    'bengaluru north additional': 'Bangalore North(Additional)',
+  };
+
+  /// Returns the exact Bhoomi dropdown text for this taluk, or null if unknown.
+  String? _bhoomiTaluk() {
+    final key = widget.taluk.toLowerCase().trim();
+    for (final entry in _talukToBhoomi.entries) {
+      if (key.contains(entry.key) || entry.key.contains(key)) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +100,7 @@ class _BhoomiDeviceScraperScreenState
         },
       ))
       ..loadRequest(
-          Uri.parse('https://landrecords.karnataka.gov.in/Service2'));
+          Uri.parse('https://landrecords.karnataka.gov.in/service2/forM16A.aspx'));
   }
 
   // ── Navigation events ──────────────────────────────────────────────────────
@@ -186,22 +215,36 @@ class _BhoomiDeviceScraperScreenState
 
   void _pickTaluk(List opts) {
     _setStep(_Step.selectingTaluk);
-    final taluk = widget.taluk.toUpperCase();
-    final kws = taluk
-        .replaceAll('BENGALURU', '')
-        .replaceAll('BANGALORE', '')
-        .trim()
-        .split(' ')
-        .where((w) => w.length > 2)
-        .toList();
-    final kJson = jsonEncode(kws.isEmpty ? [taluk] : kws);
-    _js('''
-(function(){
-  var sel=document.getElementById('ctl00_MainContent_ddlCTaluk');
-  var opts=Array.from(sel.options);
+    // Try exact map first — avoids "Bangalore North(Additional)" false match
+    final exactBhoomi = _bhoomiTaluk();
+    final String matchScript;
+    if (exactBhoomi != null) {
+      // Exact text match then fallback to partial
+      final escaped = exactBhoomi.replaceAll("'", r"\'");
+      matchScript = '''
+  var t=opts.find(function(o){return o.text==='$escaped';});
+  if(!t) t=opts.find(function(o){return o.text.toUpperCase()==='${exactBhoomi.toUpperCase()}';});
+  if(!t) t=opts.find(function(o){return o.text.toUpperCase().includes('${exactBhoomi.toUpperCase().replaceAll('-', '').replaceAll(' ', '')}');});
+''';
+    } else {
+      // Keyword fallback for unmapped taluks
+      final taluk = widget.taluk.toUpperCase();
+      final kws = taluk
+          .replaceAll('BENGALURU', '').replaceAll('BANGALORE', '').trim()
+          .split(' ').where((w) => w.length > 2).toList();
+      final kJson = jsonEncode(kws.isEmpty ? [taluk] : kws);
+      matchScript = '''
   var kw=$kJson;
   var t=opts.find(function(o){return kw.every(function(k){return o.text.toUpperCase().includes(k);});});
   if(!t) t=opts.find(function(o){return o.text.toUpperCase().includes(kw[0]);});
+''';
+    }
+    _js('''
+(function(){
+  var sel=document.getElementById('ctl00_MainContent_ddlCTaluk');
+  if(!sel){BC.postMessage(JSON.stringify({event:'err',step:'taluk',msg:'Taluk dropdown not found'}));return;}
+  var opts=Array.from(sel.options);
+  $matchScript
   if(!t){BC.postMessage(JSON.stringify({event:'err',step:'taluk',msg:'Not found: ${widget.taluk}',avail:opts.map(function(o){return o.text;})}));return;}
   sel.value=t.value;
   sel.dispatchEvent(new Event('change',{bubbles:true}));
