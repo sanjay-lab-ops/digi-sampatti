@@ -44,6 +44,7 @@ enum _Step {
   fetchingDetails,
   parsing,
   done,
+  manual, // user fills the form manually in visible WebView
   error,
 }
 
@@ -58,35 +59,6 @@ class _BhoomiDeviceScraperScreenState
   static const _backendBase =
       'https://digi-sampatti-production.up.railway.app';
 
-  /// Maps user-facing taluk names (lowercase) → exact text in Bhoomi dropdown.
-  /// Without this, "North" matches "Bangalore North(Additional)" before
-  /// "BENGALURU-NORTH" because it appears first in the option list.
-  static const _talukToBhoomi = {
-    'bengaluru north':        'BENGALURU-NORTH',
-    'bangalore north':        'BENGALURU-NORTH',
-    'bengaluru-north':        'BENGALURU-NORTH',
-    'bangalore-north':        'BENGALURU-NORTH',
-    'bengaluru south':        'BENGALURU-South',
-    'bangalore south':        'BENGALURU-South',
-    'bengaluru east':         'BENGALURU-East',
-    'bangalore east':         'BENGALURU-East',
-    'yalahanka':              'YALAHANKA',
-    'anekal':                 'Anekal',
-    'bangalore north additional': 'Bangalore North(Additional)',
-    'bengaluru north additional': 'Bangalore North(Additional)',
-  };
-
-  /// Returns the exact Bhoomi dropdown text for this taluk, or null if unknown.
-  String? _bhoomiTaluk() {
-    final key = widget.taluk.toLowerCase().trim();
-    for (final entry in _talukToBhoomi.entries) {
-      if (key.contains(entry.key) || entry.key.contains(key)) {
-        return entry.value;
-      }
-    }
-    return null;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -100,7 +72,7 @@ class _BhoomiDeviceScraperScreenState
         },
       ))
       ..loadRequest(
-          Uri.parse('https://landrecords.karnataka.gov.in/service2/forM16A.aspx'));
+          Uri.parse('https://landrecords.karnataka.gov.in/Service2'));
   }
 
   // ── Navigation events ──────────────────────────────────────────────────────
@@ -151,6 +123,10 @@ class _BhoomiDeviceScraperScreenState
       case 'html':
         _parseHtml(d['v'] as String);
         break;
+      case 'manual':
+        // Auto-fill failed — show the real Bhoomi page so user can fill manually
+        _switchToManual();
+        break;
       case 'err':
         _fail(d['msg'] as String? ?? 'Unknown error at step ${d['step']}');
         break;
@@ -160,6 +136,11 @@ class _BhoomiDeviceScraperScreenState
   // ── Step helpers ───────────────────────────────────────────────────────────
 
   void _setStep(_Step s) => mounted ? setState(() => _step = s) : null;
+
+  // Switch to manual mode instead of failing — show the WebView to user
+  void _switchToManual() {
+    if (mounted) setState(() => _step = _Step.manual);
+  }
 
   void _fail(String msg) {
     if (mounted) setState(() { _step = _Step.error; _errorMsg = msg; });
@@ -189,99 +170,137 @@ class _BhoomiDeviceScraperScreenState
 
   // ── Form steps ─────────────────────────────────────────────────────────────
 
+  // Bhoomi uses inconsistent district names — hardcoded map from app label → portal label
+  static const _districtMap = {
+    'bengaluru urban': 'BENGALURU',
+    'bangalore urban': 'BENGALURU',
+    'bengaluru rural': 'Bangalore Rural',
+    'bangalore rural': 'Bangalore Rural',
+    'bengaluru south': 'Bengaluru South',
+    'mysuru': 'Mysore',
+    'belagavi': 'Belagavi',
+  };
+
+  // Bhoomi taluk names are hyphenated: "BANGALORE-NORTH", "bangalore-South"
+  static const _talukMap = {
+    'bengaluru north': 'BANGALORE-NORTH',
+    'bangalore north': 'BANGALORE-NORTH',
+    'bengaluru south': 'bangalore-South',
+    'bangalore south': 'bangalore-South',
+    'bengaluru east': 'Bangalore-East',
+    'bangalore east': 'Bangalore-East',
+    'anekal': 'Anekal',
+    'yelahanka': 'YALAHANKA',
+    'yalahanka': 'YALAHANKA',
+  };
+
   void _selectDistrict() {
     _setStep(_Step.selectingDistrict);
-    final dist = widget.district.toUpperCase();
-    final keywords = (dist.contains('BENGALURU') || dist.contains('BANGALORE'))
-        ? ['BANGALORE', 'BENGALURU']
-        : [dist];
+    final distKey = widget.district.toLowerCase();
+    final distLabel = _districtMap[distKey] ?? widget.district.toUpperCase();
+    // Also try keyword fallback
+    final keywords = (distLabel.contains('BENGALURU') || distLabel.contains('BANGALORE') ||
+            distKey.contains('bengaluru') || distKey.contains('bangalore'))
+        ? ['BENGALURU', 'BANGALORE']
+        : [distLabel.toUpperCase()];
     final kJson = jsonEncode(keywords);
     _js('''
 (function(){
   var sel=document.getElementById('ctl00_MainContent_ddlCDistrict');
-  if(!sel){BC.postMessage(JSON.stringify({event:'err',step:'district',msg:'District dropdown not found'}));return;}
+  if(!sel){BC.postMessage(JSON.stringify({event:'manual',reason:'District dropdown not found'}));return;}
   var opts=Array.from(sel.options);
   var kw=$kJson;
-  var t=null;
-  for(var k of kw){ t=opts.find(function(o){return o.text.toUpperCase().includes(k);}); if(t)break; }
-  if(!t){BC.postMessage(JSON.stringify({event:'err',step:'district',msg:'Not found: ${widget.district}',avail:opts.map(function(o){return o.text;})}));return;}
+  var label='${distLabel.replaceAll("'", "\\'")}';
+  // Try exact label match first (e.g. "BENGALURU")
+  var t=opts.find(function(o){return o.text.trim()===label;});
+  // Then keyword match
+  if(!t) for(var k of kw){ t=opts.find(function(o){return o.text.toUpperCase().includes(k);}); if(t)break; }
+  if(!t){BC.postMessage(JSON.stringify({event:'manual',reason:'District not found: ${widget.district}'}));return;}
   sel.value=t.value;
   sel.dispatchEvent(new Event('change',{bubbles:true}));
   try{__doPostBack('ctl00\$MainContent\$ddlCDistrict','');}catch(e){}
-  ${_pollScript('ctl00_MainContent_ddlCTaluk', 'taluk_loaded')}
+  ${_pollScript('ctl00_MainContent_ddlCTaluk', 'taluk_loaded', maxTries: 40)}
 })();
 ''');
   }
 
   void _pickTaluk(List opts) {
     _setStep(_Step.selectingTaluk);
-    // Try exact map first — avoids "Bangalore North(Additional)" false match
-    final exactBhoomi = _bhoomiTaluk();
-    final String matchScript;
-    if (exactBhoomi != null) {
-      // Exact text match then fallback to partial
-      final escaped = exactBhoomi.replaceAll("'", r"\'");
-      matchScript = '''
-  var t=opts.find(function(o){return o.text==='$escaped';});
-  if(!t) t=opts.find(function(o){return o.text.toUpperCase()==='${exactBhoomi.toUpperCase()}';});
-  if(!t) t=opts.find(function(o){return o.text.toUpperCase().includes('${exactBhoomi.toUpperCase().replaceAll('-', '').replaceAll(' ', '')}');});
-''';
-    } else {
-      // Keyword fallback for unmapped taluks
-      final taluk = widget.taluk.toUpperCase();
-      final kws = taluk
-          .replaceAll('BENGALURU', '').replaceAll('BANGALORE', '').trim()
-          .split(' ').where((w) => w.length > 2).toList();
-      final kJson = jsonEncode(kws.isEmpty ? [taluk] : kws);
-      matchScript = '''
-  var kw=$kJson;
-  var t=opts.find(function(o){return kw.every(function(k){return o.text.toUpperCase().includes(k);});});
-  if(!t) t=opts.find(function(o){return o.text.toUpperCase().includes(kw[0]);});
-''';
-    }
+    if (opts.isEmpty) { _switchToManual(); return; }
+
+    // Use hardcoded map first (Bhoomi uses "BANGALORE-NORTH" not "Bengaluru North")
+    final talukKey = widget.taluk.toLowerCase();
+    final talukLabel = _talukMap[talukKey] ?? widget.taluk;
+    // Keyword fallback: strip city prefix, keep directional word e.g. "NORTH"
+    final kws = talukLabel.toUpperCase()
+        .replaceAll('BENGALURU', '').replaceAll('BANGALORE', '')
+        .replaceAll('-', ' ').trim()
+        .split(RegExp(r'[\s-]+')).where((w) => w.length > 2).toList();
+    final kJson = jsonEncode(kws.isEmpty ? [talukLabel.toUpperCase()] : kws);
+    final label = talukLabel.replaceAll("'", "\\'");
     _js('''
 (function(){
   var sel=document.getElementById('ctl00_MainContent_ddlCTaluk');
-  if(!sel){BC.postMessage(JSON.stringify({event:'err',step:'taluk',msg:'Taluk dropdown not found'}));return;}
+  if(!sel){BC.postMessage(JSON.stringify({event:'manual',reason:'no taluk dropdown'}));return;}
   var opts=Array.from(sel.options);
-  $matchScript
-  if(!t){BC.postMessage(JSON.stringify({event:'err',step:'taluk',msg:'Not found: ${widget.taluk}',avail:opts.map(function(o){return o.text;})}));return;}
+  // Try exact label from hardcoded map (e.g. "BANGALORE-NORTH")
+  var t=opts.find(function(o){return o.text.trim().toUpperCase()==='$label'.toUpperCase();});
+  // Keyword match: strip city name, match directional (NORTH/SOUTH/EAST)
+  if(!t){
+    var kw=$kJson;
+    t=opts.find(function(o){
+      var txt=o.text.toUpperCase().replace(/-/g,' ');
+      return kw.every(function(k){return txt.includes(k);});
+    });
+  }
+  if(!t){BC.postMessage(JSON.stringify({event:'manual',reason:'taluk not found: ${widget.taluk}'}));return;}
   sel.value=t.value;
   sel.dispatchEvent(new Event('change',{bubbles:true}));
   try{__doPostBack('ctl00\$MainContent\$ddlCTaluk','');}catch(e){}
-  ${_pollScript('ctl00_MainContent_ddlCHobli', 'hobli_loaded')}
+  ${_pollScript('ctl00_MainContent_ddlCHobli', 'hobli_loaded', maxTries: 40)}
 })();
 ''');
   }
 
   void _pickHobli(List opts) {
     _setStep(_Step.selectingHobli);
-    final hobli = widget.hobli.toUpperCase().replaceAll("'", r"\'");
+    if (opts.isEmpty) { _switchToManual(); return; }
+    // Bhoomi hobli names have no spaces: "DASANAPURA3", "KASABA1", "YASHAVANTAPURA1"
+    // App hobli names have spaces: "Dasanapura 3", "Kasaba 1"
+    // Match by stripping spaces from both sides
+    final hobliNorm = widget.hobli.toUpperCase().replaceAll(' ', '').replaceAll("'", "\\'");
     _js('''
 (function(){
   var sel=document.getElementById('ctl00_MainContent_ddlCHobli');
+  if(!sel){BC.postMessage(JSON.stringify({event:'manual',reason:'no hobli dropdown'}));return;}
   var opts=Array.from(sel.options);
-  var t=opts.find(function(o){return o.text.toUpperCase().includes('$hobli');});
+  var norm='$hobliNorm';
+  // Match by stripping spaces (DASANAPURA3 matches "Dasanapura 3")
+  var t=opts.find(function(o){return o.text.toUpperCase().replace(/\\s/g,'')===norm;});
+  // Fallback: contains match
+  if(!t) t=opts.find(function(o){return norm.includes(o.text.toUpperCase().replace(/\\s/g,'')) || o.text.toUpperCase().replace(/\\s/g,'').includes(norm);});
+  // Last fallback: pick first non-select option
   if(!t&&opts.length>1) t=opts[1];
   if(t){
     sel.value=t.value;
     sel.dispatchEvent(new Event('change',{bubbles:true}));
     try{__doPostBack('ctl00\$MainContent\$ddlCHobli','');}catch(e){}
   }
-  ${_pollScript('ctl00_MainContent_ddlCVillage', 'village_loaded')}
+  ${_pollScript('ctl00_MainContent_ddlCVillage', 'village_loaded', maxTries: 40)}
 })();
 ''');
   }
 
   void _pickVillage(List opts) {
     _setStep(_Step.selectingVillage);
+    if (opts.isEmpty) { _switchToManual(); return; }
     final village = widget.village.toUpperCase().replaceAll("'", r"\'");
     _js('''
 (function(){
   var sel=document.getElementById('ctl00_MainContent_ddlCVillage');
   var opts=Array.from(sel.options);
   var t=opts.find(function(o){return o.text.toUpperCase().includes('$village');});
-  if(!t){BC.postMessage(JSON.stringify({event:'err',step:'village',msg:'Not found: ${widget.village}',avail:opts.map(function(o){return o.text;})}));return;}
+  if(!t){BC.postMessage(JSON.stringify({event:'manual',reason:'village not found: ${widget.village}'}));return;}
   sel.value=t.value;
   sel.dispatchEvent(new Event('change',{bubbles:true}));
   try{__doPostBack('ctl00\$MainContent\$ddlCVillage','');}catch(e){}
@@ -389,15 +408,25 @@ class _BhoomiDeviceScraperScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isManual = _step == _Step.manual;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B5E20),
         foregroundColor: Colors.white,
-        title: const Text('Fetching from Bhoomi'),
+        title: Text(isManual ? 'Bhoomi — Fill & Capture' : 'Fetching from Bhoomi'),
         automaticallyImplyLeading: false,
+        actions: isManual
+            ? [
+                TextButton.icon(
+                  onPressed: _captureHtml,
+                  icon: const Icon(Icons.check, color: Colors.white),
+                  label: const Text('Capture', style: TextStyle(color: Colors.white)),
+                ),
+              ]
+            : null,
       ),
-      body: Stack(
+      body: isManual ? _buildManual() : Stack(
         children: [
           // Hidden WebView — doing the actual form interaction
           WebViewWidget(controller: _wvc),
@@ -408,6 +437,31 @@ class _BhoomiDeviceScraperScreenState
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildManual() {
+    return Column(
+      children: [
+        Container(
+          color: Colors.orange.shade50,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.orange, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Auto-fill failed. Navigate to Survey ${widget.surveyNumber} manually, '
+                  'then tap "Capture" (top right) to read the data.',
+                  style: TextStyle(fontSize: 12, color: Colors.orange.shade900),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(child: WebViewWidget(controller: _wvc)),
+      ],
     );
   }
 
