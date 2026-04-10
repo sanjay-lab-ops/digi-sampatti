@@ -55,6 +55,7 @@ import 'package:digi_sampatti/features/records/property_records_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_register_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_dashboard_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_detail_screen.dart';
+import 'package:digi_sampatti/features/due_diligence/due_diligence_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -190,6 +191,11 @@ final _router = GoRouter(
         final extra = state.extra as Map<String, dynamic>?;
         return PartnersScreen(reportData: extra);
       },
+    ),
+    GoRoute(
+      path: '/due-diligence',
+      name: 'due-diligence',
+      builder: (context, state) => const DueDiligenceScreen(),
     ),
     GoRoute(
       path: '/history',
