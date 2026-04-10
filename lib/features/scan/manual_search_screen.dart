@@ -63,6 +63,9 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   // 0 = Survey Number mode, 1 = Village/Name mode (rural friendly)
   int _searchMode = 0;
 
+  // Property type — controls which portals are checked
+  String _propertyType = 'site';
+
   // State selector
   String _selectedState = 'Karnataka';
 
@@ -613,8 +616,35 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
       hobli: _selectedHobli,
       village: _selectedVillage,
     );
+    // Store property type so auto-scan knows which portals to show
+    ref.read(propertyTypeProvider.notifier).state = _propertyType;
     // Go to Auto Scan — fetches all portals automatically, zero manual steps
     context.push('/auto-scan');
+  }
+
+  String get _propertyTypeHint {
+    switch (_propertyType) {
+      case 'apartment':  return 'RERA check included — mandatory for builder projects';
+      case 'bda_layout': return 'BDA/BMRDA approval check included';
+      case 'house':      return 'RERA not required for independent houses';
+      default:           return 'RERA not required for sites/plots';
+    }
+  }
+
+  Widget _typeChip(String type, String label, IconData icon) {
+    final selected = _propertyType == type;
+    return ChoiceChip(
+      label: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 14, color: selected ? Colors.white : Colors.grey.shade700),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 12, color: selected ? Colors.white : Colors.grey.shade800)),
+      ]),
+      selected: selected,
+      selectedColor: const Color(0xFF1B5E20),
+      backgroundColor: Colors.grey.shade100,
+      onSelected: (_) => setState(() => _propertyType = type),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    );
   }
 
   @override
@@ -1001,6 +1031,31 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
+
+              // ── Property Type ─────────────────────────────────────────
+              const SizedBox(height: 8),
+              _KannadaFieldLabel(
+                kannada: 'ಆಸ್ತಿ ವಿಧ',
+                english: 'Property Type',
+                required: false,
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _typeChip('site',       'Site / Plot',     Icons.terrain),
+                  _typeChip('house',      'House / Villa',   Icons.house),
+                  _typeChip('apartment',  'Apartment / Flat', Icons.apartment),
+                  _typeChip('bda_layout', 'BDA / BMRDA Layout', Icons.location_city),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 8),
+                child: Text(
+                  _propertyTypeHint,
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                ),
+              ),
 
               // ── Common: District / Taluk / Village ───────────────────
               _KannadaFieldLabel(

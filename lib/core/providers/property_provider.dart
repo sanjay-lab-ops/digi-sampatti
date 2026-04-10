@@ -37,6 +37,13 @@ final reportGeneratorProvider = Provider<ReportGeneratorService>(
   (ref) => ReportGeneratorService(),
 );
 
+// ─── Property Type (set at manual search, read by auto-scan) ─────────────────
+// 'site'       — Agricultural / Revenue site / Plot
+// 'house'      — Independent house / Villa
+// 'apartment'  — Apartment / Flat (RERA mandatory)
+// 'bda_layout' — BDA / BMRDA approved layout site
+final propertyTypeProvider = StateProvider<String>((ref) => 'site');
+
 // ─── Current Scan State ────────────────────────────────────────────────────────
 final currentScanProvider = StateProvider<PropertyScan?>((ref) => null);
 final currentLandRecordProvider = StateProvider<LandRecord?>((ref) => null);

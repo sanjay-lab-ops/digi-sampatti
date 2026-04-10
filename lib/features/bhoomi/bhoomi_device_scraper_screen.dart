@@ -181,15 +181,16 @@ class _BhoomiDeviceScraperScreenState
     'belagavi': 'Belagavi',
   };
 
-  // Bhoomi taluk names are hyphenated: "BANGALORE-NORTH", "bangalore-South"
+  // Bhoomi taluk exact labels as they appear in the portal dropdown
+  // Verified from landrecords.karnataka.gov.in — use these for exact match
   static const _talukMap = {
-    'bengaluru north': 'BANGALORE-NORTH',
-    'bangalore north': 'BANGALORE-NORTH',
-    'bengaluru south': 'bangalore-South',
-    'bangalore south': 'bangalore-South',
-    'bengaluru east': 'Bangalore-East',
-    'bangalore east': 'Bangalore-East',
-    'anekal': 'Anekal',
+    'bengaluru north': 'BANGALORE NORTH',
+    'bangalore north': 'BANGALORE NORTH',
+    'bengaluru south': 'BANGALORE SOUTH',
+    'bangalore south': 'BANGALORE SOUTH',
+    'bengaluru east': 'BANGALORE EAST',
+    'bangalore east': 'BANGALORE EAST',
+    'anekal': 'ANEKAL',
     'yelahanka': 'YALAHANKA',
     'yalahanka': 'YALAHANKA',
   };
@@ -228,30 +229,29 @@ class _BhoomiDeviceScraperScreenState
     _setStep(_Step.selectingTaluk);
     if (opts.isEmpty) { _switchToManual(); return; }
 
-    // Use hardcoded map first (Bhoomi uses "BANGALORE-NORTH" not "Bengaluru North")
+    // Use hardcoded map — exact Bhoomi labels verified from portal
     final talukKey = widget.taluk.toLowerCase();
-    final talukLabel = _talukMap[talukKey] ?? widget.taluk;
-    // Keyword fallback: strip city prefix, keep directional word e.g. "NORTH"
-    final kws = talukLabel.toUpperCase()
-        .replaceAll('BENGALURU', '').replaceAll('BANGALORE', '')
-        .replaceAll('-', ' ').trim()
-        .split(RegExp(r'[\s-]+')).where((w) => w.length > 2).toList();
-    final kJson = jsonEncode(kws.isEmpty ? [talukLabel.toUpperCase()] : kws);
+    final talukLabel = (_talukMap[talukKey] ?? widget.taluk).toUpperCase();
     final label = talukLabel.replaceAll("'", "\\'");
     _js('''
 (function(){
   var sel=document.getElementById('ctl00_MainContent_ddlCTaluk');
   if(!sel){BC.postMessage(JSON.stringify({event:'manual',reason:'no taluk dropdown'}));return;}
   var opts=Array.from(sel.options);
-  // Try exact label from hardcoded map (e.g. "BANGALORE-NORTH")
-  var t=opts.find(function(o){return o.text.trim().toUpperCase()==='$label'.toUpperCase();});
-  // Keyword match: strip city name, match directional (NORTH/SOUTH/EAST)
+  // 1. Exact match on verified label (e.g. "BANGALORE NORTH")
+  var t=opts.find(function(o){return o.text.trim().toUpperCase()==='$label';});
+  // 2. Keyword match: skip "(Additional)" options — they are sub-taluk rows
   if(!t){
-    var kw=$kJson;
+    var dir='$label'.replace(/BANGALORE|BENGALURU/g,'').replace(/[\\s-]+/g,' ').trim();
     t=opts.find(function(o){
-      var txt=o.text.toUpperCase().replace(/-/g,' ');
-      return kw.every(function(k){return txt.includes(k);});
+      var txt=o.text.trim().toUpperCase();
+      return txt.includes(dir) && !txt.includes('ADDITIONAL');
     });
+  }
+  // 3. Last resort: includes match (may hit Additional — better than nothing)
+  if(!t){
+    var dir2='$label'.replace(/BANGALORE|BENGALURU/g,'').replace(/[\\s-]+/g,' ').trim();
+    t=opts.find(function(o){return o.text.trim().toUpperCase().includes(dir2);});
   }
   if(!t){BC.postMessage(JSON.stringify({event:'manual',reason:'taluk not found: ${widget.taluk}'}));return;}
   sel.value=t.value;

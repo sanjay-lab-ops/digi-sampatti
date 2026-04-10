@@ -160,32 +160,42 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         _updatePortal('CERSAI',         cersai, _cersaiSummary);
         _updatePortal('Guidance Value', gv,     _gvSummary);
         _updatePortal('FMB Sketch',     fmb,    _fmbSummary);
-        _portals.firstWhere((p) => p.name == 'RERA')
-          ..status = _PortalStatus.done
-          ..summary = 'Checked — add project name for RERA'
-          ..hasIssue = false;
         // BBMP e-Aasthi: always show as "open on device" (requires login)
         _portals.firstWhere((p) => p.name == 'BBMP / Khata')
           ..status = _PortalStatus.failed
           ..summary = 'Not available (portal down)'
           ..hasIssue = null;
-        // RERA is only for apartments/builder projects — mark clearly for plots
-        _portals.firstWhere((p) => p.name == 'RERA')
-          ..status = _PortalStatus.done
-          ..summary = 'Only for apartments — not needed for sites/plots'
-          ..hasIssue = false;
+        // RERA — only relevant for apartments/builder projects
+        final propType = ref.read(propertyTypeProvider);
+        if (propType == 'apartment') {
+          _portals.firstWhere((p) => p.name == 'RERA')
+            ..status = _PortalStatus.done
+            ..summary = 'Checked — verify RERA registration for this project'
+            ..hasIssue = false;
+        } else if (propType == 'bda_layout') {
+          _portals.firstWhere((p) => p.name == 'RERA')
+            ..status = _PortalStatus.done
+            ..summary = 'Not required — BDA/BMRDA approval matters more for layouts'
+            ..hasIssue = false;
+        } else {
+          _portals.firstWhere((p) => p.name == 'RERA')
+            ..status = _PortalStatus.done
+            ..summary = 'Not required — RERA is only for apartments / builder projects'
+            ..hasIssue = false;
+        }
         _scanning = false;
         _done = true;
       });
 
       // ── Map backend results → PortalFindings so AI analysis counts correctly
+      final pType = ref.read(propertyTypeProvider);
       final findings = PortalFindings(
         bhoomiOpened:   rtc    != null,
         kaveriOpened:   ec     != null,
         ecourtsOpened:  courts != null,
         cersaiOpened:   cersai != null,
         fmbOpened:      fmb    != null,
-        isApartmentProject: false,
+        isApartmentProject: pType == 'apartment',
         hasActiveLoan:  ec?['encumbrance_free'] != true && ec != null,
         hasCourtCases:  (courts?['has_pending_cases'] ?? false) as bool,
         hasBankCharge:  (cersai?['is_mortgaged'] ?? false) as bool,
