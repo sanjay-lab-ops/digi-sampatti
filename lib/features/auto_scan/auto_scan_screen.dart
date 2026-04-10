@@ -145,6 +145,10 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       _fullResult = data;
 
+      // ── Save property GPS from RTC OLC code ───────────────────────────────
+      final rtcData = data['rtc'] as Map<String, dynamic>?;
+      if (rtcData != null) _savePropertyLocationFromRtc(rtcData);
+
       // ── Update portal statuses from result ────────────────────────────────
       final rtc      = data['rtc']            as Map<String, dynamic>?;
       final ec       = data['ec']             as Map<String, dynamic>?;
@@ -224,6 +228,31 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   bool _bhoomiFailed = false;
   bool _bhoomiFetchingOnDevice = false;
 
+  // ── Save property GPS from Bhoomi RTC result ──────────────────────────────
+  // Every Bhoomi RTC has an OLC (Google Plus Code) printed on it — e.g. 7J5V29GX+87.
+  // The backend decodes this → returns latitude + longitude = exact property GPS.
+  // We save this so the map screen shows WHERE THE PROPERTY IS, not the user's phone.
+  void _savePropertyLocationFromRtc(Map<String, dynamic> rtc) {
+    final lat = rtc['latitude'] as double?;
+    final lon = rtc['longitude'] as double?;
+    final olc = rtc['olc_code']?.toString() ?? rtc['plus_code']?.toString();
+    final village = rtc['village']?.toString() ?? _scanVillage;
+    final taluk = rtc['taluk']?.toString() ?? _scanTaluk;
+
+    if (lat != null && lon != null) {
+      // Backend already decoded the OLC — use exact coordinates
+      ref.read(currentLocationProvider.notifier).state = GpsLocation(
+        latitude: lat,
+        longitude: lon,
+        accuracy: 50, // OLC gives ~14m precision — show tight circle
+        capturedAt: DateTime.now(),
+        address: 'Survey $_scanSurveyNo · $village, $taluk${olc != null ? " ($olc)" : ""}',
+      );
+    }
+    // If backend doesn't return lat/lon yet, the village geocoding fallback
+    // in manual_search_screen already handles approximate location.
+  }
+
   Future<void> _fetchBhoomiOnDevice() async {
     setState(() => _bhoomiFetchingOnDevice = true);
     final result = await Navigator.push<Map<String, dynamic>?>(
@@ -242,6 +271,11 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     if (result != null) {
       final src = result['source']?.toString() ?? '';
       if (!src.contains('no_data') && !src.contains('error')) {
+        // ── Save property GPS from RTC result ─────────────────────────────────
+        // Bhoomi RTC contains an OLC (Plus Code) printed on the document.
+        // Backend decodes it → returns latitude/longitude = exact property location.
+        _savePropertyLocationFromRtc(result);
+
         // Update Bhoomi portal card with on-device result
         _updatePortal('Bhoomi RTC', result, (d) {
           final owner = d['owner_name'] ?? '';
