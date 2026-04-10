@@ -159,7 +159,173 @@ class _DueDiligenceScreenState extends ConsumerState<DueDiligenceScreen> {
 
             const SizedBox(height: 20),
 
-            // ── 7. Expert Connect (Revenue Layer) ─────────────────────────
+            // ── 7. France Diagnostics → India Building Condition ───────────
+            _section(
+              flag: '🇫🇷',
+              globalModel: 'France Diagnostics Immobiliers',
+              title: 'Building Condition Check',
+              subtitle: 'In France, seller MUST provide 9 mandatory diagnostic '
+                  'certificates before any sale. India has NO equivalent — '
+                  'buyers discover problems after purchase. Check these manually.',
+              color: const Color(0xFF1565C0),
+              icon: Icons.home_repair_service_outlined,
+              child: _buildFranceDiagnostics(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 8. Germany Grundbuch → Unregistered Deal Warning ──────────
+            _section(
+              flag: '🇩🇪',
+              globalModel: 'Germany Grundbuch + Mandatory Notary',
+              title: 'Registration is NOT Optional',
+              subtitle: 'In Germany, ALL property sales MUST go through a notary '
+                  'and be registered in the Grundbuch. In India, '
+                  'unregistered agreements are common but DANGEROUS.',
+              color: const Color(0xFF37474F),
+              icon: Icons.how_to_reg_outlined,
+              child: _buildGermanyLesson(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 9. Australia Vendor Statement → Planning Overlay ───────────
+            _section(
+              flag: '🇦🇺',
+              globalModel: 'Australia Section 32 Vendor Statement',
+              title: 'Planning & Zoning Check',
+              subtitle: 'In Australia, seller must disclose ALL planning overlays '
+                  '(flood, heritage, road widening) BEFORE sale. '
+                  'In India, check BDA/BBMP Master Plan and road widening plans.',
+              color: const Color(0xFF00695C),
+              icon: Icons.map_outlined,
+              child: _buildAustraliaCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 10. Brazil Certidões → Seller Background Check ────────────
+            _section(
+              flag: '🇧🇷',
+              globalModel: 'Brazil Certidões Negativas',
+              title: 'Seller Personal Background Check',
+              subtitle: 'Brazil requires 12+ certificates about the SELLER — '
+                  'tax dues, court cases, bankruptcy. If seller owes money, '
+                  'courts can cancel your sale even after registration.',
+              color: const Color(0xFF4E342E),
+              icon: Icons.person_search_outlined,
+              child: _buildBrazilCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 11. Singapore CPF/EPF → Buyer Fund Check ──────────────────
+            _section(
+              flag: '🇸🇬',
+              globalModel: 'Singapore CPF Usage Rules',
+              title: 'Using EPF / PF Money to Buy',
+              subtitle: 'Singapore has strict CPF (like India\'s EPF/PF) rules '
+                  'for property purchase. In India, you CAN withdraw EPF '
+                  'for property — but with conditions.',
+              color: const Color(0xFF00838F),
+              icon: Icons.savings_outlined,
+              child: _buildSingaporeCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 12. Malaysia Land Restrictions → India SC/ST + Agri Land ──
+            _section(
+              flag: '🇲🇾',
+              globalModel: 'Malaysia Bumi Lot Restrictions',
+              title: 'Land Restriction Check',
+              subtitle: 'Malaysia restricts sale of "Bumi lots" to non-Bumiputera. '
+                  'India has similar restrictions: SC/ST land, tribal land, '
+                  'agricultural land to non-agriculturists.',
+              color: const Color(0xFF1B5E20),
+              icon: Icons.do_not_disturb_alt_outlined,
+              child: _buildMalaysiaCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 13. New Zealand LIM → DigiSampatti IS the LIM ─────────────
+            _section(
+              flag: '🇳🇿',
+              globalModel: 'New Zealand LIM Report',
+              title: 'What DigiSampatti IS Building',
+              subtitle: 'New Zealand\'s LIM (Land Information Memorandum) '
+                  'is one document from the council that covers everything — '
+                  'zoning, hazards, drainage, consents, valuations. '
+                  'DigiSampatti is India\'s version of the LIM.',
+              color: AppColors.primary,
+              icon: Icons.lightbulb_outlined,
+              child: _buildNzLesson(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 14. Sweden BankID → India Aadhaar for Property ────────────
+            _section(
+              flag: '🇸🇪',
+              globalModel: 'Sweden BankID Digital Signing',
+              title: 'Digital Property Transactions (India\'s Future)',
+              subtitle: 'Sweden does ALL property transactions digitally — '
+                  'signed with BankID (like Aadhaar). India is moving toward '
+                  'this with DigiLocker + Aadhaar e-sign.',
+              color: const Color(0xFF0D47A1),
+              icon: Icons.fingerprint,
+              child: _buildSwedenLesson(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 15. South Africa FICA → AML Check on Seller ───────────────
+            _section(
+              flag: '🇿🇦',
+              globalModel: 'South Africa FICA Compliance',
+              title: 'Anti-Money Laundering Check',
+              subtitle: 'South Africa\'s FICA requires identity and source-of-funds '
+                  'verification. India\'s ED and IT department track property '
+                  'transactions above ₹30L. Know your obligations.',
+              color: const Color(0xFFBF360C),
+              icon: Icons.security_outlined,
+              child: _buildSaCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 16. Italy Conformità → Approved Plan vs Actual ────────────
+            _section(
+              flag: '🇮🇹',
+              globalModel: 'Italy Conformità Urbanistica',
+              title: 'Building Plan vs Actual Structure',
+              subtitle: 'In Italy, sale is VOID if actual construction doesn\'t '
+                  'match the approved plan. In India, same rule applies — '
+                  'BBMP can demolish unapproved structures.',
+              color: const Color(0xFF880E4F),
+              icon: Icons.compare_outlined,
+              child: _buildItalyCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 17. Canada Title Insurance → India ────────────────────────
+            _section(
+              flag: '🇨🇦',
+              globalModel: 'Canada Title Insurance (Widespread)',
+              title: 'Title Insurance — Coming to India',
+              subtitle: 'Canada has near-universal title insurance. In India, '
+                  'a few insurers have started. If DigiSampatti misses something, '
+                  'title insurance is your last safety net.',
+              color: const Color(0xFF4527A0),
+              icon: Icons.shield_outlined,
+              child: _buildCanadaCheck(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── Expert Connect (Revenue Layer) ─────────────────────────────
             _buildExpertRevenue(),
 
             const SizedBox(height: 32),
@@ -193,15 +359,15 @@ class _DueDiligenceScreenState extends ConsumerState<DueDiligenceScreen> {
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(height: 12),
-          const Row(children: [
-            _Flag('🇺🇸'), SizedBox(width: 8),
-            _Flag('🇯🇵'), SizedBox(width: 8),
-            _Flag('🇰🇷'), SizedBox(width: 8),
-            _Flag('🇦🇪'), SizedBox(width: 8),
-            _Flag('🇬🇧'), SizedBox(width: 8),
-            Expanded(child: Text('Adapted for India',
-                style: TextStyle(color: Colors.white60, fontSize: 11))),
+          const Wrap(spacing: 6, runSpacing: 4, children: [
+            _Flag('🇺🇸'), _Flag('🇯🇵'), _Flag('🇰🇷'), _Flag('🇦🇪'),
+            _Flag('🇬🇧'), _Flag('🇩🇪'), _Flag('🇫🇷'), _Flag('🇦🇺'),
+            _Flag('🇸🇬'), _Flag('🇧🇷'), _Flag('🇲🇾'), _Flag('🇿🇦'),
+            _Flag('🇳🇿'), _Flag('🇮🇹'), _Flag('🇸🇪'), _Flag('🇨🇦'),
           ]),
+          const SizedBox(height: 6),
+          const Text('16 countries → adapted for India',
+              style: TextStyle(color: Colors.white60, fontSize: 11)),
         ],
       ),
     );
@@ -646,6 +812,550 @@ class _DueDiligenceScreenState extends ConsumerState<DueDiligenceScreen> {
         ),
       ],
     );
+  }
+
+  // ─── France: Building Condition Diagnostics ───────────────────────────────
+  Widget _buildFranceDiagnostics() {
+    const checks = [
+      ('🔧', 'Structural integrity', 'Any cracks in walls, foundation, roof slab? Get a civil engineer to inspect.'),
+      ('💧', 'Water & drainage', 'Check plumbing age, sump, overhead tank, sewage connection to BBMP drain.'),
+      ('⚡', 'Electrical wiring', 'Old wiring (pre-2000)? Check for earthing. Get electrician report.'),
+      ('🐜', 'Pest / termite', 'Especially in ground floor / wooden structures. Get pest control certificate.'),
+      ('🏗️', 'Asbestos roof/sheets', 'Common in older Karnataka buildings. Asbestos removal is mandatory in EU. India: health risk.'),
+      ('🌊', 'Waterproofing', 'Terrace and bathroom waterproofing quality. Leaks damage structure over years.'),
+      ('🔥', 'Fire safety', 'For apartments: is there a fire NOC from Fire Department? Mandatory above 15m height.'),
+      ('📐', 'Setbacks & margins', 'Front: 3m, sides: 1.5m from boundary. BBMP can demolish violations.'),
+      ('🌡️', 'Energy efficiency', 'France rates energy A-G. India has no rating. But check orientation, ventilation, roof insulation.'),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'France law: Seller pays for 9 certified diagnostics BEFORE listing. '
+            'India has NO such law — buyers discover cracks, termites, leaks AFTER paying. '
+            'Do this yourself before signing any agreement.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...checks.map((c) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(c.$1, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(c.$2, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              Text(c.$3, style: const TextStyle(fontSize: 11, color: Colors.black54, height: 1.3)),
+            ])),
+          ]),
+        )),
+      ],
+    );
+  }
+
+  // ─── Germany: Registration is NOT Optional ────────────────────────────────
+  Widget _buildGermanyLesson() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _compareRow('Germany', 'India', [
+          ('Every sale registered in Grundbuch (land register)', 'People do unregistered sale agreements'),
+          ('Notary mandatory — personally explains terms to both parties', 'No notary required — only stamp paper'),
+          ('Title is transferred ONLY after Grundbuch entry', 'Title transfers on agreement date — risky'),
+          ('Cannot sell same property twice — Grundbuch prevents it', 'Double sale fraud is common in India'),
+        ]),
+        const SizedBox(height: 12),
+        _dangerBox(
+          '⚠️ Never do an unregistered property deal in India',
+          'An unregistered agreement has limited legal standing. '
+          'Register EVERY agreement at the Sub-Registrar office — even a sale agreement. '
+          'Registration fee is small. Protection is massive.',
+        ),
+        const SizedBox(height: 8),
+        _checkStep('Rule', 'Any payment above ₹2 lakh must have a paper trail',
+            'Cash transactions for property are flagged by Income Tax. Seller can demand black money — refuse. '
+            'Pay only via bank transfer / DD. Keep all receipts.'),
+      ],
+    );
+  }
+
+  // ─── Australia: Planning & Zoning ─────────────────────────────────────────
+  Widget _buildAustraliaCheck() {
+    const links = [
+      ('BDA Master Plan 2031', 'Is this land in green belt, industrial, or residential zone?',
+        'https://bdabangalore.org/masterplan2031.html'),
+      ('BBMP Zoning Map', 'What is the permitted Floor Area Ratio (FAR) for this area?',
+        'https://bbmpeaasthi.karnataka.gov.in'),
+      ('Road Widening Check', 'Is this plot in an upcoming road widening alignment? BBMP can acquire without notice.',
+        'https://bbmpeaasthi.karnataka.gov.in'),
+      ('TDR (Transfer of Dev Rights)', 'If road widened, owner gets TDR. Check if TDR is already consumed.',
+        'https://bdabangalore.org'),
+      ('BMRDA Approval', 'For peri-urban areas: Is layout BDA/BMRDA approved or unapproved revenue layout?',
+        'https://bmrda.karnataka.gov.in'),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Australia\'s Section 32: Seller must disclose road widening, heritage overlays, '
+            'development restrictions BEFORE you sign. India has no such law — '
+            'you must check BDA/BBMP master plan yourself.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...links.map((l) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: InkWell(
+            onTap: () async {
+              final uri = Uri.parse(l.$3);
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.teal.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(children: [
+                const Icon(Icons.open_in_browser, color: Color(0xFF00695C), size: 18),
+                const SizedBox(width: 10),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l.$1, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                  Text(l.$2, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                ])),
+              ]),
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  // ─── Brazil: Seller Background Check ─────────────────────────────────────
+  Widget _buildBrazilCheck() {
+    const certifications = [
+      ('🏛️', 'Income Tax Clearance', 'Ask seller for last 3 years IT returns. No returns = tax dept can freeze property post-sale.'),
+      ('⚖️', 'Civil Court Cases on Seller', 'Search seller name on eCourts. If seller owes money, creditors can reverse your sale.'),
+      ('🏦', 'CIBIL / Credit Score of Seller', 'Not legally required but tells you if seller is under financial distress.'),
+      ('💼', 'GST Registration Check', 'If seller is a company or builder: check GST filing history. Defaulting companies face tax attachment.'),
+      ('🏠', 'Multiple Property Check', 'Ask seller to show all properties he owns (Form 26AS shows property transactions). Is he selling under distress?'),
+      ('👤', 'ID Verification', 'Seller\'s Aadhaar + PAN must match exactly. Mismatch = possible fraud. Verify on UIDAI portal.'),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.brown.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Brazil requires 12 "Certidões Negativas" about the SELLER — court cases, tax dues, '
+            'bankruptcy. In India there\'s no requirement — but creditors CAN cancel your sale '
+            'if seller owes them money. Check the seller, not just the property.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...certifications.map((c) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(c.$1, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(c.$2, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              Text(c.$3, style: const TextStyle(fontSize: 11, color: Colors.black54, height: 1.3)),
+            ])),
+          ]),
+        )),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse('https://www.pan.utiitsl.com/PAN/mainPage.html');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            icon: const Icon(Icons.search, size: 14),
+            label: const Text('Verify Seller PAN on Income Tax Portal →'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Singapore: EPF/PF Usage ──────────────────────────────────────────────
+  Widget _buildSingaporeCheck() {
+    const rules = [
+      ('✅', 'You CAN withdraw EPF for home loan EMI payment', 'Form 31 withdrawal — for repayment of home loan taken for residential property'),
+      ('✅', 'You CAN withdraw EPF for property purchase', 'Must be residential, not commercial. Minimum 5 years EPF membership.'),
+      ('✅', 'NPS (National Pension System) withdrawal allowed', 'Up to 25% for house purchase after 10 years of subscription'),
+      ('⚠️', 'EPF withdrawal for agricultural land is NOT allowed', 'EPF only for residential property. Agricultural plot = not eligible.'),
+      ('⚠️', 'Tax on EPF withdrawal if < 5 years service', 'TDS deducted at 10% if PAN given, 30% if not. Plan accordingly.'),
+      ('❌', 'Cannot withdraw EPF if property is under construction', 'Must be ready-to-move. Some exceptions for self-construction.'),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.cyan.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Singapore\'s CPF (Central Provident Fund) has strict rules — can only use for '
+            'HDB flats or private property up to valuation limit. India\'s EPF has similar '
+            'but less-known rules. Many buyers don\'t know they can use PF for EMIs.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...rules.map((r) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(r.$1, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 8),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(r.$2, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              Text(r.$3, style: const TextStyle(fontSize: 11, color: Colors.black54, height: 1.3)),
+            ])),
+          ]),
+        )),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse('https://unifiedportal-mem.epfindia.gov.in');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            icon: const Icon(Icons.open_in_browser, size: 14),
+            label: const Text('Check EPF withdrawal eligibility →'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Malaysia: Land Restrictions ─────────────────────────────────────────
+  Widget _buildMalaysiaCheck() {
+    const restrictions = [
+      ('🔴', 'SC/ST Reserved Land', 'Cannot be sold to non-SC/ST buyer without collector permission. Violation = sale void.', true),
+      ('🔴', 'Tribal / Adivasi Land', 'Especially in Kodagu, Dakshina Kannada, North Karnataka. Special permission needed.', true),
+      ('🔴', 'Agricultural Land to Non-Agriculturist', 'Karnataka law: agricultural land cannot be sold to non-agriculturist without DC conversion.', true),
+      ('🔴', 'Inam / Grant Land', 'Government grant land (Inam) has resale restrictions. Check RTC for "Inam" classification.', true),
+      ('🟡', 'Wakf Property', 'Muslim religious endowment. Cannot be sold without Wakf Board permission.', false),
+      ('🟡', 'Temple / Mutt Land', 'Hindu Religious Endowment properties. HR&CE permission needed.', false),
+      ('🟡', 'Land Ceiling Surplus', 'If landowner holds more than ceiling limit, surplus is government — cannot be sold.', false),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Malaysia restricts who can buy "Bumi lots" (reserved for Bumiputera). '
+            'India has MORE complex restrictions — agricultural, tribal, SC/ST, Inam, Wakf. '
+            'These show in the RTC land type field. Know them before paying.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...restrictions.map((r) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: r.$4 ? Colors.red.shade50 : Colors.amber.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: r.$4 ? Colors.red.shade200 : Colors.amber.shade200),
+          ),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(r.$1, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 8),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(r.$2, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12,
+                  color: r.$4 ? Colors.red.shade800 : Colors.amber.shade900)),
+              const SizedBox(height: 2),
+              Text(r.$3, style: const TextStyle(fontSize: 11, color: Colors.black54, height: 1.3)),
+            ])),
+          ]),
+        )),
+      ],
+    );
+  }
+
+  // ─── New Zealand: DigiSampatti IS the LIM ────────────────────────────────
+  Widget _buildNzLesson() {
+    const nzLim = [
+      ('Zone', 'Residential / Rural / Industrial'),
+      ('Hazards', 'Flood, earthquake, landslide risk'),
+      ('Drainage', 'Stormwater connection, sewer'),
+      ('Building consents', 'All permitted structures and amendments'),
+      ('Outstanding notices', 'Any council enforcement notices'),
+      ('Rates arrears', 'Unpaid council rates'),
+      ('Valuations', 'Capital value, land value, improvement value'),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.07),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+          ),
+          child: const Text(
+            'New Zealand\'s LIM Report = one document that tells you EVERYTHING '
+            'about a property from the council. Takes 10 working days. '
+            'DigiSampatti is building India\'s equivalent — one app, all official data.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text('NZ LIM covers → DigiSampatti covers:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 8),
+        ...nzLim.map((n) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(children: [
+            const Icon(Icons.check_circle, color: AppColors.primary, size: 16),
+            const SizedBox(width: 8),
+            Text('${n.$1}: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+            Expanded(child: Text(n.$2, style: const TextStyle(fontSize: 12, color: Colors.black54))),
+          ]),
+        )),
+        const SizedBox(height: 8),
+        const Text('Missing from DigiSampatti (building next):',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 6),
+        ...[
+          'Stormwater / sewer connection certificate',
+          'Outstanding BBMP enforcement notices',
+          'Valuation comparison (guidance vs market)',
+        ].map((m) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(children: [
+            const Icon(Icons.radio_button_unchecked, color: Colors.grey, size: 14),
+            const SizedBox(width: 8),
+            Text(m, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ]),
+        )),
+      ],
+    );
+  }
+
+  // ─── Sweden: Digital Future of India Property ────────────────────────────
+  Widget _buildSwedenLesson() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _compareRow('Sweden (Today)', 'India (Moving toward)', [
+          ('BankID = digital identity, sign everything online', 'Aadhaar + OTP = digital identity, e-sign growing'),
+          ('Lantmäteriet = instant online title search, ₹300', 'Bhoomi = online but manual form filling'),
+          ('Title transfer = 100% digital, 1-2 weeks', 'Sub-Registrar office = physical presence mandatory'),
+          ('No paper documents needed anywhere', 'Still requires physical stamp paper + presence'),
+        ]),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'India is moving toward digital registration. Already available:\n'
+            '• DigiLocker — store and share property documents digitally\n'
+            '• Aadhaar e-sign — sign documents without physical presence\n'
+            '• CERSAI — fully digital mortgage registry\n'
+            '• Kaveri Online — EC available online\n\n'
+            'Coming soon: Full digital registration without visiting Sub-Registrar office.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── South Africa: AML / Tax Check ───────────────────────────────────────
+  Widget _buildSaCheck() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'South Africa\'s FICA: Every property transaction requires identity '
+            'verification and source-of-funds proof. India\'s Income Tax Act has similar '
+            'but buyers are often unaware of their obligations.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _checkStep('IT Rule', 'TDS on property purchase above ₹50 lakh',
+            'Buyer must deduct 1% TDS (26QB) from purchase price and pay to govt. '
+            'If not done, buyer faces penalty + interest. NRI seller = 22.88% TDS.'),
+        _checkStep('IT Rule', 'Report property purchase in ITR',
+            'Property above ₹30 lakh must be reported in Schedule AL (Assets-Liabilities) '
+            'of your Income Tax Return. Both buyer and seller.'),
+        _checkStep('PMLA', 'Property > ₹50 lakh = AML reporting',
+            'Real estate agents and builders must report transactions > ₹50 lakh '
+            'to Financial Intelligence Unit (FIU-IND) under PMLA 2002.'),
+        _checkStep('GST', 'GST on under-construction property',
+            '5% GST on under-construction property (1% for affordable housing). '
+            'Completed/ready-to-move = NO GST. Know before paying.'),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse('https://www.incometax.gov.in/iec/foportal');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            icon: const Icon(Icons.receipt_long, size: 14),
+            label: const Text('File TDS (26QB) on Income Tax Portal →'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Italy: Building Plan vs Actual ──────────────────────────────────────
+  Widget _buildItalyCheck() {
+    const checks = [
+      ('Plan check', 'Get sanctioned building plan from BBMP/BDA. Compare with actual structure.',
+       'Any extra floor, extra room, extended balcony = violation.'),
+      ('Completion Certificate', 'Has BBMP issued Occupancy Certificate (OC)?',
+       'No OC = building is not officially complete. Banks won\'t give loan.'),
+      ('Deviation list', 'Ask builder/owner for list of deviations (if any)',
+       'Minor deviations can be regularised by paying penalty. Major = demolition.'),
+      ('Plan date', 'When was plan sanctioned? Has it expired?',
+       'Building plans expire in 3-5 years. Construction must finish within validity.'),
+    ];
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Italy: A sale is legally VOID if the property doesn\'t match the approved plan. '
+            'Karnataka BBMP has similar powers — can issue demolition notice for unauthorized '
+            'construction. In Bengaluru, thousands of buildings have violations.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...checks.map((c) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('▸ ${c.$1}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            Text(c.$2, style: const TextStyle(fontSize: 12, height: 1.3)),
+            Text(c.$3, style: const TextStyle(fontSize: 11, color: Colors.red, height: 1.3)),
+          ]),
+        )),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse('https://bbmpeaasthi.karnataka.gov.in');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            icon: const Icon(Icons.open_in_browser, size: 14),
+            label: const Text('Check BBMP building plan approval →'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Canada: Title Insurance ──────────────────────────────────────────────
+  Widget _buildCanadaCheck() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.purple.shade50, borderRadius: BorderRadius.circular(8)),
+          child: const Text(
+            'Canada: 95%+ of residential buyers get title insurance. '
+            'If ANY defect in title is found after purchase, insurer pays. '
+            'India: Title insurance exists but almost nobody buys it. '
+            'DigiSampatti reduces the risk — title insurance covers the residual.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text('Title Insurance in India — Available from:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 8),
+        ...[
+          ('HDFC Ergo', 'Home loan protection + title cover', 'https://www.hdfcergo.com'),
+          ('Bajaj Allianz', 'Property insurance with title cover', 'https://www.bajajallianz.com'),
+          ('New India Assurance', 'Government insurer — title protection', 'https://www.newindia.co.in'),
+          ('ICICI Lombard', 'Comprehensive property cover', 'https://www.icicilombard.com'),
+        ].map((i) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: InkWell(
+            onTap: () async {
+              final uri = Uri.parse(i.$3);
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.purple.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(children: [
+                const Icon(Icons.shield, color: Color(0xFF4527A0), size: 18),
+                const SizedBox(width: 10),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(i.$1, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                  Text(i.$2, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                ])),
+                const Icon(Icons.open_in_new, color: Color(0xFF4527A0), size: 14),
+              ]),
+            ),
+          ),
+        )),
+        const SizedBox(height: 8),
+        const Text(
+          'Typical cost: ₹3,000–15,000 one-time premium for ₹50L property. '
+          'Covers: forged documents, hidden owners, survey errors, '
+          'court decrees against previous owners.',
+          style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+        ),
+      ],
+    );
+  }
+
+  // ─── Compare row helper ────────────────────────────────────────────────────
+  Widget _compareRow(String colA, String colB, List<(String, String)> rows) {
+    return Column(children: [
+      Row(children: [
+        Expanded(child: Container(
+          padding: const EdgeInsets.all(6),
+          color: Colors.grey.shade100,
+          child: Text(colA, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        )),
+        const SizedBox(width: 4),
+        Expanded(child: Container(
+          padding: const EdgeInsets.all(6),
+          color: AppColors.primary.withOpacity(0.1),
+          child: Text(colB, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12,
+              color: AppColors.primary)),
+        )),
+      ]),
+      ...rows.map((r) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
+          child: Text(r.$1, style: const TextStyle(fontSize: 11, color: Colors.black54, height: 1.3)),
+        )),
+        const SizedBox(width: 4),
+        Expanded(child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
+          child: Text(r.$2, style: const TextStyle(fontSize: 11, height: 1.3)),
+        )),
+      ])),
+    ]);
   }
 
   // ─── Expert Connect + Revenue ──────────────────────────────────────────────
