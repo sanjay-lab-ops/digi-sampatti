@@ -642,66 +642,168 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
   Widget _buildInjunctionAlert() {
     final remarks = _rtc?['remarks']?.toString() ?? '';
     final mutations = _rtc?['mutations'] as List? ?? [];
-    // Check for court order keywords in remarks or mutation entries
     final allText = [
       remarks,
       ...mutations.map((m) => m.toString()),
-    ].join(' ').toLowerCase();
+    ].join(' ');
+    final lower = allText.toLowerCase();
 
-    final hasInjunction = allText.contains('injunction') ||
-        allText.contains('temporary stay') ||
-        allText.contains('thadeyajne') ||
-        allText.contains('ತಡೆಯಾಜ್ಞೆ') ||
-        allText.contains('os ') ||
-        allText.contains('court order') ||
-        allText.contains('trgn');
+    final hasInjunction = lower.contains('injunction') ||
+        lower.contains('temporary stay') ||
+        lower.contains('thadeyajne') ||
+        lower.contains('ತಡೆಯಾಜ್ಞೆ') ||
+        lower.contains('court order') ||
+        lower.contains('trgn');
 
-    if (!hasInjunction) return const SizedBox.shrink();
+    final hasAgreement = lower.contains('agreement') ||
+        lower.contains('ಒಪ್ಪಂದ') ||
+        lower.contains('sale deed') ||
+        lower.contains('hakkupatra');
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF7B0000).withOpacity(0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF7B0000), width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.gavel, color: Color(0xFF7B0000), size: 22),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'CRITICAL: Court Injunction Recorded in RTC',
-                  style: TextStyle(
-                      color: Color(0xFF7B0000),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15),
+    // Extract actual case number from text (e.g. RABN 269/2019, OS 41/2025)
+    final caseMatch = RegExp(
+      r'(RABN|OS|RC|RFA|RSA|CRL)\s*[\d]+\s*/\s*[\d]+',
+      caseSensitive: false,
+    ).firstMatch(allText);
+    final caseNumber = caseMatch?.group(0)?.trim();
+
+    if (!hasInjunction && !hasAgreement) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        if (hasInjunction)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7B0000).withOpacity(0.07),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF7B0000), width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(children: [
+                  Icon(Icons.gavel, color: Color(0xFF7B0000), size: 22),
+                  SizedBox(width: 10),
+                  Expanded(child: Text(
+                    'CRITICAL: Court Injunction Recorded in RTC',
+                    style: TextStyle(color: Color(0xFF7B0000),
+                        fontWeight: FontWeight.bold, fontSize: 15),
+                  )),
+                ]),
+                if (caseNumber != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7B0000).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text('Case: $caseNumber',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13, color: Color(0xFF7B0000))),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                const Text(
+                  'A Temporary Injunction (ತಡೆಯಾಜ್ಞೆ) means a civil court has FROZEN this property.\n\n'
+                  '• Sub-Registrar WILL REJECT your sale deed\n'
+                  '• Even if you pay, you cannot get legal title\n'
+                  '• Case must be fully resolved before any sale\n\n'
+                  'What to do NOW:\n'
+                  '1. Search the case number on eCourts (button below)\n'
+                  '2. Check if injunction is still active or vacated\n'
+                  '3. Get "Vaad Nispatti" order from court before proceeding\n'
+                  '4. DO NOT pay any advance until cleared by a lawyer',
+                  style: TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF4A0000)),
                 ),
-              ),
-            ],
+                if (caseNumber != null) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse(
+                          'https://services.ecourts.gov.in/ecourtindia_v6/'
+                          '?p=casestatus/searchByCaseNumber&state_cd=10&dist_cd=1',
+                        );
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.search, size: 16),
+                      label: Text('Search "$caseNumber" on eCourts →'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7B0000),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'A Temporary Injunction (ತಡೆಯಾಜ್ಞೆ) means a civil court has issued an ORDER '
-            'stopping any transaction on this property until the case is resolved.\n\n'
-            'What this means for you:\n'
-            '• The Sub-Registrar WILL REJECT your sale deed — you cannot register this property\n'
-            '• Even if you pay the seller, you cannot get legal title\n'
-            '• The injunction case must be FULLY RESOLVED in court before any sale\n\n'
-            'What to do:\n'
-            '1. Get the exact OS (Original Suit) case number from the RTC mutation entry\n'
-            '2. Search eCourts (services.ecourts.gov.in) to see the current case status\n'
-            '3. Consult a property lawyer — DO NOT pay any advance until this is cleared\n'
-            '4. Ask the seller for a certified copy of the "Vaad Nispatti" (case disposal order)',
-            style: TextStyle(
-                fontSize: 12, height: 1.6, color: Color(0xFF4A0000)),
+        if (hasAgreement)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.07),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.orange, width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(children: [
+                  Icon(Icons.handshake, color: Colors.deepOrange, size: 22),
+                  SizedBox(width: 10),
+                  Expanded(child: Text(
+                    'WARNING: Prior Agreement / Transfer Recorded',
+                    style: TextStyle(color: Colors.deepOrange,
+                        fontWeight: FontWeight.bold, fontSize: 14),
+                  )),
+                ]),
+                const SizedBox(height: 10),
+                const Text(
+                  'An agreement, transfer, or sale deed is recorded in the mutation register.\n\n'
+                  'This could mean:\n'
+                  '• The owner already agreed to sell this to someone else\n'
+                  '• A prior buyer paid an advance and has a legal claim\n'
+                  '• A gift deed or family partition has been recorded\n\n'
+                  'What to do:\n'
+                  '1. Get full Kaveri EC (30 years) — all registered agreements appear there\n'
+                  '2. Ask the owner for the exact mutation order copy\n'
+                  '3. Verify whether the prior agreement was cancelled or completed\n'
+                  '4. Consult a lawyer before paying anything',
+                  style: TextStyle(fontSize: 12, height: 1.6, color: Colors.deepOrange),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.parse('https://kaverionline.karnataka.gov.in');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_browser, size: 14),
+                    label: const Text('Check Kaveri EC for full transaction history →'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.deepOrange,
+                      side: const BorderSide(color: Colors.deepOrange),
+                      minimumSize: const Size(0, 36),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -734,8 +836,153 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
         _row('Assessment No.', d['assessment_number']?.toString()),
         if (d['land_type'] != null)
           _landTypeWarning(d['land_type'].toString()),
+        // ── Mutation history ──────────────────────────────────────────────────
+        _buildMutationHistory(d),
       ],
     ));
+  }
+
+  // ─── Mutation History — every entry that changed this land's status ──────────
+  Widget _buildMutationHistory(Map<String, dynamic> d) {
+    final mutations = d['mutations'] as List? ?? [];
+    final remarks   = d['remarks']?.toString() ?? '';
+
+    // Also treat the remarks field as a mutation-like entry if it has content
+    final allEntries = <Map<String, dynamic>>[
+      ...mutations.map((m) => m is Map<String, dynamic> ? m : {'text': m.toString()}),
+      if (remarks.isNotEmpty && mutations.isEmpty)
+        {'text': remarks},
+    ];
+
+    if (allEntries.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Divider(),
+        const Text('Mutation History (ಪರಿವರ್ತನೆ ದಾಖಲೆ)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 4),
+        const Text(
+          'Every change to this land — sales, court notices, loans, partitions — '
+          'is recorded here. Any entry here is LEGAL EVIDENCE.',
+          style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.4),
+        ),
+        const SizedBox(height: 10),
+        ...allEntries.asMap().entries.map((e) {
+          final idx = e.key;
+          final m = e.value;
+          final text = (m['text'] ?? m['description'] ?? m['entry'] ?? m.toString()).toString();
+          final mrNo = m['mr_number']?.toString() ?? m['mutation_number']?.toString() ?? '';
+          final date = m['date']?.toString() ?? m['registered_date']?.toString() ?? '';
+          final type = m['type']?.toString() ?? '';
+
+          // Detect flags
+          final lower = text.toLowerCase();
+          final isInjunction = lower.contains('injunction') || lower.contains('ತಡೆಯಾಜ್ಞೆ') || lower.contains('thadeyajne');
+          final isAgreement  = lower.contains('agreement') || lower.contains('ಒಪ್ಪಂದ') || lower.contains('sale deed') || lower.contains('khatha transfer') || lower.contains('hakkupatra');
+          final isMortgage   = lower.contains('mortgage') || lower.contains('loan') || lower.contains('hypothecation') || lower.contains('ಒತ್ತೆ');
+          final isCourtCase  = lower.contains('rabn') || lower.contains('os ') || lower.contains('court') || lower.contains('suit');
+
+          Color flagColor = Colors.grey.shade600;
+          IconData flagIcon = Icons.history;
+          String flagLabel = type.isNotEmpty ? type : 'Mutation ${idx + 1}';
+          if (isInjunction) { flagColor = const Color(0xFF7B0000); flagIcon = Icons.gavel; flagLabel = 'COURT INJUNCTION'; }
+          else if (isAgreement) { flagColor = Colors.orange.shade800; flagIcon = Icons.handshake; flagLabel = 'AGREEMENT / TRANSFER'; }
+          else if (isMortgage)  { flagColor = Colors.purple.shade700; flagIcon = Icons.lock; flagLabel = 'MORTGAGE / LOAN'; }
+          else if (isCourtCase) { flagColor = Colors.red.shade700; flagIcon = Icons.account_balance; flagLabel = 'COURT CASE'; }
+
+          // Extract case number for eCourts link
+          final caseMatch = RegExp(r'(RABN|OS|RC|RFA|RSA|CRL)\s*[\d/]+\s*[\d]+', caseSensitive: false).firstMatch(text);
+          final caseNumber = caseMatch?.group(0);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: isInjunction ? const Color(0xFF7B0000).withOpacity(0.05)
+                   : isAgreement  ? Colors.orange.withOpacity(0.05)
+                   : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isInjunction ? const Color(0xFF7B0000).withOpacity(0.4)
+                     : isAgreement  ? Colors.orange.withOpacity(0.4)
+                     : Colors.grey.shade200,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Icon(flagIcon, size: 14, color: flagColor),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(flagLabel,
+                          style: TextStyle(fontWeight: FontWeight.bold,
+                              fontSize: 12, color: flagColor)),
+                    ),
+                    if (date.isNotEmpty)
+                      Text(date, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  ]),
+                  if (mrNo.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text('MR: $mrNo', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(text, style: const TextStyle(fontSize: 12, height: 1.4)),
+                  // eCourts deep-link if case number found
+                  if (caseNumber != null) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final uri = Uri.parse(
+                            'https://services.ecourts.gov.in/ecourtindia_v6/'
+                            '?p=casestatus/searchByCaseNumber&state_cd=10&dist_cd=1',
+                          );
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        },
+                        icon: const Icon(Icons.open_in_browser, size: 14),
+                        label: Text('Search "$caseNumber" on eCourts →',
+                            style: const TextStyle(fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: flagColor,
+                          side: BorderSide(color: flagColor.withOpacity(0.5)),
+                          minimumSize: const Size(0, 32),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                  // Agreement-specific warning
+                  if (isAgreement) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'An agreement or transfer is recorded on this property. '
+                        'Check Kaveri EC for the full deed — if a prior buyer has an unregistered '
+                        'agreement, their claim may still be valid in court.',
+                        style: TextStyle(fontSize: 11, color: Colors.deepOrange, height: 1.4),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   Widget _landTypeWarning(String landType) {
