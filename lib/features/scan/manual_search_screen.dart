@@ -333,6 +333,24 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   // ─── Village map (district_taluk_hobli → villages) ───────────────────────
   static const Map<String, List<String>> hobliVillages = {
     // Dasanapura 3 — EXACT village names from Bhoomi portal (confirmed live)
+    // Yashavantapura hoblis — Bhoomi portal confirmed names
+    'Bengaluru Urban_Bengaluru North_Yashavantapura 1': [
+      'Yeshwanthapura', 'Rajajinagar', 'Subramanyanagar', 'Mahalakshmi Layout',
+      'Srirampuram', 'Vijayanagar', 'Basaveshwaranagar',
+    ],
+    'Bengaluru Urban_Bengaluru North_Yashavantapura 2': [
+      'Mathikere', 'Sadashivanagar', 'Gokula', 'Gayatrinagar',
+      'Jalahalli', 'Hesaraghatta', 'Nagasandra',
+    ],
+    // Kasaba hoblis — Bangalore North
+    'Bengaluru Urban_Bengaluru North_Kasaba 1': [
+      'Kasaba', 'Hebbal', 'Kodigehalli', 'Sadahalli', 'Yeshwanthapura',
+      'Karivobinahalli', 'Rachenahalli', 'Nagawara',
+    ],
+    'Bengaluru Urban_Bengaluru North_Kasaba 2': [
+      'Kasaba', 'Hebbal', 'Rachenahalli', 'Thanisandra',
+      'Karivobinahalli', 'Kogilu', 'Singanayakanahalli',
+    ],
     'Bengaluru Urban_Bengaluru North_Dasanapura 3': [
       'Avarehalli', 'Bairegowdanahalli', 'Gattisiddanahalli', 'Gejjagadahalli',
       'Gowdahalli', 'Gullarapalya', 'Hullegowdanahalli', 'Hunnigere',
@@ -1081,7 +1099,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                       .toList(),
                   onChanged: (v) => setState(() => _selectedVillage = v),
                 )
-              else
+              else ...[
                 TextFormField(
                   decoration: const InputDecoration(
                     hintText: 'ಉದಾ: ಯಲಹಂಕ, ದೇವನಹಳ್ಳಿ... / e.g. Yelahanka...',
@@ -1089,6 +1107,31 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   ),
                   onChanged: (v) => setState(() => _selectedVillage = v.trim().isEmpty ? null : v.trim()),
                 ),
+                if (_selectedHobli != null) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline, size: 14, color: Colors.blue),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Type your village name exactly as shown on your RTC / Pahani document. '
+                            'Example: Yeshwanthapura, Mathikere, Nagasandra',
+                            style: TextStyle(fontSize: 11, color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
               const SizedBox(height: 16),
 
               // ── Rural Help Box ───────────────────────────────────────

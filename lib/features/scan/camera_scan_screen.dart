@@ -108,7 +108,14 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
           await _showBuildingBlockPicker(context, photoPath, location, ocrResult);
         } else {
           // Document detected — show GPS-stamped preview
-          await _showPhotoPreview(context, photoPath, location, scan, ocrResult);
+          await _showPhotoPreview(
+            context, photoPath, location, scan, ocrResult,
+            surveyNum: surveyNum,
+            ownerName: ownerName,
+            district: district,
+            taluk: taluk,
+            backendExtraction: backendExtraction,
+          );
         }
       }
     } finally {
@@ -324,7 +331,13 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
   }
 
   Future<void> _showPhotoPreview(
-      BuildContext context, String photoPath, GpsLocation? location, PropertyScan scan, OcrResult ocrResult) async {
+      BuildContext context, String photoPath, GpsLocation? location, PropertyScan scan, OcrResult ocrResult, {
+      String? surveyNum,
+      String? ownerName,
+      String? district,
+      String? taluk,
+      Map<String, dynamic>? backendExtraction,
+    }) async {
     final now = DateTime.now();
     final dateStr =
         '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}  ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';

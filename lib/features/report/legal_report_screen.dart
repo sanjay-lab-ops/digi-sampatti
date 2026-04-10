@@ -83,15 +83,30 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     final phone = user?.phoneNumber ?? '';
     final name  = user?.displayName ?? 'Customer';
 
-    final requestId = await _paymentService.openReportPayment(
-      reportId: reportId,
-      userPhone: phone,
-      userName: name,
-    );
+    try {
+      final requestId = await _paymentService.openReportPayment(
+        reportId: reportId,
+        userPhone: phone,
+        userName: name,
+      );
 
-    // Instamojo returns a requestId — save it so we can verify when user returns
-    if (requestId != null && mounted) {
-      setState(() => _pendingRequestId = requestId);
+      // Instamojo returns a requestId — save it so we can verify when user returns
+      if (requestId != null && mounted) {
+        setState(() => _pendingRequestId = requestId);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open payment. Check internet connection.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

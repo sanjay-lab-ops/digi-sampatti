@@ -51,6 +51,7 @@ import 'package:digi_sampatti/features/gov/gov_dashboard_screen.dart';
 import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 import 'package:digi_sampatti/features/next_steps/next_steps_screen.dart';
 import 'package:digi_sampatti/features/auto_scan/auto_scan_screen.dart';
+import 'package:digi_sampatti/features/records/property_records_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_register_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_dashboard_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_detail_screen.dart';
@@ -121,6 +122,14 @@ final _router = GoRouter(
       path: '/next-steps',
       name: 'next-steps',
       builder: (context, state) => const NextStepsScreen(),
+    ),
+    GoRoute(
+      path: '/property-records',
+      name: 'property-records',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return PropertyRecordsScreen(fullResult: extra);
+      },
     ),
     GoRoute(
       path: '/records',
