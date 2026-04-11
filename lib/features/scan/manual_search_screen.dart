@@ -472,6 +472,20 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
   @override
   void initState() {
     super.initState();
+    // Pre-fill from user profile (district set in buyer/seller toggle)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profile = ref.read(userProfileProvider);
+      if (profile.district != null && profile.district!.isNotEmpty &&
+          _selectedDistrict == null) {
+        final matched = districtTaluks.keys.firstWhere(
+          (d) => d.toLowerCase() == profile.district!.toLowerCase(),
+          orElse: () => '',
+        );
+        if (matched.isNotEmpty && mounted) {
+          setState(() => _selectedDistrict = matched);
+        }
+      }
+    });
     // Pre-fill from OCR results passed by camera scan screen
     final sv = widget.prefillSurveyNumber;
     final owner = widget.prefillOwnerName;

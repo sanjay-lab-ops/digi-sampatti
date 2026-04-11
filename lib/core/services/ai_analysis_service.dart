@@ -82,7 +82,7 @@ class AiAnalysisService {
 
   String _buildFindingsSummary(PropertyScan scan, PortalFindings f) {
     final buf = StringBuffer();
-    buf.writeln('Karnataka property due diligence — user-verified portal data:');
+    buf.writeln('India property due diligence — user-verified portal data:');
     buf.writeln('Survey: ${scan.surveyNumber}, District: ${scan.district}, Taluk: ${scan.taluk}');
     buf.writeln('GPS: ${scan.location?.latitude ?? 'N/A'}, ${scan.location?.longitude ?? 'N/A'}');
     buf.writeln();
