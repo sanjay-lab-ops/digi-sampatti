@@ -129,6 +129,18 @@ class _NriOffScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/nri-stamp-duty'),
+              icon: const Icon(Icons.calculate_outlined),
+              label: const Text('Stamp Duty + FEMA + TDS Calculator'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF0D47A1),
+                side: const BorderSide(color: Color(0xFF0D47A1)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ],
         ),
       ),

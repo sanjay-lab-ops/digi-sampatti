@@ -547,15 +547,20 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                     minimumSize: const Size(double.infinity, 52)),
               ),
               const SizedBox(height: 10),
-              // Advanced Due Diligence — global checks adapted for India
               OutlinedButton.icon(
-                onPressed: () => context.push('/due-diligence'),
-                icon: const Icon(Icons.travel_explore),
-                label: const Text('Advanced Due Diligence (Global Checks)'),
+                onPressed: () => context.push('/bbmp-tax'),
+                icon: const Icon(Icons.location_city_outlined),
+                label: const Text('BBMP Tax Arrears Check'),
                 style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 52),
-                    foregroundColor: const Color(0xFF1B5E20),
-                    side: const BorderSide(color: Color(0xFF1B5E20))),
+                    minimumSize: const Size(double.infinity, 52)),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/esign'),
+                icon: const Icon(Icons.fingerprint),
+                label: const Text('Draft & e-Sign Sale Agreement'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52)),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(

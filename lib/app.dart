@@ -55,7 +55,9 @@ import 'package:digi_sampatti/features/records/property_records_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_register_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_dashboard_screen.dart';
 import 'package:digi_sampatti/features/professional/professional_detail_screen.dart';
-import 'package:digi_sampatti/features/due_diligence/due_diligence_screen.dart';
+import 'package:digi_sampatti/features/esign/aadhaar_esign_screen.dart';
+import 'package:digi_sampatti/features/bbmp/bbmp_tax_check_screen.dart';
+import 'package:digi_sampatti/features/nri/nri_stamp_duty_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -193,9 +195,19 @@ final _router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/due-diligence',
-      name: 'due-diligence',
-      builder: (context, state) => const DueDiligenceScreen(),
+      path: '/esign',
+      name: 'aadhaar-esign',
+      builder: (context, state) => const AadhaarEsignScreen(),
+    ),
+    GoRoute(
+      path: '/bbmp-tax',
+      name: 'bbmp-tax',
+      builder: (context, state) => const BbmpTaxCheckScreen(),
+    ),
+    GoRoute(
+      path: '/nri-stamp-duty',
+      name: 'nri-stamp-duty',
+      builder: (context, state) => const NriStampDutyScreen(),
     ),
     GoRoute(
       path: '/history',
