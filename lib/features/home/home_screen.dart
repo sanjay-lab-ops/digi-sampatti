@@ -116,107 +116,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Welcome Banner
-            _animated(0, _WelcomeBanner(
-              userName: user?.phoneNumber ?? '',
-              headline: l.knowBeforeYouBuy,
-              subtitle: l.verifyInMinutes,
-            )),
+            // ── Buyer / Seller Mode Toggle  ─────────────────────────────
+            _animated(0, _BuyerSellerToggle()),
             const SizedBox(height: 20),
 
-            // ── Quick Action Buttons
-            _animated(1, Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.startPropertyCheck,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _StepChip(label: '1. Scan'),
-                    const _StepArrow(),
-                    _StepChip(label: '2. Analyse'),
-                    const _StepArrow(),
-                    _StepChip(label: '3. Report'),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _ActionCard(
-                    icon: Icons.camera_alt, title: l.scanProperty, subtitle: l.photoGps,
-                    color: AppColors.primary, onTap: () => context.push('/scan/camera'),
-                  )),
-                  const SizedBox(width: 12),
-                  Expanded(child: _ActionCard(
-                    icon: Icons.search, title: l.manualSearch, subtitle: l.surveyNo,
-                    color: AppColors.info, onTap: () => context.push('/scan/manual'),
-                  )),
-                ]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _ActionCard(
-                    icon: Icons.history, title: l.myReports, subtitle: l.pastSearches,
-                    color: const Color(0xFF6366F1), onTap: () => context.push('/history'),
-                  )),
-                  const SizedBox(width: 12),
-                  Expanded(child: _ActionCard(
-                    icon: Icons.people, title: l.brokerZone, subtitle: l.freeReports,
-                    color: const Color(0xFFD97706), onTap: () => context.push('/broker'),
-                  )),
-                ]),
-              ],
-            )),
+            // ── Mode-aware primary actions ──────────────────────────────
+            _animated(1, _ModeActions()),
+            const SizedBox(height: 20),
+
+            // ── Transaction tools (core revenue features) ───────────────
+            _animated(2, _CoreTools()),
             const SizedBox(height: 16),
 
-            // ── More Tools
-            _animated(3, Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.borderColor),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: Text(l.moreTools,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-                  ),
-                  const Divider(height: 1),
-                  _ToolRow(Icons.home_work, l.propertyTransfer, 'Stamp Duty · Mutation · SRO', const Color(0xFF1A237E), () => context.push('/transfer')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.location_city, 'BDA / BMRDA Check', 'Layout approval · BDA tax · Peri-urban', const Color(0xFF1A237E), () => _showBdaSheet(context)),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.account_balance_wallet, l.financialTools, 'EMI · Total Cost · Loan Eligibility', const Color(0xFF1B5E20), () => context.push('/tools')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.gavel, l.courtCaseCheck, 'Monitor properties · eCourts · Disputes', const Color(0xFF1A237E), () => context.push('/court-tracker')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.school, l.buyerGuides, 'Apartment · DC Conversion · Glossary', const Color(0xFF4A1942), () => context.push('/guides')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.people_outline, l.expertHelp, 'Lawyer · Bank · Developers', AppColors.warning, () => context.push('/partners')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.assignment_turned_in, l.applyAndTrack, 'Track status · EC · Mutation · RERA', const Color(0xFF004D40), () => context.push('/application-tracker')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.route, l.buyingJourney, 'Advance · Agreement · Registration', const Color(0xFF1B5E20), () => context.push('/buying-journey')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.flight, l.nriMode, 'UAE · USA · UK · FEMA · Ground Verify', const Color(0xFF0D47A1), () => context.push('/nri')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.lock_outlined, 'Document Locker', 'Store RTC · EC · Agreement · Deed', const Color(0xFF1B5E20), () => context.push('/document-locker')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.track_changes, 'Post-Purchase Tracker', 'Mutation · Tax reminders · Annual check', const Color(0xFF37474F), () => context.push('/post-purchase')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.how_to_reg_outlined, 'Seller KYC', 'Verify seller identity + trust score', const Color(0xFF880E4F), () => context.push('/seller-kyc')),
-                  const Divider(height: 1, indent: 56),
-                  _ToolRow(Icons.location_searching, 'Book Inspection', 'Physical site visit · GPS · Report', const Color(0xFF37474F), () => context.push('/field-inspection')),
-                ],
-              ),
-            )),
-            const SizedBox(height: 16),
-
-            // ── How This Works — functional 3-step guide + start CTA
-            _animated(4, _HowItWorksCard()),
+            // ── Secondary tools (collapsed, "More") ─────────────────────
+            _animated(3, _MoreToolsSection()),
             const SizedBox(height: 24),
 
             // ── Recent Reports
@@ -1042,4 +955,354 @@ class _BdaTile extends StatelessWidget {
       ),
     ),
   );
+}
+
+// ─── Buyer / Seller Toggle ────────────────────────────────────────────────────
+class _BuyerSellerToggle extends ConsumerWidget {
+  const _BuyerSellerToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(userModeProvider);
+    final isBuyer = mode == UserMode.buyer;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(children: [
+        Expanded(child: GestureDetector(
+          onTap: () => ref.read(userModeProvider.notifier).state = UserMode.buyer,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isBuyer ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.search, color: isBuyer ? Colors.white : Colors.grey, size: 18),
+              const SizedBox(width: 6),
+              Text('I\'m Buying',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isBuyer ? Colors.white : Colors.grey,
+                    fontSize: 14,
+                  )),
+            ]),
+          ),
+        )),
+        Expanded(child: GestureDetector(
+          onTap: () => ref.read(userModeProvider.notifier).state = UserMode.seller,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: !isBuyer ? const Color(0xFF880E4F) : Colors.transparent,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.sell_outlined, color: !isBuyer ? Colors.white : Colors.grey, size: 18),
+              const SizedBox(width: 6),
+              Text('I\'m Selling',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: !isBuyer ? Colors.white : Colors.grey,
+                    fontSize: 14,
+                  )),
+            ]),
+          ),
+        )),
+      ]),
+    );
+  }
+}
+
+// ─── Mode-aware primary actions ───────────────────────────────────────────────
+class _ModeActions extends ConsumerWidget {
+  const _ModeActions();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBuyer = ref.watch(userModeProvider) == UserMode.buyer;
+
+    if (isBuyer) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Primary CTA — Upload documents
+          GestureDetector(
+            onTap: () => context.push('/scan/camera'),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)]),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(children: [
+                    Icon(Icons.upload_file, color: Colors.white, size: 22),
+                    SizedBox(width: 10),
+                    Text('Upload Property Documents',
+                        style: TextStyle(color: Colors.white,
+                            fontWeight: FontWeight.bold, fontSize: 17)),
+                  ]),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Photograph any RTC, EC, sale deed, or agreement.\n'
+                    'AI reads it instantly — any state, any language.',
+                    style: TextStyle(color: Colors.white70,
+                        fontSize: 12, height: 1.4),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text('Scan Document →',
+                        style: TextStyle(color: Color(0xFF1B5E20),
+                            fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Secondary — manual search
+          Row(children: [
+            Expanded(child: _ActionCard(
+              icon: Icons.search,
+              title: 'Enter Survey No.',
+              subtitle: 'Know the survey number',
+              color: const Color(0xFF0D47A1),
+              onTap: () => context.push('/scan/manual'),
+            )),
+            const SizedBox(width: 10),
+            Expanded(child: _ActionCard(
+              icon: Icons.history,
+              title: 'Past Reports',
+              subtitle: 'Your checked properties',
+              color: const Color(0xFF6366F1),
+              onTap: () => context.push('/history'),
+            )),
+          ]),
+        ],
+      );
+    }
+
+    // Seller mode
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => context.push('/seller-kyc'),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFF880E4F), Color(0xFFAD1457)]),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(children: [
+                  Icon(Icons.verified_user_outlined,
+                      color: Colors.white, size: 22),
+                  SizedBox(width: 10),
+                  Text('Get Your Property Verified',
+                      style: TextStyle(color: Colors.white,
+                          fontWeight: FontWeight.bold, fontSize: 17)),
+                ]),
+                const SizedBox(height: 6),
+                const Text(
+                  'Verified sellers attract more buyers and get faster deals.\n'
+                  'Complete KYC → get Verified Badge → list with confidence.',
+                  style: TextStyle(color: Colors.white70,
+                      fontSize: 12, height: 1.4),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('Start Seller KYC →',
+                      style: TextStyle(color: Color(0xFF880E4F),
+                          fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(child: _ActionCard(
+            icon: Icons.lock_outlined,
+            title: 'Document Locker',
+            subtitle: 'Store all property docs',
+            color: const Color(0xFF1B5E20),
+            onTap: () => context.push('/document-locker'),
+          )),
+          const SizedBox(width: 10),
+          Expanded(child: _ActionCard(
+            icon: Icons.track_changes,
+            title: 'Track Property',
+            subtitle: 'Mutation · Tax · Resale',
+            color: const Color(0xFF37474F),
+            onTap: () => context.push('/post-purchase'),
+          )),
+        ]),
+      ],
+    );
+  }
+}
+
+// ─── Core Transaction Tools (revenue-generating, mode-aware) ─────────────────
+class _CoreTools extends ConsumerWidget {
+  const _CoreTools();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBuyer = ref.watch(userModeProvider) == UserMode.buyer;
+
+    final buyerTools = [
+      _Tool(Icons.how_to_reg_outlined, 'Verify Seller', 'KYC + Trust Score',
+          const Color(0xFF880E4F), '/seller-kyc'),
+      _Tool(Icons.location_searching, 'Book Inspection', 'On-ground GPS visit',
+          const Color(0xFF37474F), '/field-inspection'),
+      _Tool(Icons.fingerprint, 'e-Sign Agreement', 'Aadhaar-based signing',
+          const Color(0xFF4A148C), '/esign'),
+      _Tool(Icons.people_outline, 'Expert Help', 'Lawyer · Bank · Insurance',
+          AppColors.warning, '/partners'),
+      _Tool(Icons.location_city_outlined, 'BBMP Tax Check', 'Seller arrears',
+          const Color(0xFF004D40), '/bbmp-tax'),
+      _Tool(Icons.attach_money, 'Guidance Value', 'Min price per sqft',
+          const Color(0xFF006064), '/guidance-value'),
+    ];
+
+    final sellerTools = [
+      _Tool(Icons.lock_outlined, 'Document Locker', 'Store all docs',
+          const Color(0xFF1B5E20), '/document-locker'),
+      _Tool(Icons.track_changes, 'Post-Purchase', 'Mutation · Tax alerts',
+          const Color(0xFF37474F), '/post-purchase'),
+      _Tool(Icons.fingerprint, 'e-Sign Agreement', 'Sign with Aadhaar',
+          const Color(0xFF4A148C), '/esign'),
+      _Tool(Icons.flight, 'NRI Guide', 'FEMA · TDS · Repatriation',
+          const Color(0xFF0D47A1), '/nri-stamp-duty'),
+      _Tool(Icons.people_outline, 'Expert Help', 'Lawyer · Insurance',
+          AppColors.warning, '/partners'),
+      _Tool(Icons.attach_money, 'Guidance Value', 'Check your property value',
+          const Color(0xFF006064), '/guidance-value'),
+    ];
+
+    final tools = isBuyer ? buyerTools : sellerTools;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Text(
+              isBuyer ? 'Buyer Tools' : 'Seller Tools',
+              style: const TextStyle(fontWeight: FontWeight.bold,
+                  fontSize: 14, color: AppColors.textDark),
+            ),
+          ),
+          const Divider(height: 1),
+          ...tools.map((t) => Column(children: [
+            _ToolRow(t.icon, t.title, t.subtitle, t.color,
+                () => context.push(t.route)),
+            if (t != tools.last) const Divider(height: 1, indent: 56),
+          ])),
+        ],
+      ),
+    );
+  }
+}
+
+class _Tool {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final String route;
+  const _Tool(this.icon, this.title, this.subtitle, this.color, this.route);
+}
+
+// ─── More Tools (secondary, collapsed) ───────────────────────────────────────
+class _MoreToolsSection extends StatefulWidget {
+  const _MoreToolsSection();
+  @override
+  State<_MoreToolsSection> createState() => _MoreToolsSectionState();
+}
+
+class _MoreToolsSectionState extends State<_MoreToolsSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(children: [
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+            child: Row(children: [
+              const Icon(Icons.more_horiz, color: AppColors.textLight, size: 20),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text('More Resources',
+                    style: TextStyle(fontWeight: FontWeight.bold,
+                        fontSize: 14, color: AppColors.textDark)),
+              ),
+              Text(_expanded ? 'Less' : 'Show',
+                  style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+              Icon(_expanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.primary, size: 18),
+            ]),
+          ),
+        ),
+        if (_expanded) ...[
+          const Divider(height: 1),
+          _ToolRow(Icons.flight, 'NRI Mode', 'UAE · USA · UK · FEMA',
+              const Color(0xFF0D47A1), () => context.push('/nri')),
+          const Divider(height: 1, indent: 56),
+          _ToolRow(Icons.account_balance_wallet, 'Financial Tools',
+              'EMI · Total Cost · Loan',
+              const Color(0xFF1B5E20), () => context.push('/tools')),
+          const Divider(height: 1, indent: 56),
+          _ToolRow(Icons.history, 'Report History', 'Past property checks',
+              const Color(0xFF6366F1), () => context.push('/history')),
+          const Divider(height: 1, indent: 56),
+          _ToolRow(Icons.people, 'Broker Zone', 'For property agents',
+              const Color(0xFFD97706), () => context.push('/broker')),
+        ],
+      ]),
+    );
+  }
 }

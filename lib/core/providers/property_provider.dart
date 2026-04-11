@@ -37,6 +37,13 @@ final reportGeneratorProvider = Provider<ReportGeneratorService>(
   (ref) => ReportGeneratorService(),
 );
 
+// ─── User Mode: Buyer or Seller ──────────────────────────────────────────────
+// Controls which features are shown on home screen and throughout the app.
+// 'buyer'  → Upload docs, check property, verify seller, inspect, transact
+// 'seller' → Register property, get verified badge, document locker
+enum UserMode { buyer, seller }
+final userModeProvider = StateProvider<UserMode>((ref) => UserMode.buyer);
+
 // ─── Property Type (set at manual search, read by auto-scan) ─────────────────
 // 'site'       — Agricultural / Revenue site / Plot
 // 'house'      — Independent house / Villa

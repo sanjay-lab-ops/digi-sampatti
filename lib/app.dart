@@ -62,6 +62,7 @@ import 'package:digi_sampatti/features/seller/seller_kyc_screen.dart';
 import 'package:digi_sampatti/features/inspection/field_inspection_screen.dart';
 import 'package:digi_sampatti/features/locker/document_locker_screen.dart';
 import 'package:digi_sampatti/features/postpurchase/post_purchase_screen.dart';
+import 'package:digi_sampatti/features/guidance_value/guidance_value_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -232,6 +233,11 @@ final _router = GoRouter(
       path: '/post-purchase',
       name: 'post-purchase',
       builder: (context, state) => const PostPurchaseScreen(),
+    ),
+    GoRoute(
+      path: '/guidance-value',
+      name: 'guidance-value',
+      builder: (context, state) => const GuidanceValueScreen(),
     ),
     GoRoute(
       path: '/history',
