@@ -37,6 +37,50 @@ final reportGeneratorProvider = Provider<ReportGeneratorService>(
   (ref) => ReportGeneratorService(),
 );
 
+// ─── User Location + Property Profile ────────────────────────────────────────
+// Set when user selects their area in the buyer/seller toggle.
+// Drives: document checklist, AI personalization, risk engine rules.
+class UserPropertyProfile {
+  final String? state;
+  final String? district;
+  final String? taluk;
+  final String? village;
+  final String propertyType;   // site / apartment / house / villa / bda_layout / commercial / farm
+  final bool isFirstTimeBuyer;
+  final bool isSeller;
+
+  const UserPropertyProfile({
+    this.state,
+    this.district,
+    this.taluk,
+    this.village,
+    this.propertyType = 'site',
+    this.isFirstTimeBuyer = true,
+    this.isSeller = false,
+  });
+
+  String get locationLabel {
+    final parts = [village, taluk, district, state]
+        .where((s) => s != null && s.isNotEmpty)
+        .join(', ');
+    return parts.isNotEmpty ? parts : 'Location not set';
+  }
+
+  String get propertyTypeLabel => switch (propertyType) {
+    'apartment'   => 'Apartment / Flat',
+    'house'       => 'House / Villa',
+    'site'        => 'Site / Plot',
+    'bda_layout'  => 'BDA / BMRDA Layout Site',
+    'commercial'  => 'Commercial Space',
+    'farm'        => 'Farm / Agricultural Land',
+    'industrial'  => 'Industrial Plot',
+    _             => 'Site / Plot',
+  };
+}
+
+final userProfileProvider =
+    StateProvider<UserPropertyProfile>((ref) => const UserPropertyProfile());
+
 // ─── User Mode: Buyer or Seller ──────────────────────────────────────────────
 // Controls which features are shown on home screen and throughout the app.
 // 'buyer'  → Upload docs, check property, verify seller, inspect, transact

@@ -584,6 +584,16 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => context.push('/hidden-issues'),
+                icon: const Icon(Icons.policy_outlined),
+                label: const Text('Check Hidden Legal Issues'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    foregroundColor: Colors.red.shade700,
+                    side: BorderSide(color: Colors.red.shade300)),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => context.push('/partners'),
                 icon: const Icon(Icons.support_agent),
                 label: const Text('Get Expert Help'),

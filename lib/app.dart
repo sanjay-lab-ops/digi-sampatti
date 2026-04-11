@@ -64,6 +64,7 @@ import 'package:digi_sampatti/features/locker/document_locker_screen.dart';
 import 'package:digi_sampatti/features/postpurchase/post_purchase_screen.dart';
 import 'package:digi_sampatti/features/guidance_value/guidance_value_screen.dart';
 import 'package:digi_sampatti/features/documents/document_completeness_screen.dart';
+import 'package:digi_sampatti/features/hidden_issues/hidden_issues_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -244,6 +245,11 @@ final _router = GoRouter(
       path: '/document-check',
       name: 'document-check',
       builder: (context, state) => const DocumentCompletenessScreen(),
+    ),
+    GoRoute(
+      path: '/hidden-issues',
+      name: 'hidden-issues',
+      builder: (context, state) => const HiddenIssuesScreen(),
     ),
     GoRoute(
       path: '/history',

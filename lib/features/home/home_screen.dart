@@ -9,6 +9,7 @@ import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/core/services/report_history_service.dart';
 import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
+import 'package:digi_sampatti/features/profile/property_profile_sheet.dart';
 import 'package:digi_sampatti/widgets/common_widgets.dart';
 import 'package:digi_sampatti/core/widgets/ds_logo.dart';
 
@@ -957,65 +958,116 @@ class _BdaTile extends StatelessWidget {
   );
 }
 
-// ─── Buyer / Seller Toggle ────────────────────────────────────────────────────
+// ─── Buyer / Seller Toggle ─────────────────────────────────────────────────────
+// On tap → opens PropertyProfileSheet (state → district → taluk + property type)
+// Profile drives AI personalization throughout the app.
 class _BuyerSellerToggle extends ConsumerWidget {
   const _BuyerSellerToggle();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(userModeProvider);
+    final mode    = ref.watch(userModeProvider);
+    final profile = ref.watch(userProfileProvider);
     final isBuyer = mode == UserMode.buyer;
 
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(children: [
-        Expanded(child: GestureDetector(
-          onTap: () => ref.read(userModeProvider.notifier).state = UserMode.buyer,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: isBuyer ? AppColors.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.search, color: isBuyer ? Colors.white : Colors.grey, size: 18),
-              const SizedBox(width: 6),
-              Text('I\'m Buying',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isBuyer ? Colors.white : Colors.grey,
-                    fontSize: 14,
-                  )),
-            ]),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(14),
           ),
-        )),
-        Expanded(child: GestureDetector(
-          onTap: () => ref.read(userModeProvider.notifier).state = UserMode.seller,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: !isBuyer ? const Color(0xFF880E4F) : Colors.transparent,
-              borderRadius: BorderRadius.circular(11),
+          child: Row(children: [
+            Expanded(child: GestureDetector(
+              onTap: () async {
+                ref.read(userModeProvider.notifier).state = UserMode.buyer;
+                final result = await showPropertyProfileSheet(context, ref, false);
+                if (result != null) {
+                  ref.read(userProfileProvider.notifier).state = result;
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isBuyer ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.search,
+                      color: isBuyer ? Colors.white : Colors.grey, size: 18),
+                  const SizedBox(width: 6),
+                  Text('I\'m Buying',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isBuyer ? Colors.white : Colors.grey,
+                          fontSize: 14)),
+                ]),
+              ),
+            )),
+            Expanded(child: GestureDetector(
+              onTap: () async {
+                ref.read(userModeProvider.notifier).state = UserMode.seller;
+                final result = await showPropertyProfileSheet(context, ref, true);
+                if (result != null) {
+                  ref.read(userProfileProvider.notifier).state = result;
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: !isBuyer ? const Color(0xFF880E4F) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.sell_outlined,
+                      color: !isBuyer ? Colors.white : Colors.grey, size: 18),
+                  const SizedBox(width: 6),
+                  Text('I\'m Selling',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: !isBuyer ? Colors.white : Colors.grey,
+                          fontSize: 14)),
+                ]),
+              ),
+            )),
+          ]),
+        ),
+        // Show selected location + property type below toggle
+        if (profile.state != null || profile.district != null) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () async {
+              final result = await showPropertyProfileSheet(
+                  context, ref, !isBuyer);
+              if (result != null) {
+                ref.read(userProfileProvider.notifier).state = result;
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.location_on, size: 13,
+                    color: AppColors.primary),
+                const SizedBox(width: 6),
+                Expanded(child: Text(
+                  '${profile.locationLabel}  ·  ${profile.propertyTypeLabel}',
+                  style: const TextStyle(fontSize: 11,
+                      color: AppColors.primary, fontWeight: FontWeight.w500),
+                )),
+                const Icon(Icons.edit, size: 12, color: AppColors.primary),
+              ]),
             ),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.sell_outlined, color: !isBuyer ? Colors.white : Colors.grey, size: 18),
-              const SizedBox(width: 6),
-              Text('I\'m Selling',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: !isBuyer ? Colors.white : Colors.grey,
-                    fontSize: 14,
-                  )),
-            ]),
           ),
-        )),
-      ]),
+        ],
+      ],
     );
   }
 }
