@@ -548,11 +548,31 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => context.push('/seller-kyc'),
+                icon: const Icon(Icons.how_to_reg_outlined),
+                label: const Text('Verify Seller (KYC + Trust Score)'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    foregroundColor: const Color(0xFF1B5E20),
+                    side: const BorderSide(color: Color(0xFF1B5E20))),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => context.push('/bbmp-tax'),
                 icon: const Icon(Icons.location_city_outlined),
                 label: const Text('BBMP Tax Arrears Check'),
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52)),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/field-inspection'),
+                icon: const Icon(Icons.location_searching),
+                label: const Text('Book Field Inspection'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    foregroundColor: const Color(0xFF37474F),
+                    side: const BorderSide(color: Color(0xFF37474F))),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(

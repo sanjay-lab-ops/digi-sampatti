@@ -58,6 +58,10 @@ import 'package:digi_sampatti/features/professional/professional_detail_screen.d
 import 'package:digi_sampatti/features/esign/aadhaar_esign_screen.dart';
 import 'package:digi_sampatti/features/bbmp/bbmp_tax_check_screen.dart';
 import 'package:digi_sampatti/features/nri/nri_stamp_duty_screen.dart';
+import 'package:digi_sampatti/features/seller/seller_kyc_screen.dart';
+import 'package:digi_sampatti/features/inspection/field_inspection_screen.dart';
+import 'package:digi_sampatti/features/locker/document_locker_screen.dart';
+import 'package:digi_sampatti/features/postpurchase/post_purchase_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -208,6 +212,26 @@ final _router = GoRouter(
       path: '/nri-stamp-duty',
       name: 'nri-stamp-duty',
       builder: (context, state) => const NriStampDutyScreen(),
+    ),
+    GoRoute(
+      path: '/seller-kyc',
+      name: 'seller-kyc',
+      builder: (context, state) => const SellerKycScreen(),
+    ),
+    GoRoute(
+      path: '/field-inspection',
+      name: 'field-inspection',
+      builder: (context, state) => const FieldInspectionScreen(),
+    ),
+    GoRoute(
+      path: '/document-locker',
+      name: 'document-locker',
+      builder: (context, state) => const DocumentLockerScreen(),
+    ),
+    GoRoute(
+      path: '/post-purchase',
+      name: 'post-purchase',
+      builder: (context, state) => const PostPurchaseScreen(),
     ),
     GoRoute(
       path: '/history',
