@@ -10,6 +10,8 @@ import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/services/camera_service.dart';
 import 'package:digi_sampatti/core/services/gps_service.dart';
 import 'package:digi_sampatti/core/services/ocr_service.dart';
+import 'package:digi_sampatti/core/services/ocr_to_findings_mapper.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 
 class CameraScanScreen extends ConsumerStatefulWidget {
   const CameraScanScreen({super.key});
@@ -101,6 +103,30 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
 
       ref.read(currentScanProvider.notifier).state = scan;
       ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
+
+      // ── CRITICAL: Wire backend extraction → PortalFindings → rule engine ──
+      // This is the private model pipeline:
+      // Photo → Claude Vision → OcrToFindingsMapper → PortalFindings → AI
+      if (backendExtraction != null && backendExtraction.isNotEmpty) {
+        final findings = OcrToFindingsMapper.fromOcrResult(
+          ocrResult,
+          rawBackendData: backendExtraction,
+        );
+        ref.read(portalFindingsProvider.notifier).state = findings;
+
+        // If GPS matches OLC in document → save as property location
+        final lat = backendExtraction['latitude'] as double?;
+        final lon = backendExtraction['longitude'] as double?;
+        if (lat != null && lon != null && location == null) {
+          ref.read(currentLocationProvider.notifier).state = GpsLocation(
+            latitude: lat,
+            longitude: lon,
+            accuracy: 50,
+            capturedAt: DateTime.now(),
+            address: backendExtraction['address']?.toString(),
+          );
+        }
+      }
 
       if (mounted) {
         // If OCR returned no data (key missing/expired), warn the user

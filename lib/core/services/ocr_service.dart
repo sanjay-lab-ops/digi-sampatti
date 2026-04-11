@@ -121,66 +121,63 @@ class OcrService {
   }
 
   // ─── Extract Property Details from Document Photo ─────────────────────────
+  // SECURITY: All Claude API calls go through Railway backend — API key
+  // never embedded in APK. Backend validates requests and calls Claude.
   Future<OcrResult> extractFromDocument(String imagePath) async {
     if (!_initialized) initialize();
 
-    final apiKey = dotenv.env['ANTHROPIC_API_KEY'] ?? '';
-    if (apiKey.isEmpty) return const OcrResult(confidence: 0.0);
-
     try {
-      // Read image as base64
-      final imageFile = File(imagePath);
-      if (!await imageFile.exists()) return const OcrResult(confidence: 0.0);
-
-      final bytes = await imageFile.readAsBytes();
-      final base64Image = base64Encode(bytes);
-
-      // Detect mime type (camera always produces JPEG)
-      final mimeType = imagePath.toLowerCase().endsWith('.png')
-          ? 'image/png'
-          : 'image/jpeg';
-
-      final response = await _dio.post(
-        '/messages',
-        options: Options(headers: ApiConstants.claudeHeaders(apiKey)),
-        data: json.encode({
-          'model': ApiConstants.claudeModel,
-          'max_tokens': 800,
-          'system': _ocrSystemPrompt,
-          'messages': [
-            {
-              'role': 'user',
-              'content': [
-                {
-                  'type': 'image',
-                  'source': {
-                    'type': 'base64',
-                    'media_type': mimeType,
-                    'data': base64Image,
-                  },
-                },
-                {
-                  'type': 'text',
-                  'text': 'Analyze this image. Is it a property DOCUMENT (RTC, EC, sale deed, etc.) or a BUILDING PHOTO (apartment, house, plot)? Return JSON only.',
-                },
-              ],
-            },
-          ],
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final content = response.data['content'] as List;
-        final text = (content.first['text'] as String).trim();
-        return _parseOcrResponse(text);
+      // Route through backend — backend holds the Claude API key securely
+      final fullData = await extractFullDocumentFromBackend(imagePath);
+      if (fullData != null) {
+        return _mapBackendResponseToOcrResult(fullData);
       }
-    } catch (e, stack) {
-      // Log error so we can diagnose — caller falls back to manual entry
-      debugPrint('[OCR] extractFromDocument failed: $e');
-      debugPrint('[OCR] stack: $stack');
+    } catch (e) {
+      debugPrint('[OCR] backend extraction failed: $e');
     }
 
     return const OcrResult(confidence: 0.0);
+  }
+
+  // Maps backend /rtc-from-image response to OcrResult
+  OcrResult _mapBackendResponseToOcrResult(Map<String, dynamic> data) {
+    // Detect if this is a building photo or a document
+    final scanTypeRaw = (data['scan_type'] ?? data['type'] ?? 'document').toString();
+    final scanType = scanTypeRaw == 'building'
+        ? ScanType.building
+        : ScanType.document;
+
+    if (scanType == ScanType.building) {
+      return OcrResult(
+        scanType: ScanType.building,
+        buildingName: data['building_name']?.toString(),
+        buildingAddress: data['building_address']?.toString(),
+        visibleBlocks: _parseList(data['visible_blocks']),
+        visibleFlats: _parseList(data['visible_flats']),
+        confidence: (data['confidence'] as num?)?.toDouble() ?? 0.8,
+      );
+    }
+
+    // Document extraction
+    return OcrResult(
+      scanType: ScanType.document,
+      surveyNumber:    data['survey_number']?.toString() ?? data['surveyNumber']?.toString(),
+      ownerName:       data['owner_name']?.toString()    ?? data['ownerName']?.toString(),
+      taluk:           data['taluk']?.toString(),
+      district:        data['district']?.toString(),
+      khataNumber:     data['khata_number']?.toString()  ?? data['khataNumber']?.toString(),
+      propertyAddress: data['address']?.toString()       ?? data['propertyAddress']?.toString(),
+      documentType:    data['document_type']?.toString() ?? data['documentType']?.toString() ?? 'RTC',
+      rawText:         data['raw_text']?.toString(),
+      confidence:      (data['confidence'] as num?)?.toDouble() ?? 0.85,
+    );
+  }
+
+  List<String> _parseList(dynamic v) {
+    if (v == null) return [];
+    if (v is List) return v.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
+    if (v is String && v.isNotEmpty) return [v];
+    return [];
   }
 
   // ─── Parse JSON Response ───────────────────────────────────────────────────

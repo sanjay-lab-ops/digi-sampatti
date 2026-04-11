@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,20 +9,53 @@ import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 
 // ─── Document Locker ──────────────────────────────────────────────────────────
-// Encrypted lifetime storage of all property documents.
-// Strategy doc: "Platform owns trust, money, legal execution"
-// The locker is the reason users come back — all documents in one place.
+// Encrypted document storage with time-limited access keys.
 //
-// Stores:
-//   • RTC / Pahani (auto-saved from scan)
-//   • Encumbrance Certificate
-//   • Sale Agreement (e-signed)
-//   • Inspection Report
-//   • Legal Opinion
-//   • Registration Deed
-//   • Mutation Order
-//   • Property Tax Receipts
+// Security model:
+//   • Each document set has a unique Access Key (8-char alphanumeric)
+//   • Owner shares key with lawyer/buyer for time-limited access
+//   • Access tokens expire after set duration (24hr / 7 days / 30 days)
+//   • Without key: document metadata visible but content locked
+//   • Key is never stored server-side — only owner holds it
+//
+// Access flow:
+//   Seller → shares key with lawyer → lawyer enters key → views for X hours
+//   Key expires → lawyer can no longer access
+//
+// TODO: Move to Firebase Storage with AES-256 encryption for production.
+//       Currently uses SharedPreferences (local) as MVP.
 // ──────────────────────────────────────────────────────────────────────────────
+
+// Generates a cryptographically random 8-char access key
+String _generateAccessKey() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  final rng = Random.secure();
+  return List.generate(8, (_) => chars[rng.nextInt(chars.length)]).join();
+}
+
+class LockerAccessToken {
+  final String key;            // 8-char key owner shares
+  final DateTime expiresAt;    // when access expires
+  final String grantedTo;      // lawyer name / buyer name
+  final String purpose;        // "legal review" / "bank" / "buyer inspection"
+
+  const LockerAccessToken({
+    required this.key,
+    required this.expiresAt,
+    required this.grantedTo,
+    required this.purpose,
+  });
+
+  bool get isExpired => DateTime.now().isAfter(expiresAt);
+
+  String get expiresLabel {
+    final diff = expiresAt.difference(DateTime.now());
+    if (diff.isNegative) return 'Expired';
+    if (diff.inHours < 1) return '${diff.inMinutes}m remaining';
+    if (diff.inDays < 1)  return '${diff.inHours}h remaining';
+    return '${diff.inDays}d remaining';
+  }
+}
 
 class LockerDocument {
   final String id;
