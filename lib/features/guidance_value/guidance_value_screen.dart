@@ -4,20 +4,33 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 
-// ─── Guidance Value Screen ─────────────────────────────────────────────────────
-// What a stamp vendor tells you — but smarter.
-// Type any place name → get current guidance value instantly.
+// ─── Guidance Value Screen — ALL INDIA ────────────────────────────────────────
+// Government minimum property price — every Indian state has this system.
+// The name differs by state but the concept is identical.
+//
+// Karnataka: Guidance Value — igr.karnataka.gov.in
+// Tamil Nadu: Guideline Value — tnreginet.gov.in
+// Andhra Pradesh: Market Value — registration.ap.gov.in
+// Telangana: Market Value — registration.telangana.gov.in
+// Maharashtra: Ready Reckoner Rate — igrmaharashtra.gov.in
+// Kerala: Fair Value — keralaregistration.gov.in
+// Uttar Pradesh: Circle Rate — igrsup.gov.in
+// Delhi: Circle Rate — revenue.delhi.gov.in
+// Gujarat: Jantri Rate — garvi.gujarat.gov.in
+// Rajasthan: DLC Rate — igrs.rajasthan.gov.in
+// West Bengal: Market Value — wbregistration.gov.in
+// Punjab: Collector Rate — jamabandi.punjab.gov.in
+// Haryana: Circle Rate — jamabandi.nic.in
 //
 // Shows:
-//   • Current GV (2024-25) per sqft / per acre
+//   • Current GV per sqft / per acre
 //   • Estimated market value (what people actually pay)
 //   • Year-by-year trend (2019 → 2024)
-//   • Stamp duty on a sample transaction
+//   • Stamp duty for that state
 //   • Seller view: "What is my property worth today?"
 //   • Buyer view: "Is the asking price fair?"
-//
-// Source: IGR Karnataka — igr.karnataka.gov.in/page/Revised+Guidelines+Value/en
-// Updated: Every April 1st by state government
+//   • Developer view: per-acre feasibility
+//   • Portal link: official state portal for exact local values
 // ──────────────────────────────────────────────────────────────────────────────
 
 enum _GvMode { buyer, seller, developer }
@@ -287,6 +300,156 @@ const List<GvEntry> kGvData = [
     marketMultiplier:2.0, trend:'rising', trendPct:12),
 ];
 
+// ─── All India State Portal Directory ────────────────────────────────────────
+class StateGvPortal {
+  final String state;
+  final String localName;   // what that state calls guidance value
+  final String portal;
+  final String url;
+  final double stampDutyPct;  // stamp duty % in that state
+  final double regFeePct;
+
+  const StateGvPortal({
+    required this.state,
+    required this.localName,
+    required this.portal,
+    required this.url,
+    required this.stampDutyPct,
+    required this.regFeePct,
+  });
+}
+
+const List<StateGvPortal> kStatePortals = [
+  StateGvPortal(state:'Karnataka', localName:'Guidance Value', portal:'IGR Karnataka',
+      url:'https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en',
+      stampDutyPct:5.6, regFeePct:1.0),
+  StateGvPortal(state:'Tamil Nadu', localName:'Guideline Value', portal:'TNREGINET',
+      url:'https://tnreginet.gov.in/portal/webHP.aspx?Id=GV',
+      stampDutyPct:7.0, regFeePct:1.0),
+  StateGvPortal(state:'Andhra Pradesh', localName:'Market Value', portal:'AP Registration',
+      url:'https://registration.ap.gov.in/AP_IGRS/landvalues',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'Telangana', localName:'Market Value', portal:'TS Registration',
+      url:'https://registration.telangana.gov.in/MarketValue.aspx',
+      stampDutyPct:4.0, regFeePct:0.5),
+  StateGvPortal(state:'Maharashtra', localName:'Ready Reckoner Rate', portal:'IGR Maharashtra',
+      url:'https://igrmaharashtra.gov.in/ASRdataSearch',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'Kerala', localName:'Fair Value', portal:'Kerala Registration',
+      url:'https://keralaregistration.gov.in/fairvalue/fvsearch',
+      stampDutyPct:8.0, regFeePct:2.0),
+  StateGvPortal(state:'Uttar Pradesh', localName:'Circle Rate', portal:'IGRS UP',
+      url:'https://igrsup.gov.in/igrsup/defaultAction',
+      stampDutyPct:7.0, regFeePct:1.0),
+  StateGvPortal(state:'Delhi', localName:'Circle Rate', portal:'Revenue Delhi',
+      url:'https://revenue.delhi.gov.in/revenue/circle-rates',
+      stampDutyPct:4.0, regFeePct:1.0),
+  StateGvPortal(state:'Gujarat', localName:'Jantri Rate', portal:'Garvi Gujarat',
+      url:'https://garvi.gujarat.gov.in',
+      stampDutyPct:4.9, regFeePct:1.0),
+  StateGvPortal(state:'Rajasthan', localName:'DLC Rate', portal:'IGRS Rajasthan',
+      url:'https://igrs.rajasthan.gov.in/content/raj/igrs/en/dlc-rates.html',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'West Bengal', localName:'Market Value', portal:'WB Registration',
+      url:'https://wbregistration.gov.in/FairValue/FairValueFairValue.aspx',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'Punjab', localName:'Collector Rate', portal:'Punjab Jamabandi',
+      url:'https://jamabandi.punjab.gov.in/land%20records/collector%20rate',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'Haryana', localName:'Circle Rate', portal:'Haryana Jamabandi',
+      url:'https://jamabandi.nic.in',
+      stampDutyPct:5.0, regFeePct:1.0),
+  StateGvPortal(state:'Madhya Pradesh', localName:'Guideline Value', portal:'MP Sampada',
+      url:'https://sampada.mp.gov.in/guidlinevalue',
+      stampDutyPct:7.5, regFeePct:3.0),
+  StateGvPortal(state:'Goa', localName:'Market Value', portal:'Goa Registration',
+      url:'https://goaregistration.goa.gov.in',
+      stampDutyPct:3.5, regFeePct:0.5),
+];
+
+// Additional All India data — major cities outside Karnataka
+const List<GvEntry> kGvDataOtherStates = [
+  // ── MUMBAI ───────────────────────────────────────────────────────────────
+  GvEntry(district:'Mumbai City', taluk:'Andheri', area:'Andheri West',
+    areaKannada:'Andheri West', zone:1,
+    gvHistory: {'2019-20':12000,'2020-21':12500,'2021-22':13500,'2022-23':14500,'2023-24':15500,'2024-25':16000},
+    commercialSqft:28000, agriculturalAcre:0,
+    marketMultiplier:2.8, trend:'rising', trendPct:6),
+
+  GvEntry(district:'Mumbai Suburban', taluk:'Borivali', area:'Borivali West',
+    areaKannada:'Borivali West', zone:2,
+    gvHistory: {'2019-20':8000,'2020-21':8500,'2021-22':9200,'2022-23':10000,'2023-24':10800,'2024-25':11200},
+    commercialSqft:18000, agriculturalAcre:0,
+    marketMultiplier:2.5, trend:'rising', trendPct:7),
+
+  GvEntry(district:'Pune', taluk:'Pune City', area:'Kothrud',
+    areaKannada:'Kothrud', zone:1,
+    gvHistory: {'2019-20':6500,'2020-21':7000,'2021-22':7800,'2022-23':8800,'2023-24':9500,'2024-25':10000},
+    commercialSqft:16000, agriculturalAcre:0,
+    marketMultiplier:2.6, trend:'rising', trendPct:9),
+
+  // ── HYDERABAD ─────────────────────────────────────────────────────────────
+  GvEntry(district:'Hyderabad', taluk:'Hyderabad', area:'Banjara Hills',
+    areaKannada:'Banjara Hills', zone:1,
+    gvHistory: {'2019-20':6500,'2020-21':7000,'2021-22':8000,'2022-23':9200,'2023-24':10000,'2024-25':10500},
+    commercialSqft:18000, agriculturalAcre:0,
+    marketMultiplier:3.0, trend:'rising', trendPct:10),
+
+  GvEntry(district:'Hyderabad', taluk:'Rangareddy', area:'Gachibowli',
+    areaKannada:'Gachibowli', zone:1,
+    gvHistory: {'2019-20':5000,'2020-21':5500,'2021-22':6500,'2022-23':7500,'2023-24':8500,'2024-25':9000},
+    commercialSqft:15000, agriculturalAcre:0,
+    marketMultiplier:2.8, trend:'rising', trendPct:12),
+
+  // ── CHENNAI ───────────────────────────────────────────────────────────────
+  GvEntry(district:'Chennai', taluk:'Chennai North', area:'Anna Nagar',
+    areaKannada:'Anna Nagar', zone:1,
+    gvHistory: {'2019-20':7500,'2020-21':8000,'2021-22':8800,'2022-23':9800,'2023-24':10500,'2024-25':11000},
+    commercialSqft:18000, agriculturalAcre:0,
+    marketMultiplier:2.7, trend:'rising', trendPct:8),
+
+  GvEntry(district:'Chennai', taluk:'Chennai South', area:'OMR / Sholinganallur',
+    areaKannada:'OMR Sholinganallur', zone:1,
+    gvHistory: {'2019-20':4000,'2020-21':4500,'2021-22':5200,'2022-23':6000,'2023-24':6800,'2024-25':7200},
+    commercialSqft:12000, agriculturalAcre:0,
+    marketMultiplier:2.5, trend:'rising', trendPct:12),
+
+  // ── DELHI / NCR ───────────────────────────────────────────────────────────
+  GvEntry(district:'New Delhi', taluk:'South Delhi', area:'Vasant Kunj',
+    areaKannada:'Vasant Kunj', zone:1,
+    gvHistory: {'2019-20':9000,'2020-21':9500,'2021-22':10500,'2022-23':11500,'2023-24':12500,'2024-25':13000},
+    commercialSqft:22000, agriculturalAcre:0,
+    marketMultiplier:3.2, trend:'rising', trendPct:8),
+
+  GvEntry(district:'Gurugram', taluk:'Gurugram', area:'Golf Course Road',
+    areaKannada:'Golf Course Road', zone:1,
+    gvHistory: {'2019-20':7000,'2020-21':7500,'2021-22':8500,'2022-23':9500,'2023-24':10500,'2024-25':11000},
+    commercialSqft:19000, agriculturalAcre:0,
+    marketMultiplier:3.0, trend:'rising', trendPct:9),
+
+  GvEntry(district:'Noida', taluk:'Noida', area:'Sector 62',
+    areaKannada:'Sector 62', zone:2,
+    gvHistory: {'2019-20':4500,'2020-21':4800,'2021-22':5500,'2022-23':6200,'2023-24':6800,'2024-25':7200},
+    commercialSqft:12000, agriculturalAcre:0,
+    marketMultiplier:2.4, trend:'rising', trendPct:10),
+
+  // ── GOA ───────────────────────────────────────────────────────────────────
+  GvEntry(district:'North Goa', taluk:'Panaji', area:'Panaji City',
+    areaKannada:'Panaji', zone:1,
+    gvHistory: {'2019-20':3500,'2020-21':3800,'2021-22':4500,'2022-23':5500,'2023-24':6200,'2024-25':6800},
+    commercialSqft:10000, agriculturalAcre:1500000,
+    marketMultiplier:3.5, trend:'rising', trendPct:14),
+
+  GvEntry(district:'North Goa', taluk:'Bardez', area:'Calangute / Baga',
+    areaKannada:'Calangute Baga', zone:1,
+    gvHistory: {'2019-20':4000,'2020-21':4500,'2021-22':5500,'2022-23':7000,'2023-24':8500,'2024-25':9500},
+    commercialSqft:14000, agriculturalAcre:2000000,
+    marketMultiplier:4.0, trend:'rising', trendPct:18),
+];
+
+// Combined All India data
+List<GvEntry> get kAllGvData => [...kGvData, ...kGvDataOtherStates];
+
 // ─── Screen ────────────────────────────────────────────────────────────────────
 class GuidanceValueScreen extends ConsumerStatefulWidget {
   const GuidanceValueScreen({super.key});
@@ -328,12 +491,12 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   void _autoSearch(String query) {
     final q = query.toLowerCase().trim();
     if (q.isEmpty) { setState(() => _selected = null); return; }
-    final match = kGvData.firstWhere(
+    final match = kAllGvData.firstWhere(
       (e) => e.area.toLowerCase().contains(q)
           || e.areaKannada.contains(q)
           || e.taluk.toLowerCase().contains(q)
           || e.district.toLowerCase().contains(q),
-      orElse: () => kGvData.first,
+      orElse: () => kAllGvData.first,
     );
     setState(() {
       _selected = match;
@@ -345,7 +508,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   List<GvEntry> get _searchResults {
     final q = _searchCtrl.text.toLowerCase().trim();
     if (q.isEmpty) return [];
-    return kGvData.where((e) =>
+    return kAllGvData.where((e) =>
       e.area.toLowerCase().contains(q)     ||
       e.areaKannada.contains(q)            ||
       e.taluk.toLowerCase().contains(q)    ||
@@ -522,27 +685,67 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
     ]),
   );
 
-  Widget _buildNoResult() => Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+  Widget _buildNoResult() => SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(children: [
       const Text('🔍', style: TextStyle(fontSize: 48)),
       const SizedBox(height: 12),
-      const Text('Area not found in database',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      const Text('Check the official IGR Karnataka PDFs for this area',
-          style: TextStyle(color: AppColors.textLight)),
-      const SizedBox(height: 16),
-      ElevatedButton.icon(
-        onPressed: () async {
-          final uri = Uri.parse('https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en');
-          if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
-        },
-        icon: const Icon(Icons.open_in_browser, size: 16),
-        label: const Text('Open IGR Portal'),
-        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006064)),
+      Text('"${_searchCtrl.text}" not in database yet',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 6),
+      const Text(
+        'Get it directly from your state\'s official portal — same info, official source.',
+        style: TextStyle(color: AppColors.textLight, fontSize: 12),
+        textAlign: TextAlign.center,
       ),
+      const SizedBox(height: 24),
+      const Align(alignment: Alignment.centerLeft,
+          child: Text('Check your state portal:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+      const SizedBox(height: 12),
+      ...kStatePortals.map((p) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          tileColor: Colors.white,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(color: Colors.grey.shade200)),
+          leading: Text(_stateFlag(p.state),
+              style: const TextStyle(fontSize: 22)),
+          title: Text(p.state,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          subtitle: Text('${p.localName} · ${p.portal}',
+              style: const TextStyle(fontSize: 11)),
+          trailing: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('Stamp: ${p.stampDutyPct}%',
+                  style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+              const Icon(Icons.open_in_new, size: 14, color: AppColors.primary),
+            ]),
+          onTap: () async {
+            final uri = Uri.parse(p.url);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+        ),
+      )),
     ]),
   );
+
+  String _stateFlag(String state) => switch (state) {
+    'Karnataka'      => '🟢',
+    'Tamil Nadu'     => '🔴',
+    'Maharashtra'    => '🟡',
+    'Andhra Pradesh' => '🔵',
+    'Telangana'      => '🟣',
+    'Kerala'         => '🟠',
+    'Delhi'          => '🔵',
+    'Gujarat'        => '⚪',
+    'Goa'            => '🌊',
+    _                => '🇮🇳',
+  };
 
   Widget _buildResultTile(GvEntry e) => GestureDetector(
     onTap: () => setState(() { _selected = e; _searchCtrl.text = e.area; }),
