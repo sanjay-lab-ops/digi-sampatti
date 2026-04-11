@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 class SroLocatorScreen extends StatefulWidget {
@@ -109,6 +111,40 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
             ),
           ),
 
+          // Quick actions row
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Row(children: [
+              Expanded(child: _quickAction(
+                icon: Icons.attach_money,
+                label: 'Guidance Value',
+                sub: 'Check area GV',
+                color: const Color(0xFF006064),
+                onTap: () => context.push('/guidance-value'),
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _quickAction(
+                icon: Icons.calculate_outlined,
+                label: 'Stamp Duty',
+                sub: 'Calculate cost',
+                color: const Color(0xFF0D47A1),
+                onTap: () => context.push('/transfer/stamp-duty'),
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _quickAction(
+                icon: Icons.calendar_today_outlined,
+                label: 'Book Slot',
+                sub: 'Kaveri Online',
+                color: const Color(0xFF1B5E20),
+                onTap: () async {
+                  final uri = Uri.parse('https://kaverionline.karnataka.gov.in');
+                  if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+              )),
+            ]),
+          ),
+
           // Info banner
           Container(
             color: AppColors.surfaceGreen,
@@ -119,7 +155,8 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Registration must happen at the SRO having jurisdiction over the property location.',
+                    'Registration must happen at the SRO having jurisdiction over the property location. '
+                    'Book appointment at kaverionline.karnataka.gov.in before visiting.',
                     style: TextStyle(fontSize: 11, color: AppColors.primary),
                   ),
                 ),
@@ -255,6 +292,32 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
       ),
     );
   }
+
+  Widget _quickAction({
+    required IconData icon,
+    required String label,
+    required String sub,
+    required Color color,
+    required VoidCallback onTap,
+  }) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(
+            fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+        Text(sub, style: const TextStyle(
+            fontSize: 9, color: AppColors.textLight)),
+      ]),
+    ),
+  );
 }
 
 class _InfoRow extends StatelessWidget {

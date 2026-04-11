@@ -73,48 +73,42 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── LOGO PLACEHOLDER ────────────────────────────────────
-                // Replace this Container with your logo image:
-                // Image.asset('assets/images/finself_logo.png', height: 80)
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: Colors.white.withOpacity(0.3), width: 2),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'FS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -1,
-                      ),
+                // ARTH ID Logo (fingerprint + ₹ hexagon)
+                // File: assets/images/arth_id_logo.png
+                Image.asset(
+                  'assets/images/arth_id_logo.png',
+                  height: 110,
+                  width: 110,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 100, height: 100,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFc8922a).withOpacity(0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFc8922a), width: 2),
                     ),
+                    child: const Center(child: Text('₹',
+                        style: TextStyle(color: Color(0xFFc8922a),
+                            fontSize: 40, fontWeight: FontWeight.w900))),
                   ),
                 ),
-                // ── END LOGO PLACEHOLDER ─────────────────────────────────
                 const SizedBox(height: 20),
                 const Text(
-                  'FinSelf Lite',
+                  'ARTH ID',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                    color: Color(0xFFc8922a),
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  'Your Financial Identity',
+                  'India\'s Financial Identity',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.65),
+                    fontSize: 13,
                     fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 40),
