@@ -630,6 +630,62 @@ _Verified by DigiSampatti — Property Verification Platform_
             ),
             const SizedBox(height: 20),
 
+            // ── FinSelf Lite — Loan Eligibility CTA ──────────────────────
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF0D47A1), Color(0xFF1565C0)]),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(children: [
+                    Icon(Icons.account_balance, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Text('Can you afford this property?',
+                        style: TextStyle(color: Colors.white,
+                            fontWeight: FontWeight.bold, fontSize: 15)),
+                  ]),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Check your home loan eligibility in 2 minutes. '
+                    'Property report + your financial profile = '
+                    'faster bank approval.',
+                    style: TextStyle(color: Colors.white70,
+                        fontSize: 12, height: 1.4),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/loan-eligibility'),
+                      icon: const Icon(Icons.arrow_forward,
+                          color: Color(0xFF0D47A1), size: 16),
+                      label: const Text('Check Loan Eligibility — FinSelf Lite',
+                          style: TextStyle(
+                              color: Color(0xFF0D47A1), fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 44),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Center(
+                    child: Text(
+                      'Demo · Powered by India\'s Account Aggregator (RBI)',
+                      style: TextStyle(color: Colors.white38, fontSize: 10),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             // ── PDF Actions
             if (_pdfPath == null) ...[
               if (!_isPaid) _buildPaymentCard(report.reportId)

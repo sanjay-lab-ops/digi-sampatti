@@ -65,6 +65,9 @@ import 'package:digi_sampatti/features/postpurchase/post_purchase_screen.dart';
 import 'package:digi_sampatti/features/guidance_value/guidance_value_screen.dart';
 import 'package:digi_sampatti/features/documents/document_completeness_screen.dart';
 import 'package:digi_sampatti/features/hidden_issues/hidden_issues_screen.dart';
+import 'package:digi_sampatti/features/finself/finself_entry_screen.dart';
+import 'package:digi_sampatti/features/finself/account_aggregator_screen.dart';
+import 'package:digi_sampatti/features/finself/buyer_financial_profile_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -250,6 +253,17 @@ final _router = GoRouter(
       path: '/hidden-issues',
       name: 'hidden-issues',
       builder: (context, state) => const HiddenIssuesScreen(),
+    ),
+    GoRoute(
+      path: '/loan-eligibility',
+      name: 'loan-eligibility',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        // Shows FinSelf branded splash first, then transitions to AA consent
+        return FinselfEntryScreen(
+          propertyValue: extra?['propertyValue'] as double?,
+        );
+      },
     ),
     GoRoute(
       path: '/history',
