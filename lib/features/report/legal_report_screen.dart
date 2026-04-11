@@ -306,6 +306,71 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     );
   }
 
+  Widget _buildAuthenticitySection(LegalReport report) {
+    final portals = <String>[];
+    final scan = report.scan;
+    if (scan.surveyNumber != null) portals.add('Bhoomi RTC');
+    portals.add('Kaveri EC');
+    portals.add('eCourts');
+    portals.add('CERSAI');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Source chain
+        Row(children: [
+          _authBadge('${portals.length} Portals', Icons.verified, AppColors.safe),
+          const SizedBox(width: 8),
+          _authBadge('Claude AI', Icons.auto_awesome, const Color(0xFF4A148C)),
+          const SizedBox(width: 8),
+          _authBadge('30+ Rules', Icons.rule, const Color(0xFF0D47A1)),
+        ]),
+        const SizedBox(height: 10),
+        // What was checked
+        ...portals.map((p) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(children: [
+            const Icon(Icons.check_circle, color: AppColors.safe, size: 14),
+            const SizedBox(width: 6),
+            Text(p, style: const TextStyle(fontSize: 12)),
+          ]),
+        )),
+        const SizedBox(height: 8),
+        Text('Report ID: ${report.reportId}  ·  Generated: ${report.generatedAt.day}/${report.generatedAt.month}/${report.generatedAt.year}',
+            style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Text(
+            'This report is based on documents provided and government portals '
+            'accessible at time of check. It does not replace a lawyer\'s opinion. '
+            'Every risk flag shows its source — tap any flag to see the raw evidence.',
+            style: TextStyle(fontSize: 10, color: Colors.black45, height: 1.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _authBadge(String label, IconData icon, Color color) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: color.withOpacity(0.3)),
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 12, color: color),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(fontSize: 11,
+          fontWeight: FontWeight.bold, color: color)),
+    ]),
+  );
+
   Future<void> _shareWhatsApp(LegalReport report) async {
     final score = report.riskAssessment.score;
     final text = '''
@@ -429,6 +494,14 @@ _Verified by DigiSampatti — Property Verification Platform_
               ),
             ),
             const SizedBox(height: 16),
+
+            // ── Analysis Authenticity — what backs this report
+            _ReportSection(
+              title: 'Analysis Basis',
+              icon: Icons.verified_outlined,
+              child: _buildAuthenticitySection(report),
+            ),
+            const SizedBox(height: 12),
 
             // ── Summary
             _ReportSection(

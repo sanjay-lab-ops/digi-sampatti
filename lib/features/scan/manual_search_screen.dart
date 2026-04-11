@@ -637,8 +637,8 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
     );
     // Store property type so auto-scan knows which portals to show
     ref.read(propertyTypeProvider.notifier).state = _propertyType;
-    // Go to Auto Scan — fetches all portals automatically, zero manual steps
-    context.push('/auto-scan');
+    // Go to Document Checklist first — ask for missing docs before analysis
+    context.push('/document-check');
   }
 
   // Geocodes village+taluk+district to approximate property coordinates.
