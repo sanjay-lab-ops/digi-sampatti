@@ -221,7 +221,7 @@ class _PropertyProfileSheetState extends ConsumerState<_PropertyProfileSheet> {
                       _districtCtrl.clear();
                     }),
                     hint: const Text('Select state',
-                        style: TextStyle(color: Colors.grey60, fontSize: 14)),
+                        style: TextStyle(color: Colors.grey, fontSize: 14)),
                   ),
                   const SizedBox(height: 10),
 

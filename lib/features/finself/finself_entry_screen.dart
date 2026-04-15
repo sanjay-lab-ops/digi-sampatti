@@ -46,7 +46,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
         context,
         PageRouteBuilder(
           pageBuilder: (_, __, ___) =>
-              AccountAggregatorScreen(propertyValue: widget.propertyValue),
+              const AccountAggregatorScreen(),
           transitionsBuilder: (_, anim, __, child) =>
               FadeTransition(opacity: anim, child: child),
           transitionDuration: const Duration(milliseconds: 400),

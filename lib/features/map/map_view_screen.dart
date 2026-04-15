@@ -194,9 +194,10 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
           const SizedBox(height: 8),
           Text(
             hasSurvey
-                ? 'Tap below to view the actual survey boundary map from Bhoomi — '
-                  'the same map with blue lines you see on landrecords.karnataka.gov.in'
-                : 'Use camera scan or tap GPS button on search screen to capture location.',
+                ? 'Tap below to see the actual survey plot boundary from Bhoomi — '
+                  'the official blue-line land map from landrecords.karnataka.gov.in'
+                : 'GPS shows your current location, not the property location. '
+                  'To see property on map, enter the survey number first.',
             style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.4),
             textAlign: TextAlign.center,
           ),

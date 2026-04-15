@@ -927,9 +927,28 @@ def _parse_rtc(html, district, taluk, hobli, village, survey_no) -> dict:
     )
 
     # ── Liabilities / Encumbrance ─────────────────────────────────────────────
+    # Bhoomi Form16A col 11: "ಇತರೆ ಹಕ್ಕು ಮತ್ತು ಋಣಗಳು" — often spans multiple td rows
     liab = find_html(
-        r'(?:Liabilit|Encumbrance|Loan|ಋಣ|ಭಾರ)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,200})',
+        r'(?:Liabilit|Encumbrance|Loan|ಋಣ|ಭಾರ|ಹಕ್ಕು)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{2,400})',
+        r'(?:ಇತರೆ ಹಕ್ಕು)[^<]{0,60}</[^>]+>\s*<[^>]+>([^<]{4,400})',
+        r'(?:Other Rights|ಇತರ ಹಕ್ಕು)[^<]*</(?:td|th)>\s*<(?:td|th)[^>]*>([^<]{4,400})',
     )
+    # Also scan plain text for MR/OS/RA pattern (court order references in RTC)
+    if not liab:
+        m = re.search(r'((?:MR|OS|RA)\s+[A-Z0-9/\s]{4,60}(?:ತಡೆಯಾಜ್ಞೆ|injunction|stay|ನ್ಯಾಯಾಲಯ)[^.]{0,200})', text, re.IGNORECASE)
+        if m:
+            liab = m.group(1).strip()
+
+    # Detect court injunction keywords even if liab was found via regex
+    court_in_rtc = False
+    injunction_keywords = ['ತಡೆಯಾಜ್ಞೆ', 'tadeyajne', 'injunction', 'stay order', 'ನ್ಯಾಯಾಲಯ',
+                           'nyayalaya', 'os ', 'o.s.', 'civil court', 'RA BN', 'court case',
+                           'ಪ್ರಕರಣ', 'prakarna', 'temporary stay', 'interim stay']
+    check_text = (liab or '') + ' ' + text
+    if any(kw.lower() in check_text.lower() for kw in injunction_keywords):
+        court_in_rtc = True
+        if not liab:
+            liab = 'Court order / injunction noted in RTC remarks'
 
     # ── Khata number ──────────────────────────────────────────────────────────
     khata = find_html(
@@ -962,9 +981,10 @@ def _parse_rtc(html, district, taluk, hobli, village, survey_no) -> dict:
         "extent":       extent  or None,
         "land_type":    land_use or None,
         "kharab":       kharab  or None,
-        "liabilities":  liab    or None,
-        "khata_number": khata   or None,
-        "mutation_no":  mutation or None,
+        "liabilities":    liab    or None,
+        "court_in_rtc":   court_in_rtc,
+        "khata_number":   khata   or None,
+        "mutation_no":    mutation or None,
         "source": source,
     }
 
@@ -1957,6 +1977,19 @@ def _run_fraud_analysis(rtc, ec, courts, cersai, guidance, owner_name_input: str
 
     if rtc_ok and rtc.get("liabilities"):
         risk_flags.append(f"Liabilities noted in RTC: {rtc['liabilities']}")
+
+    # Court injunction in RTC = CRITICAL — title transfer legally blocked
+    if rtc_ok and rtc.get("court_in_rtc"):
+        fraud_patterns.append({
+            "pattern": "COURT_INJUNCTION_IN_RTC",
+            "severity": "CRITICAL",
+            "detail": (
+                "RTC contains a court order or temporary injunction (ತಡೆಯಾಜ್ಞೆ). "
+                "This means a civil court has LEGALLY BLOCKED transfer/sale of this property. "
+                f"Detail: {rtc.get('liabilities', 'See RTC column 11')}. "
+                "DO NOT pay advance or register until the court case (OS) is resolved."
+            ),
+        })
 
     # ── Cross-portal fraud patterns ───────────────────────────────────────────
 
