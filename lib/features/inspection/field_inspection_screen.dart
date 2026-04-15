@@ -420,18 +420,18 @@ class _FieldInspectionScreenState
       Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1B5E20).withOpacity(0.07),
+          color: const AppColors.primary.withOpacity(0.07),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1B5E20), width: 1.5),
+          border: Border.all(color: const AppColors.primary, width: 1.5),
         ),
         child: Column(
           children: [
             const Icon(Icons.check_circle,
-                color: Color(0xFF1B5E20), size: 48),
+                color: AppColors.primary, size: 48),
             const SizedBox(height: 12),
             const Text('Inspection Booked!',
                 style: TextStyle(fontWeight: FontWeight.bold,
-                    fontSize: 18, color: Color(0xFF1B5E20))),
+                    fontSize: 18, color: AppColors.primary)),
             const SizedBox(height: 6),
             Text('Booking Ref: $_bookingRef',
                 style: const TextStyle(

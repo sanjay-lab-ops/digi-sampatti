@@ -64,38 +64,45 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D47A1),
-      body: Center(
-        child: FadeTransition(
-          opacity: _fade,
-          child: ScaleTransition(
-            scale: _scale,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ARTH ID Logo (fingerprint + ₹ hexagon)
-                // File: assets/images/arth_id_logo.png
-                Image.asset(
-                  'assets/images/arth_id_logo.png',
-                  height: 110,
-                  width: 110,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 100, height: 100,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFc8922a).withOpacity(0.15),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFc8922a), width: 2),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.arthGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _fade,
+            child: ScaleTransition(
+              scale: _scale,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ARTH ID Logo (fingerprint + ₹ hexagon)
+                  // File: assets/images/arth_id_logo.png
+                  Image.asset(
+                    'assets/images/arth_id_logo.png',
+                    height: 120,
+                    width: 120,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 110, height: 110,
+                      decoration: BoxDecoration(
+                        color: AppColors.arthGold.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.arthGold, width: 2.5),
+                      ),
+                      child: const Center(child: Text('₹',
+                          style: TextStyle(color: AppColors.arthGold,
+                              fontSize: 48, fontWeight: FontWeight.w900))),
                     ),
-                    child: const Center(child: Text('₹',
-                        style: TextStyle(color: Color(0xFFc8922a),
-                            fontSize: 40, fontWeight: FontWeight.w900))),
                   ),
-                ),
                 const SizedBox(height: 20),
                 const Text(
                   'ARTH ID',
                   style: TextStyle(
-                    color: Color(0xFFc8922a),
+                    color: AppColors.arthGold,
                     fontSize: 30,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2,

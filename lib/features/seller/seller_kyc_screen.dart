@@ -262,7 +262,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
                       : const Icon(Icons.verified_user_outlined),
                   label: Text(_checking ? 'Verifying seller...' : 'Run Seller KYC Check'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1B5E20),
+                    backgroundColor: const AppColors.primary,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 52),
                   ),
@@ -293,19 +293,19 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
   Widget _explainerBox() => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: const Color(0xFF1B5E20).withOpacity(0.07),
+      color: const AppColors.primary.withOpacity(0.07),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+      border: Border.all(color: const AppColors.primary.withOpacity(0.3)),
     ),
     child: const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Icon(Icons.how_to_reg, color: Color(0xFF1B5E20), size: 20),
+          Icon(Icons.how_to_reg, color: AppColors.primary, size: 20),
           SizedBox(width: 8),
           Text('Why Seller KYC Matters',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14,
-                  color: Color(0xFF1B5E20))),
+                  color: AppColors.primary)),
         ]),
         SizedBox(height: 8),
         Text(
@@ -371,7 +371,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
 
   Widget _buildResult(SellerKycResult r) {
     final color = r.isVerified
-        ? const Color(0xFF1B5E20)
+        ? const AppColors.primary
         : r.trustScore >= 60 ? Colors.orange : Colors.red;
 
     return Column(
@@ -422,7 +422,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1B5E20),
+                      color: const AppColors.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(mainAxisSize: MainAxisSize.min, children: [

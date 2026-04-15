@@ -158,7 +158,7 @@ class _AccountAggregatorScreenState
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+              colors: [AppColors.arthBlue, Color(0xFF1565C0)],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -228,7 +228,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: () => setState(() => _step = _AaStep.enterPhone),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
+              backgroundColor: const AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 54),
               shape: RoundedRectangleBorder(
@@ -291,7 +291,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : () => setState(() => _step = _AaStep.consent),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
+              backgroundColor: const AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -347,7 +347,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : _requestOtp,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
+              backgroundColor: const AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -367,14 +367,14 @@ class _AccountAggregatorScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: map[key] == true
-            ? const Color(0xFF0D47A1).withOpacity(0.4) : Colors.grey.shade200),
+            ? const AppColors.arthBlue.withOpacity(0.4) : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(10),
       ),
       child: CheckboxListTile(
         value: map[key],
         onChanged: required ? null : (v) => setState(() => map[key] = v!),
         title: Text(key, style: const TextStyle(fontSize: 13)),
-        activeColor: const Color(0xFF0D47A1),
+        activeColor: const AppColors.arthBlue,
         dense: true,
         controlAffinity: ListTileControlAffinity.leading,
       ),
@@ -386,7 +386,7 @@ class _AccountAggregatorScreenState
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.sms_outlined, size: 48, color: Color(0xFF0D47A1)),
+        const Icon(Icons.sms_outlined, size: 48, color: AppColors.arthBlue),
         const SizedBox(height: 16),
         const Text('Enter OTP from your bank',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
@@ -418,7 +418,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : _verifyOtpAndFetch,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
+              backgroundColor: const AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -437,7 +437,7 @@ class _AccountAggregatorScreenState
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(
-            color: Color(0xFF0D47A1), strokeWidth: 3),
+            color: AppColors.arthBlue, strokeWidth: 3),
           const SizedBox(height: 24),
           const Text('Analysing your financial data...',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

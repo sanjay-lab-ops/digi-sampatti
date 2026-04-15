@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
@@ -491,16 +492,28 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   void _autoSearch(String query) {
     final q = query.toLowerCase().trim();
     if (q.isEmpty) { setState(() => _selected = null); return; }
-    final match = kAllGvData.firstWhere(
-      (e) => e.area.toLowerCase().contains(q)
-          || e.areaKannada.contains(q)
-          || e.taluk.toLowerCase().contains(q)
-          || e.district.toLowerCase().contains(q),
-      orElse: () => kAllGvData.first,
-    );
+
+    final results = kAllGvData.where((e) =>
+      e.area.toLowerCase().contains(q) ||
+      e.areaKannada.contains(q)        ||
+      e.taluk.toLowerCase().contains(q)||
+      e.district.toLowerCase().contains(q)
+    ).toList();
+
+    if (results.isEmpty) { setState(() => _selected = null); return; }
+
+    // Sort: exact start match first
+    results.sort((a, b) {
+      final aE = a.area.toLowerCase().startsWith(q) ? 0 : 1;
+      final bE = b.area.toLowerCase().startsWith(q) ? 0 : 1;
+      return aE.compareTo(bE);
+    });
+
+    // Haptic on match found
+    HapticFeedback.selectionClick();
+
     setState(() {
-      _selected = match;
-      // Default area for stamp duty calc
+      _selected = results.first;
       _areaSqft = 1200;
     });
   }
@@ -545,11 +558,27 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
           _buildModeBar(),
           // ── Search box ─────────────────────────────────────────────────────
           _buildSearchBar(),
-          // ── Results ────────────────────────────────────────────────────────
+          // ── Results — animated switch between list and detail ──────────────
           Expanded(
-            child: _selected != null
-                ? _buildDetailView(_selected!)
-                : _buildSearchList(),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 280),
+              transitionBuilder: (child, anim) => FadeTransition(
+                opacity: anim,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.05),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                  child: child,
+                ),
+              ),
+              child: KeyedSubtree(
+                key: ValueKey(_selected?.area ?? 'list'),
+                child: _selected != null
+                    ? _buildDetailView(_selected!)
+                    : _buildSearchList(),
+              ),
+            ),
           ),
         ],
       ),
@@ -748,7 +777,10 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   };
 
   Widget _buildResultTile(GvEntry e) => GestureDetector(
-    onTap: () => setState(() { _selected = e; _searchCtrl.text = e.area; }),
+    onTap: () {
+      HapticFeedback.selectionClick();
+      setState(() { _selected = e; _searchCtrl.text = e.area; });
+    },
     child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
