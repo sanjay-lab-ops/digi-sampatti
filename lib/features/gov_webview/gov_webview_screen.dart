@@ -34,6 +34,7 @@ enum GovPortal {
   gramPanchayat,  // Gram Panchayat Khata (rural properties)
   digilocker,     // DigiLocker — access govt-issued property documents
   igrGuidance,    // IGR Karnataka — guidance value PDFs
+  biaapa,         // BIAAPA — airport corridor layout approval
 }
 
 extension GovPortalInfo on GovPortal {
@@ -61,6 +62,7 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.gramPanchayat:  return 'Gram Panchayat — Rural Khata';
       case GovPortal.digilocker:     return 'DigiLocker — Property Documents';
       case GovPortal.igrGuidance:    return 'IGR Karnataka — Guidance Value PDFs';
+      case GovPortal.biaapa:         return 'BIAAPA — Airport Corridor Approval';
     }
   }
 
@@ -111,6 +113,8 @@ extension GovPortalInfo on GovPortal {
         return 'https://digilocker.gov.in/';
       case GovPortal.igrGuidance:
         return 'https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en';
+      case GovPortal.biaapa:
+        return 'https://biaapa.karnataka.gov.in/biaapa/Home.aspx';
     }
   }
 
@@ -165,6 +169,8 @@ extension GovPortalInfo on GovPortal {
         return 'Access your Aadhaar, PAN, land records and other government documents. Sign in with Aadhaar OTP or mobile number.';
       case GovPortal.igrGuidance:
         return 'Download the official IGR Karnataka Revised Guideline Value PDF for your district. Find your area in the PDF to see the government floor price per sqft.';
+      case GovPortal.biaapa:
+        return 'Click Layout Approval Status → search your layout name or LP number. BIAAPA covers Devanahalli, Hoskote, Doddaballapur airport corridor areas.';
     }
   }
 
@@ -192,6 +198,7 @@ extension GovPortalInfo on GovPortal {
       case GovPortal.gramPanchayat:  return const Color(0xFF33691E);
       case GovPortal.digilocker:     return AppColors.info;
       case GovPortal.igrGuidance:    return AppColors.teal;
+      case GovPortal.biaapa:         return const Color(0xFF1A3A6B);
     }
   }
 }
@@ -288,6 +295,7 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
             case GovPortal.wakfBoard:
             case GovPortal.gramPanchayat:
             case GovPortal.digilocker:
+            case GovPortal.biaapa:
               _autoFillKaveri();
               break;
           }
@@ -834,6 +842,14 @@ class _GovWebViewScreenState extends State<GovWebViewScreen> {
           'Download the PDF for your taluk',
           'Find your village/area name in the PDF table',
           'Note the guideline value per sqft — this is the minimum stamp duty base',
+        ];
+      case GovPortal.biaapa:
+        return [
+          'Click "Layout Approval Status" or "Search Layout"',
+          'Enter layout name or LP number',
+          'Verify: Approved ✓ or Not Approved ✗',
+          'BIAAPA covers: Devanahalli, Doddaballapur, Hoskote, airport corridor',
+          'If property is in BIAAPA zone without approval — high risk, do not buy',
         ];
     }
   }

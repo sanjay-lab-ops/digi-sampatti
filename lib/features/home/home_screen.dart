@@ -177,19 +177,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('BDA / BMRDA Portals',
+            const Text('Layout Authority Portals',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             const Text(
-              'Check layout approvals and property tax for BDA and BMRDA properties. '
-              'Not needed for Gram Panchayat or BBMP-limit properties.',
+              'Which authority approved this property? Use the right portal below.',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 16),
             _BdaTile(
               icon: Icons.home_work_outlined,
-              title: 'BDA Layout Approval (Housing)',
-              subtitle: 'housing.bdabangalore.org — verify layout approval',
+              title: 'BDA Layout Approval',
+              subtitle: 'housing.bdabangalore.org — Bengaluru planned layouts',
               color: AppColors.indigo,
               onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebViewScreen(portal: GovPortal.bdaLayout))); },
             ),
@@ -197,7 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _BdaTile(
               icon: Icons.receipt_long_outlined,
               title: 'BDA Property Tax',
-              subtitle: 'app.bda.karnataka.gov.in — tax dues & payment',
+              subtitle: 'app.bda.karnataka.gov.in — tax dues & arrears',
               color: AppColors.info,
               onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebViewScreen(portal: GovPortal.bdaTax))); },
             ),
@@ -205,15 +204,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _BdaTile(
               icon: Icons.map_outlined,
               title: 'BMRDA Layout Approval',
-              subtitle: 'bmrda.karnataka.gov.in — peri-urban area checks',
+              subtitle: 'bmrda.karnataka.gov.in — within 40km of Bengaluru',
               color: AppColors.teal,
               onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebViewScreen(portal: GovPortal.bmrda))); },
             ),
             const SizedBox(height: 10),
             _BdaTile(
+              icon: Icons.flight_outlined,
+              title: 'BIAAPA Layout Approval',
+              subtitle: 'biaapa.karnataka.gov.in — airport corridor (Devanahalli, Hoskote)',
+              color: const Color(0xFF1A3A6B),
+              onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebViewScreen(portal: GovPortal.biaapa))); },
+            ),
+            const SizedBox(height: 10),
+            _BdaTile(
               icon: Icons.picture_as_pdf,
               title: 'IGR Guidance Value PDF',
-              subtitle: 'igr.karnataka.gov.in — official floor price for stamp duty',
+              subtitle: 'igr.karnataka.gov.in — min price for stamp duty',
               color: AppColors.teal,
               onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => const GovWebViewScreen(portal: GovPortal.igrGuidance))); },
             ),
@@ -225,11 +232,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Text(
-                'BBMP area: Use BBMP e-Aasthi (in Auto Scan) for Khata.\n'
-                'BDA area: Check BDA layout + BDA tax here.\n'
-                'BMRDA/peri-urban (Yelahanka, Devanahalli): Check BMRDA approval.\n'
-                'RERA: Only for apartments/builder projects — NOT needed for sites.',
-                style: TextStyle(fontSize: 11, height: 1.5),
+                'Which authority applies to your property?\n\n'
+                '• BBMP limit (city): BBMP e-Aasthi for Khata\n'
+                '• BDA layout: BDA Housing + BDA Tax\n'
+                '• Within 40km, non-BDA: BMRDA approval\n'
+                '• Airport corridor (Devanahalli/Hoskote): BIAAPA\n'
+                '• Smaller towns (Mysuru, Hubballi etc): CMC/TMC office — no online portal, visit physically\n'
+                '• Village / GP area: Gram Panchayat Khata — highest risk\n'
+                '• Apartment / builder project: RERA only',
+                style: TextStyle(fontSize: 11, height: 1.6),
               ),
             ),
             const SizedBox(height: 16),

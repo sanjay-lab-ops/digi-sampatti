@@ -68,14 +68,15 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   late final AnimationController _pulseCtrl;
 
   final List<_PortalResult> _portals = [
-    _PortalResult(name: 'Bhoomi RTC',    icon: Icons.article_outlined,       color: AppColors.primary),
-    _PortalResult(name: 'Kaveri EC',     icon: Icons.account_balance_outlined, color: AppColors.arthBlue),
-    _PortalResult(name: 'RERA',          icon: Icons.verified_outlined,        color: AppColors.esign),
-    _PortalResult(name: 'eCourts',       icon: Icons.gavel_outlined,           color: AppColors.deepOrange),
-    _PortalResult(name: 'BBMP / Khata',  icon: Icons.location_city_outlined,   color: AppColors.info),
-    _PortalResult(name: 'CERSAI',        icon: Icons.lock_outlined,            color: AppColors.seller),
-    _PortalResult(name: 'Guidance Value',icon: Icons.attach_money,             color: AppColors.teal),
-    _PortalResult(name: 'FMB Sketch',    icon: Icons.map_outlined,             color: AppColors.slate),
+    _PortalResult(name: 'Bhoomi RTC',    icon: Icons.article_outlined,         color: AppColors.primary),
+    _PortalResult(name: 'Kaveri EC',     icon: Icons.account_balance_outlined,  color: AppColors.arthBlue),
+    _PortalResult(name: 'RERA',          icon: Icons.verified_outlined,         color: AppColors.esign),
+    _PortalResult(name: 'eCourts',       icon: Icons.gavel_outlined,            color: AppColors.deepOrange),
+    _PortalResult(name: 'BBMP / Khata',  icon: Icons.location_city_outlined,    color: AppColors.info),
+    _PortalResult(name: 'CERSAI',        icon: Icons.lock_outlined,             color: AppColors.seller),
+    _PortalResult(name: 'Guidance Value',icon: Icons.attach_money,              color: AppColors.teal),
+    _PortalResult(name: 'FMB Sketch',    icon: Icons.map_outlined,              color: AppColors.slate),
+    _PortalResult(name: 'CC / OC Check', icon: Icons.domain_verification_outlined, color: AppColors.navy),
   ];
 
   @override
@@ -187,6 +188,25 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             ..summary = 'Not required — RERA is only for apartments / builder projects'
             ..hasIssue = false;
         }
+        // CC / OC Check — based on property type
+        final ccPortal = _portals.firstWhere((p) => p.name == 'CC / OC Check');
+        if (propType == 'apartment') {
+          ccPortal
+            ..status = _PortalStatus.done
+            ..summary = 'Required — ask builder/seller for Completion Certificate (CC) & Occupancy Certificate (OC). Banks WILL NOT give loan without CC.'
+            ..hasIssue = true;
+        } else if (propType == 'house') {
+          ccPortal
+            ..status = _PortalStatus.done
+            ..summary = 'Required if constructed — ask seller for Building Plan Approval + CC from BBMP/BDA/CMC. Verify construction is as per approved plan.'
+            ..hasIssue = true;
+        } else {
+          ccPortal
+            ..status = _PortalStatus.done
+            ..summary = 'Not applicable — CC/OC is only for constructed buildings (apartments & houses)'
+            ..hasIssue = false;
+        }
+
         _scanning = false;
         _done = true;
       });
