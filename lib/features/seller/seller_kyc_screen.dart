@@ -262,7 +262,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
                       : const Icon(Icons.verified_user_outlined),
                   label: Text(_checking ? 'Verifying seller...' : 'Run Seller KYC Check'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const AppColors.primary,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 52),
                   ),
@@ -293,9 +293,9 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
   Widget _explainerBox() => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: const AppColors.primary.withOpacity(0.07),
+      color: AppColors.primary.withOpacity(0.07),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const AppColors.primary.withOpacity(0.3)),
+      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
     ),
     child: const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,7 +371,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
 
   Widget _buildResult(SellerKycResult r) {
     final color = r.isVerified
-        ? const AppColors.primary
+        ? AppColors.primary
         : r.trustScore >= 60 ? Colors.orange : Colors.red;
 
     return Column(
@@ -422,7 +422,7 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const AppColors.primary,
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(mainAxisSize: MainAxisSize.min, children: [

@@ -246,7 +246,7 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
   Widget _buildBankProducts(BuildContext context) => _card(
     title: 'Banks That Will Approve You',
     icon: Icons.account_balance_outlined,
-    color: const AppColors.arthBlue,
+    color: AppColors.arthBlue,
     child: Column(children: [
       ...profile.eligibleLoans.map((loan) => Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -294,7 +294,7 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
               child: OutlinedButton(
                 onPressed: () => _applyToBank(context, loan.bankName),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const AppColors.arthBlue,
+                  foregroundColor: AppColors.arthBlue,
                   minimumSize: const Size(0, 36),
                   side: const BorderSide(color: AppColors.arthBlue),
                 ),

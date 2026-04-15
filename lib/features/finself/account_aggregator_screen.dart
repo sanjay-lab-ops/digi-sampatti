@@ -228,7 +228,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: () => setState(() => _step = _AaStep.enterPhone),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const AppColors.arthBlue,
+              backgroundColor: AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 54),
               shape: RoundedRectangleBorder(
@@ -291,7 +291,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : () => setState(() => _step = _AaStep.consent),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const AppColors.arthBlue,
+              backgroundColor: AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -347,7 +347,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : _requestOtp,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const AppColors.arthBlue,
+              backgroundColor: AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -367,14 +367,14 @@ class _AccountAggregatorScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: map[key] == true
-            ? const AppColors.arthBlue.withOpacity(0.4) : Colors.grey.shade200),
+            ? AppColors.arthBlue.withOpacity(0.4) : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(10),
       ),
       child: CheckboxListTile(
         value: map[key],
         onChanged: required ? null : (v) => setState(() => map[key] = v!),
         title: Text(key, style: const TextStyle(fontSize: 13)),
-        activeColor: const AppColors.arthBlue,
+        activeColor: AppColors.arthBlue,
         dense: true,
         controlAffinity: ListTileControlAffinity.leading,
       ),
@@ -418,7 +418,7 @@ class _AccountAggregatorScreenState
           child: ElevatedButton(
             onPressed: _loading ? null : _verifyOtpAndFetch,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const AppColors.arthBlue,
+              backgroundColor: AppColors.arthBlue,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
             ),

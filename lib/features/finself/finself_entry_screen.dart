@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/features/finself/account_aggregator_screen.dart';
 
 // ─── FinSelf Lite Entry — Branded Splash ─────────────────────────────────────
@@ -65,7 +66,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: AppColors.arthGradient,
             begin: Alignment.topLeft,
@@ -140,6 +141,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

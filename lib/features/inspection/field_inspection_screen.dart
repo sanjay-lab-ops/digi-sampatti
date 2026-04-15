@@ -420,9 +420,9 @@ class _FieldInspectionScreenState
       Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const AppColors.primary.withOpacity(0.07),
+          color: AppColors.primary.withOpacity(0.07),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const AppColors.primary, width: 1.5),
+          border: Border.all(color: AppColors.primary, width: 1.5),
         ),
         child: Column(
           children: [
