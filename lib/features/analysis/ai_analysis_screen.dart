@@ -67,12 +67,12 @@ class _PortalScanningViewState extends State<_PortalScanningView>
   int _doneCount = 0;
 
   static const _portals = [
-    _Portal('Bhoomi Karnataka', 'Fetching RTC / Land Records', Icons.article_outlined, Color(0xFF1B5E20)),
-    _Portal('Kaveri Online (IGRS)', 'Checking Encumbrance Certificate', Icons.account_balance_outlined, Color(0xFF0D47A1)),
-    _Portal('RERA Karnataka', 'Verifying builder registration', Icons.business_outlined, Color(0xFF4A148C)),
-    _Portal('BDA / BBMP Records', 'Checking jurisdiction & approvals', Icons.location_city_outlined, Color(0xFF37474F)),
-    _Portal('eCourts India', 'Scanning for active litigation', Icons.gavel_outlined, Color(0xFFBF360C)),
-    _Portal('CERSAI Registry', 'Checking registered mortgages', Icons.lock_outline, Color(0xFF1565C0)),
+    _Portal('Bhoomi Karnataka', 'Fetching RTC / Land Records', Icons.article_outlined, AppColors.primary),
+    _Portal('Kaveri Online (IGRS)', 'Checking Encumbrance Certificate', Icons.account_balance_outlined, AppColors.arthBlue),
+    _Portal('RERA Karnataka', 'Verifying builder registration', Icons.business_outlined, AppColors.esign),
+    _Portal('BDA / BBMP Records', 'Checking jurisdiction & approvals', Icons.location_city_outlined, AppColors.slate),
+    _Portal('eCourts India', 'Scanning for active litigation', Icons.gavel_outlined, AppColors.deepOrange),
+    _Portal('CERSAI Registry', 'Checking registered mortgages', Icons.lock_outline, AppColors.info),
     _Portal('Claude AI Analysis', 'Running deep legal analysis...', Icons.psychology_outlined, Color(0xFF5E35B1)),
   ];
 
@@ -301,7 +301,7 @@ class _AnalysisResultView extends StatelessWidget {
             _Section(
               title: '📋  Your Action Steps',
               color: AppColors.primary,
-              bgColor: const Color(0xFFE8F5E9),
+              bgColor: AppColors.surfaceGreen,
               items: a.actionItems.where(
                 (i) => !a.positives.contains(i) && !a.concerns.contains(i)
               ).toList(),
@@ -336,7 +336,7 @@ class _AnalysisResultView extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                colors: [AppColors.primary, AppColors.safe],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -354,7 +354,7 @@ class _AnalysisResultView extends StatelessWidget {
                 Row(
                   children: [
                     const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('₹149',
+                      Text('₹499',
                           style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                       Text('one-time · instant', style: TextStyle(color: Colors.white70, fontSize: 11)),
                     ]),
@@ -365,7 +365,7 @@ class _AnalysisResultView extends StatelessWidget {
                       label: const Text('Get Full Report'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF1B5E20),
+                        foregroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),

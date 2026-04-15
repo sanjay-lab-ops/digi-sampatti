@@ -128,7 +128,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
       ('Registration (1%)', _registration, AppColors.warning),
       if (_needsAdvocate) ('Advocate Fees', _advocateFee, AppColors.info),
       ('Misc (franking, notary)', _miscCharges, AppColors.textMedium),
-      if (_needsInterior) ('Interior / Renovation', _interiorCost, const Color(0xFF7C3AED)),
+      if (_needsInterior) ('Interior / Renovation', _interiorCost, AppColors.violet),
     ];
 
     return Column(

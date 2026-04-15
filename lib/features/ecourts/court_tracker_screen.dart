@@ -45,14 +45,14 @@ class CourtTrackerScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBF360C).withOpacity(0.07),
+                  color: AppColors.deepOrange.withOpacity(0.07),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFBF360C).withOpacity(0.2)),
+                  border: Border.all(color: AppColors.deepOrange.withOpacity(0.2)),
                 ),
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, size: 15, color: Color(0xFFBF360C)),
+                    Icon(Icons.info_outline, size: 15, color: AppColors.deepOrange),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -77,7 +77,7 @@ class CourtTrackerScreen extends StatelessWidget {
                     ? DateTime.now().difference(lastChecked).inDays
                     : null;
 
-                Color statusColor = const Color(0xFF1B5E20);
+                Color statusColor = AppColors.primary;
                 IconData statusIcon = Icons.check_circle_outline;
                 String statusLabel = 'Clear';
                 if (status == 'alert') {
@@ -186,7 +186,7 @@ class CourtTrackerScreen extends StatelessWidget {
                               label: const Text('Check Now',
                                   style: TextStyle(fontSize: 12)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFBF360C),
+                                backgroundColor: AppColors.deepOrange,
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8),
@@ -321,7 +321,7 @@ class CourtTrackerScreen extends StatelessWidget {
             _StatusOption(
               icon: Icons.check_circle,
               label: 'All Clear — No cases found',
-              color: const Color(0xFF1B5E20),
+              color: AppColors.primary,
               onTap: () async {
                 await PropertyDataService().updatePropertyStatus(docId, 'clear');
                 if (ctx.mounted) Navigator.pop(ctx);

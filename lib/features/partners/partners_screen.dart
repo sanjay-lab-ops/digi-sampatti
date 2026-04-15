@@ -540,15 +540,15 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
 
   Color _typeColor(ProfessionalType type) {
     switch (type) {
-      case ProfessionalType.advocate:      return const Color(0xFF1A237E);
-      case ProfessionalType.broker:        return const Color(0xFF1B5E20);
-      case ProfessionalType.surveyor:      return const Color(0xFF006064);
+      case ProfessionalType.advocate:      return AppColors.indigo;
+      case ProfessionalType.broker:        return AppColors.primary;
+      case ProfessionalType.surveyor:      return AppColors.teal;
       case ProfessionalType.vastu:         return const Color(0xFFFF6F00);
       case ProfessionalType.interior:      return const Color(0xFF6A1B9A);
       case ProfessionalType.packersMovers: return const Color(0xFF00695C);
-      case ProfessionalType.khataAgent:    return const Color(0xFF1565C0);
-      case ProfessionalType.bank:          return const Color(0xFF0D47A1);
-      case ProfessionalType.developer:     return const Color(0xFF37474F);
+      case ProfessionalType.khataAgent:    return AppColors.info;
+      case ProfessionalType.bank:          return AppColors.arthBlue;
+      case ProfessionalType.developer:     return AppColors.slate;
     }
   }
 
@@ -613,7 +613,7 @@ class _CallbackSheetState extends State<_CallbackSheet> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(12)),
+                  color: AppColors.surfaceGreen, borderRadius: BorderRadius.circular(12)),
               child: const Row(
                 children: [
                   Icon(Icons.check_circle, color: AppColors.primary, size: 22),

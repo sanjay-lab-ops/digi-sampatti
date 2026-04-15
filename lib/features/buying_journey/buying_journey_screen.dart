@@ -135,7 +135,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
             titleKn: 'ಮುಂಗಡ ಹಣ ನೀಡುವ ಮೊದಲು',
             subtitleEn: 'Never pay a rupee before completing all checks below',
             subtitleKn: 'ಕೆಳಗಿನ ಎಲ್ಲ ಪರಿಶೀಲನೆ ಮಾಡದೆ ಒಂದು ರೂಪಾಯಿ ನೀಡಬೇಡಿ',
-            color: const Color(0xFF1B5E20),
+            color: AppColors.primary,
             isKn: isKn,
           ),
           const SizedBox(height: 14),
@@ -228,7 +228,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                colors: [AppColors.primary, AppColors.safe],
               ),
               borderRadius: BorderRadius.circular(14),
             ),
@@ -260,7 +260,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                     label: Text(isKn ? 'ರಸೀದಿ ಮಾಡಿ' : 'Create Advance Receipt'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF1B5E20),
+                      foregroundColor: AppColors.primary,
                     ),
                   ),
                 ),
@@ -327,7 +327,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
             titleKn: 'ಮಾರಾಟ ಒಪ್ಪಂದ',
             subtitleEn: 'Before signing — verify these clauses are in the agreement',
             subtitleKn: 'ಸಹಿ ಮಾಡುವ ಮೊದಲು — ಈ ಷರತ್ತುಗಳು ಇವೆಯೇ ಎಂದು ಪರಿಶೀಲಿಸಿ',
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             isKn: isKn,
           ),
           const SizedBox(height: 14),
@@ -342,14 +342,14 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
               child: LinearProgressIndicator(
                 value: mustHave.isEmpty ? 0 : done / mustHave.length,
                 backgroundColor: AppColors.borderColor,
-                color: const Color(0xFF0D47A1),
+                color: AppColors.arthBlue,
                 minHeight: 6,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
             const SizedBox(width: 10),
             Text('$done/${mustHave.length}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0D47A1))),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.arthBlue)),
           ]),
           const SizedBox(height: 10),
 
@@ -377,9 +377,9 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                             Container(
                               width: 22, height: 22,
                               decoration: BoxDecoration(
-                                color: checked ? const Color(0xFF0D47A1) : Colors.transparent,
+                                color: checked ? AppColors.arthBlue : Colors.transparent,
                                 border: Border.all(
-                                    color: checked ? const Color(0xFF0D47A1) : AppColors.borderColor,
+                                    color: checked ? AppColors.arthBlue : AppColors.borderColor,
                                     width: 2),
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -421,10 +421,10 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  const Icon(Icons.warning_amber, color: Color(0xFFC62828), size: 18),
+                  const Icon(Icons.warning_amber, color: AppColors.danger, size: 18),
                   const SizedBox(width: 8),
                   Text(isKn ? 'ಒಪ್ಪಂದದಲ್ಲಿ ಈ ಷರತ್ತು ಇದ್ದರೆ ಒಪ್ಪಬೇಡಿ' : 'Red Flags — refuse to sign if you see these',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFC62828))),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.danger)),
                 ]),
                 const SizedBox(height: 10),
                 ...redFlags.map((f) => Padding(
@@ -432,10 +432,10 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.close, color: Color(0xFFC62828), size: 16),
+                      const Icon(Icons.close, color: AppColors.danger, size: 16),
                       const SizedBox(width: 8),
                       Expanded(child: Text(f,
-                          style: const TextStyle(fontSize: 12, color: Color(0xFFC62828), height: 1.4))),
+                          style: const TextStyle(fontSize: 12, color: AppColors.danger, height: 1.4))),
                     ],
                   ),
                 )),
@@ -480,18 +480,18 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
         ? [
             ('ಸ್ಟಾಂಪ್ ಡ್ಯೂಟಿ ಲೆಕ್ಕ ಹಾಕಿ', 'ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ ಅಥವಾ ಮಾರಾಟ ಬೆಲೆ — ಯಾವುದು ಹೆಚ್ಚೋ ಅದರ ಮೇಲೆ', Icons.calculate, AppColors.primary),
             ('Kaveri 2.0 ನಲ್ಲಿ SRO ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಬುಕ್ ಮಾಡಿ', 'ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಮುಂಚಿತವಾಗಿ ಬುಕ್ ಮಾಡಿ — ಕ್ಯೂ ಇಲ್ಲ', Icons.calendar_today, const Color(0xFFB71C1C)),
-            ('ಎಲ್ಲ ದಾಖಲೆ ತಯಾರಿ', 'ಆಧಾರ್, PAN, ಸೇಲ್ ಡೀಡ್ ಡ್ರಾಫ್ಟ್, EC, RTC, ಖಾತಾ, NOC', Icons.folder_open, const Color(0xFF4A148C)),
-            ('ಸ್ಟಾಂಪ್ ಡ್ಯೂಟಿ ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'Kaveri ಪೋರ್ಟಲ್ ಮೂಲಕ ಚಲಾನ್ ಮಾಡಿ', Icons.payment, const Color(0xFF1B5E20)),
-            ('SRO ಭೇಟಿ ಮತ್ತು ನೋಂದಣಿ', 'ಎರಡೂ ಕಡೆ ಆಧಾರ್ + ಬಯೋಮೆಟ್ರಿಕ್ ಅಗತ್ಯ', Icons.how_to_reg, const Color(0xFF0D47A1)),
-            ('ನೋಂದಾಯಿತ ದಾಖಲೆ ಪಡೆಯಿರಿ', 'SRO ಸ್ಕ್ಯಾನ್ ಕಾಪಿ ನಂತರ ನಿಮ್ಮ ಫೋನ್‌ಗೆ ಬರುತ್ತದೆ', Icons.download_done, const Color(0xFF1B5E20)),
+            ('ಎಲ್ಲ ದಾಖಲೆ ತಯಾರಿ', 'ಆಧಾರ್, PAN, ಸೇಲ್ ಡೀಡ್ ಡ್ರಾಫ್ಟ್, EC, RTC, ಖಾತಾ, NOC', Icons.folder_open, AppColors.esign),
+            ('ಸ್ಟಾಂಪ್ ಡ್ಯೂಟಿ ಆನ್‌ಲೈನ್ ಪಾವತಿ', 'Kaveri ಪೋರ್ಟಲ್ ಮೂಲಕ ಚಲಾನ್ ಮಾಡಿ', Icons.payment, AppColors.primary),
+            ('SRO ಭೇಟಿ ಮತ್ತು ನೋಂದಣಿ', 'ಎರಡೂ ಕಡೆ ಆಧಾರ್ + ಬಯೋಮೆಟ್ರಿಕ್ ಅಗತ್ಯ', Icons.how_to_reg, AppColors.arthBlue),
+            ('ನೋಂದಾಯಿತ ದಾಖಲೆ ಪಡೆಯಿರಿ', 'SRO ಸ್ಕ್ಯಾನ್ ಕಾಪಿ ನಂತರ ನಿಮ್ಮ ಫೋನ್‌ಗೆ ಬರುತ್ತದೆ', Icons.download_done, AppColors.primary),
           ]
         : [
             ('Calculate Stamp Duty', 'Higher of guidance value or sale price × stamp duty rate', Icons.calculate, AppColors.primary),
             ('Book SRO Appointment on Kaveri 2.0', 'Book online in advance — no queue at office', Icons.calendar_today, const Color(0xFFB71C1C)),
-            ('Prepare all documents', 'Aadhaar, PAN, sale deed draft, EC, RTC, Khata, NOC if needed', Icons.folder_open, const Color(0xFF4A148C)),
-            ('Pay Stamp Duty online', 'Generate challan on Kaveri portal before visiting SRO', Icons.payment, const Color(0xFF1B5E20)),
-            ('Visit SRO for registration', 'Both buyer and seller must be present — Aadhaar + biometric', Icons.how_to_reg, const Color(0xFF0D47A1)),
-            ('Collect registered document', 'Scanned copy delivered digitally after registration', Icons.download_done, const Color(0xFF1B5E20)),
+            ('Prepare all documents', 'Aadhaar, PAN, sale deed draft, EC, RTC, Khata, NOC if needed', Icons.folder_open, AppColors.esign),
+            ('Pay Stamp Duty online', 'Generate challan on Kaveri portal before visiting SRO', Icons.payment, AppColors.primary),
+            ('Visit SRO for registration', 'Both buyer and seller must be present — Aadhaar + biometric', Icons.how_to_reg, AppColors.arthBlue),
+            ('Collect registered document', 'Scanned copy delivered digitally after registration', Icons.download_done, AppColors.primary),
           ];
 
     return SingleChildScrollView(
@@ -597,7 +597,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                 child: _QuickLinkBtn(
                   label: isKn ? 'ದಾಖಲೆ ಪಟ್ಟಿ' : 'Doc Checklist',
                   icon: Icons.folder_open,
-                  color: const Color(0xFF4A148C),
+                  color: AppColors.esign,
                   onTap: () => context.push('/transfer/documents'),
                 ),
               ),
@@ -606,7 +606,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
                 child: _QuickLinkBtn(
                   label: isKn ? 'ಮ್ಯುಟೇಷನ್ ಮಾರ್ಗದರ್ಶಿ' : 'After Registration',
                   icon: Icons.swap_horiz,
-                  color: const Color(0xFF1B5E20),
+                  color: AppColors.primary,
                   onTap: () => context.push('/transfer/mutation'),
                 ),
               ),
@@ -703,7 +703,7 @@ class _ValuationCardState extends State<_ValuationCard> {
                     titleKn: 'ಬಿಲ್ಡರ್ ₹3 Cr ಕೇಳಿದರೆ — ಹೇಗೆ ಪರಿಶೀಲಿಸಬೇಕು?',
                     descEn: '1. Check guidance value on Kaveri portal for that area\n2. Compare with similar properties on MagicBricks / 99acres\n3. If asking price is 2× guidance value — negotiate or walk away\n4. For apartments: demand builder\'s cost sheet (land + construction + profit)',
                     descKn: '1. Kaveri ಪೋರ್ಟಲ್‌ನಲ್ಲಿ ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ ನೋಡಿ\n2. MagicBricks / 99acres ನಲ್ಲಿ ಹೋಲಿಸಿ\n3. ಬೆಲೆ ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯದ 2 ಪಟ್ಟು ಇದ್ದರೆ — ಚೌಕಾಸಿ ಮಾಡಿ',
-                    color: const Color(0xFF0D47A1),
+                    color: AppColors.arthBlue,
                   ),
                   const SizedBox(height: 12),
                   SizedBox(

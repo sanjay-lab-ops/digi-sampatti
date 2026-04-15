@@ -24,7 +24,7 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
   const BuyerFinancialProfileScreen({super.key, required this.profile});
 
   Color get _scoreColor {
-    if (profile.finSelfScore >= 750) return const Color(0xFF00a878);
+    if (profile.finSelfScore >= 750) return AppColors.emerald;
     if (profile.finSelfScore >= 650) return const Color(0xFF1a6dff);
     if (profile.finSelfScore >= 550) return Colors.orange.shade700;
     return Colors.red;
@@ -159,17 +159,17 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
   Widget _buildIncomeBreakdown() => _card(
     title: 'Verified Income',
     icon: Icons.account_balance_wallet_outlined,
-    color: const Color(0xFF00a878),
+    color: AppColors.emerald,
     child: Column(children: [
       ...profile.incomeSources.map((s) => _row(
         s.name,
         _fmt(s.monthly),
         sub: s.verified,
-        color: const Color(0xFF00a878),
+        color: AppColors.emerald,
       )),
       const Divider(height: 20),
       _row('Total Monthly Income', profile.monthlyIncomeLabel,
-          bold: true, color: const Color(0xFF00a878)),
+          bold: true, color: AppColors.emerald),
       _row('Existing EMIs', '-${_fmt(profile.existingEmiPerMonth)}',
           color: Colors.orange),
       _row('Regular Expenses', '-${_fmt(profile.averageMonthlyExpenses)}',
@@ -253,12 +253,12 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: loan.preApproved
-              ? const Color(0xFF00a878).withOpacity(0.05)
+              ? AppColors.emerald.withOpacity(0.05)
               : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: loan.preApproved
-                ? const Color(0xFF00a878).withOpacity(0.4)
+                ? AppColors.emerald.withOpacity(0.4)
                 : Colors.grey.shade200,
           ),
         ),
@@ -272,13 +272,13 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00a878).withOpacity(0.1),
+                    color: AppColors.emerald.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF00a878).withOpacity(0.3)),
+                    border: Border.all(color: AppColors.emerald.withOpacity(0.3)),
                   ),
                   child: const Text('PRE-APPROVED',
                       style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold,
-                          color: Color(0xFF00a878))),
+                          color: AppColors.emerald)),
                 ),
             ]),
             const SizedBox(height: 6),
@@ -344,7 +344,7 @@ class BuyerFinancialProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 14),
         Row(children: [
-          Expanded(child: _packageTag('Property Risk: Verified', const Color(0xFF00a878))),
+          Expanded(child: _packageTag('Property Risk: Verified', AppColors.emerald)),
           const SizedBox(width: 8),
           Expanded(child: _packageTag('Buyer Score: ${profile.finSelfScore}/900', Colors.amber)),
         ]),

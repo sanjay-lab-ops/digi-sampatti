@@ -79,7 +79,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('NRI Property Guide'),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.arthBlue,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -92,17 +92,17 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
 
             // ── Tab-style sections ────────────────────────────────────────
             _sectionHeader('NRI Buying', Icons.shopping_cart_outlined,
-                const Color(0xFF0D47A1)),
+                AppColors.arthBlue),
             _buildNriBuyingRules(),
             const SizedBox(height: 20),
 
             _sectionHeader('Stamp Duty Calculator',
-                Icons.calculate_outlined, const Color(0xFF1B5E20)),
+                Icons.calculate_outlined, AppColors.primary),
             _buildStampDutyCalc(),
             const SizedBox(height: 20),
 
             _sectionHeader('TDS on NRI Seller',
-                Icons.account_balance_outlined, const Color(0xFF880E4F)),
+                Icons.account_balance_outlined, AppColors.seller),
             _buildTdsSection(),
             const SizedBox(height: 20),
 
@@ -112,7 +112,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
             const SizedBox(height: 20),
 
             _sectionHeader('Power of Attorney (NRI Can\'t Visit)',
-                Icons.person_pin_outlined, const Color(0xFF37474F)),
+                Icons.person_pin_outlined, AppColors.slate),
             _buildPoaGuide(),
             const SizedBox(height: 20),
 
@@ -131,7 +131,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
-          colors: [Color(0xFF0D47A1), Color(0xFF1565C0)]),
+          colors: [AppColors.arthBlue, AppColors.info]),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Column(
@@ -229,10 +229,10 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF0D47A1).withOpacity(0.1),
+                color: AppColors.arthBlue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(r.$1, color: const Color(0xFF0D47A1), size: 18),
+              child: Icon(r.$1, color: AppColors.arthBlue, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(
@@ -280,7 +280,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
           Switch(
             value: _isFemale,
             onChanged: (v) => setState(() => _isFemale = v),
-            activeColor: const Color(0xFF1B5E20),
+            activeColor: AppColors.primary,
           ),
         ]),
         const SizedBox(height: 4),
@@ -321,9 +321,9 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF880E4F).withOpacity(0.07),
+            color: AppColors.seller.withOpacity(0.07),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF880E4F).withOpacity(0.3)),
+            border: Border.all(color: AppColors.seller.withOpacity(0.3)),
           ),
           child: const Text(
             'If SELLER is an NRI:\n'
@@ -332,7 +332,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
             'For short-term gain (< 2 years): 33.99%\n\n'
             'If buyer fails to deduct TDS → buyer faces penalty + interest from IT dept.',
             style: TextStyle(fontSize: 12, height: 1.5,
-                color: Color(0xFF880E4F)),
+                color: AppColors.seller),
           ),
         ),
         const SizedBox(height: 14),
@@ -381,7 +381,7 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
             ].map((s) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(children: [
-                const Icon(Icons.circle, size: 5, color: Color(0xFF880E4F)),
+                const Icon(Icons.circle, size: 5, color: AppColors.seller),
                 const SizedBox(width: 8),
                 Expanded(child: Text(s, style: const TextStyle(fontSize: 12))),
               ]),
@@ -399,8 +399,8 @@ class _NriStampDutyScreenState extends ConsumerState<NriStampDutyScreen> {
                 icon: const Icon(Icons.open_in_browser, size: 14),
                 label: const Text('File Form 27Q on Income Tax Portal →'),
                 style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF880E4F),
-                    side: const BorderSide(color: Color(0xFF880E4F))),
+                    foregroundColor: AppColors.seller,
+                    side: const BorderSide(color: AppColors.seller)),
               ),
             ),
           ],

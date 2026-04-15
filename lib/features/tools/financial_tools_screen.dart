@@ -25,7 +25,7 @@ class FinancialToolsScreen extends StatelessWidget {
               () => context.push('/tools/emi')),
             const SizedBox(height: 10),
             _buildCard(context, Icons.receipt_long, 'Total Cost Calculator',
-              'Property price + stamp duty + registration + interior', const Color(0xFF7C3AED),
+              'Property price + stamp duty + registration + interior', AppColors.violet,
               () => context.push('/tools/total-cost')),
             const SizedBox(height: 10),
             _buildCard(context, Icons.account_balance, 'Property Tax Estimator',
@@ -46,7 +46,7 @@ class FinancialToolsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          colors: [AppColors.primary, AppColors.safe],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

@@ -68,14 +68,14 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
   late final AnimationController _pulseCtrl;
 
   final List<_PortalResult> _portals = [
-    _PortalResult(name: 'Bhoomi RTC',    icon: Icons.article_outlined,       color: const Color(0xFF1B5E20)),
-    _PortalResult(name: 'Kaveri EC',     icon: Icons.account_balance_outlined, color: const Color(0xFF0D47A1)),
-    _PortalResult(name: 'RERA',          icon: Icons.verified_outlined,        color: const Color(0xFF4A148C)),
-    _PortalResult(name: 'eCourts',       icon: Icons.gavel_outlined,           color: const Color(0xFFBF360C)),
-    _PortalResult(name: 'BBMP / Khata',  icon: Icons.location_city_outlined,   color: const Color(0xFF1565C0)),
-    _PortalResult(name: 'CERSAI',        icon: Icons.lock_outlined,            color: const Color(0xFF880E4F)),
-    _PortalResult(name: 'Guidance Value',icon: Icons.attach_money,             color: const Color(0xFF006064)),
-    _PortalResult(name: 'FMB Sketch',    icon: Icons.map_outlined,             color: const Color(0xFF37474F)),
+    _PortalResult(name: 'Bhoomi RTC',    icon: Icons.article_outlined,       color: AppColors.primary),
+    _PortalResult(name: 'Kaveri EC',     icon: Icons.account_balance_outlined, color: AppColors.arthBlue),
+    _PortalResult(name: 'RERA',          icon: Icons.verified_outlined,        color: AppColors.esign),
+    _PortalResult(name: 'eCourts',       icon: Icons.gavel_outlined,           color: AppColors.deepOrange),
+    _PortalResult(name: 'BBMP / Khata',  icon: Icons.location_city_outlined,   color: AppColors.info),
+    _PortalResult(name: 'CERSAI',        icon: Icons.lock_outlined,            color: AppColors.seller),
+    _PortalResult(name: 'Guidance Value',icon: Icons.attach_money,             color: AppColors.teal),
+    _PortalResult(name: 'FMB Sketch',    icon: Icons.map_outlined,             color: AppColors.slate),
   ];
 
   @override
@@ -399,7 +399,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       case 'SAFE':     return AppColors.safe;
       case 'CAUTION':  return Colors.orange;
       case 'HIGH':     return Colors.red;
-      case 'CRITICAL': return const Color(0xFF7B0000);
+      case 'CRITICAL': return AppColors.critical;
       default:         return Colors.grey;
     }
   }
@@ -503,7 +503,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                               ? 'Fetching from Bhoomi...'
                               : 'Fetch from Bhoomi (on device)'),
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1B5E20)),
+                              backgroundColor: AppColors.primary),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -534,7 +534,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 label: const Text('View All Records'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 52),
-                  backgroundColor: const Color(0xFF0D47A1),
+                  backgroundColor: AppColors.arthBlue,
                 ),
               ),
               const SizedBox(height: 10),
@@ -553,8 +553,8 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 label: const Text('Verify Seller (KYC + Trust Score)'),
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52),
-                    foregroundColor: const Color(0xFF1B5E20),
-                    side: const BorderSide(color: Color(0xFF1B5E20))),
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary)),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
@@ -571,8 +571,8 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 label: const Text('Book Field Inspection'),
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52),
-                    foregroundColor: const Color(0xFF37474F),
-                    side: const BorderSide(color: Color(0xFF37474F))),
+                    foregroundColor: AppColors.slate,
+                    side: const BorderSide(color: AppColors.slate)),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
@@ -613,7 +613,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          colors: [AppColors.primary, AppColors.safe],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -831,31 +831,31 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             context,
             portal: GovPortal.bhoomi,
             label: 'Open Bhoomi on Device (Real RTC Data)',
-            color: const Color(0xFF1B5E20),
+            color: AppColors.primary,
           ),
           if (isKaveriBlocked) _onDeviceButton(
             context,
             portal: GovPortal.kaveri,
             label: 'Open Kaveri EC on Device (Real Data)',
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
           ),
           if (isFmbBlocked) _onDeviceButton(
             context,
             portal: GovPortal.dishank,
             label: 'Open FMB / Sketch Map on Device',
-            color: const Color(0xFF37474F),
+            color: AppColors.slate,
           ),
           if (isCersaiBlocked) _onDeviceButton(
             context,
             portal: GovPortal.cersai,
             label: 'Open CERSAI in Browser (Bank Mortgage)',
-            color: const Color(0xFF880E4F),
+            color: AppColors.seller,
           ),
           if (isBbmpBlocked) _onDeviceButton(
             context,
             portal: GovPortal.bbmp,
             label: 'Open BBMP e-Aasthi (Khata Check)',
-            color: const Color(0xFF1565C0),
+            color: AppColors.info,
           ),
           if (isBhoomiBlocked || isKaveriBlocked || isFmbBlocked || isCersaiBlocked || isBbmpBlocked)
             const SizedBox(height: 10),
@@ -1096,7 +1096,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       children: [
         const Row(
           children: [
-            Icon(Icons.account_balance, size: 18, color: Color(0xFF1B5E20)),
+            Icon(Icons.account_balance, size: 18, color: AppColors.primary),
             SizedBox(width: 8),
             Expanded(
               child: Text('ಸರ್ಕಾರಿ ದಾಖಲೆಗಳು  /  Raw Government Records',
@@ -1121,7 +1121,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             : _buildUnavailableCard(
                 'Bhoomi RTC  /  ಪಹಣಿ',
                 'Bhoomi portal did not respond. Survey No: ${scan?.surveyNumber ?? "—"}',
-                Icons.article_outlined, const Color(0xFF1B5E20)),
+                Icons.article_outlined, AppColors.primary),
 
         const SizedBox(height: 10),
 
@@ -1132,7 +1132,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
                 'Kaveri portal is currently unavailable (frequent maintenance). '
                 'Verify EC manually at kaveri.karnataka.gov.in',
-                Icons.account_balance_outlined, const Color(0xFF0D47A1),
+                Icons.account_balance_outlined, AppColors.arthBlue,
                 isKaveriDown: true),
 
         const SizedBox(height: 10),
@@ -1143,7 +1143,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             : _buildUnavailableCard(
                 'eCourts India  /  ನ್ಯಾಯಾಲಯ',
                 'eCourts search was not reachable. Check manually at services.ecourts.gov.in',
-                Icons.gavel_outlined, const Color(0xFFBF360C)),
+                Icons.gavel_outlined, AppColors.deepOrange),
 
         const SizedBox(height: 10),
 
@@ -1154,7 +1154,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                 'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
                 'CERSAI requires OTP login and cannot be automated. '
                 'Ask the seller to provide CERSAI screenshot, or check at cersai.org.in',
-                Icons.lock_outline, const Color(0xFF37474F),
+                Icons.lock_outline, AppColors.slate,
                 isCersaiLogin: true),
 
         const SizedBox(height: 10),
@@ -1182,7 +1182,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       decoration: BoxDecoration(
         color: const Color(0xFFF1F8E9),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1190,18 +1190,18 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF1B5E20).withOpacity(0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             child: const Row(
               children: [
-                Icon(Icons.compare_arrows, size: 16, color: Color(0xFF1B5E20)),
+                Icon(Icons.compare_arrows, size: 16, color: AppColors.primary),
                 SizedBox(width: 8),
                 Text('Scanned Document  vs  Live Portal',
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: Color(0xFF1B5E20))),
+                        color: AppColors.primary)),
               ],
             ),
           ),
@@ -1225,7 +1225,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1B5E20))),
+                              color: AppColors.primary)),
                     ),
                   ],
                 ),
@@ -1260,7 +1260,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       title: 'Bhoomi RTC  /  ಪಹಣಿ',
       subtitle: 'Record of Rights, Tenancy & Crops',
       icon: Icons.article_outlined,
-      color: const Color(0xFF1B5E20),
+      color: AppColors.primary,
       children: [
         _RawRow('Survey No.',   _val(rtc['survey_number']).isNotEmpty ? _val(rtc['survey_number']) : '—'),
         if (village.isNotEmpty)   _RawRow('Village / ಗ್ರಾಮ', village),
@@ -1285,7 +1285,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       title: 'Kaveri EC  /  ಋಣ ಪ್ರಮಾಣಪತ್ರ',
       subtitle: 'Encumbrance Certificate — last 25 years',
       icon: Icons.account_balance_outlined,
-      color: const Color(0xFF0D47A1),
+      color: AppColors.arthBlue,
       children: [
         _RawRow('EC Status',
           free ? 'Encumbrance Free ✓' : '$count transaction(s) on record',
@@ -1314,7 +1314,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       title: 'eCourts India  /  ನ್ಯಾಯಾಲಯ',
       subtitle: 'Active civil/criminal cases on owner name',
       icon: Icons.gavel_outlined,
-      color: const Color(0xFFBF360C),
+      color: AppColors.deepOrange,
       children: [
         _RawRow('Litigation',
           hasCases ? '$count case(s) found — verify before buying' : 'No cases found ✓',
@@ -1332,7 +1332,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       title: 'CERSAI  /  ಒತ್ತೆ ನೋಂದಣಿ',
       subtitle: 'Central Registry — bank mortgage & liens',
       icon: Icons.lock_outline,
-      color: const Color(0xFF37474F),
+      color: AppColors.slate,
       children: [
         _RawRow('Mortgage',
           mortgaged ? 'Active charge registered ⚠' : 'No lien / charge found ✓',
@@ -1351,7 +1351,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
       title: 'Guidance Value  /  ಮಾರ್ಗದರ್ಶಿ ಮೌಲ್ಯ',
       subtitle: 'Karnataka IGR — minimum stamp duty rate',
       icon: Icons.currency_rupee,
-      color: const Color(0xFF006064),
+      color: AppColors.teal,
       children: [
         _RawRow('Rate',
           val != null ? '₹$val / sqft' : '—'),
@@ -1568,7 +1568,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
             final pattern = p as Map<String, dynamic>;
             final sev = pattern['severity'] as String? ?? 'CAUTION';
             final Color sevColor = sev == 'CRITICAL'
-                ? const Color(0xFF7B0000)
+                ? AppColors.critical
                 : sev == 'HIGH'
                     ? Colors.red
                     : Colors.orange;
@@ -1826,7 +1826,7 @@ class _SectionLabel extends StatelessWidget {
         style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF37474F)));
+            color: AppColors.slate));
   }
 }
 
@@ -1848,7 +1848,7 @@ class _NextStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = done
-        ? const Color(0xFF1B5E20)
+        ? AppColors.primary
         : isWarning
             ? Colors.red.shade700
             : Colors.grey.shade700;
@@ -1907,7 +1907,7 @@ class _CompRow extends StatelessWidget {
     final rowColor = matched == null
         ? null
         : matched
-            ? const Color(0xFFE8F5E9)
+            ? AppColors.surfaceGreen
             : const Color(0xFFFFEBEE);
 
     return Container(
@@ -1921,7 +1921,7 @@ class _CompRow extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF37474F))),
+                    color: AppColors.slate)),
           ),
           Expanded(
             child: Text(scanned,
@@ -1935,14 +1935,14 @@ class _CompRow extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: matched == false
                         ? Colors.red.shade700
-                        : const Color(0xFF1B5E20))),
+                        : AppColors.primary)),
           ),
           if (matched != null)
             Icon(
               matched ? Icons.check : Icons.close,
               size: 14,
               color: matched
-                  ? const Color(0xFF1B5E20)
+                  ? AppColors.primary
                   : Colors.red.shade700,
             ),
         ],

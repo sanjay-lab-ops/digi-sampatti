@@ -90,7 +90,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             _buildPlanCard(
               title: 'Basic',
               badge: 'PER REPORT',
-              price: '₹99',
+              price: '₹499',
               period: 'per report',
               color: AppColors.info,
               features: const [
@@ -101,15 +101,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 'Apply & Track — Mutation · EC · RERA · Sakala',
                 'Buying Journey checklist',
               ],
-              buttonText: 'Buy Report — ₹99',
-              onTap: () => _pay(99, 'DigiSampatti — Basic Report'),
+              buttonText: 'Buy Report — ₹499',
+              onTap: () => _pay(499, 'DigiSampatti — Basic Report'),
               isPopular: false,
             ),
             const SizedBox(height: 12),
             _buildPlanCard(
               title: 'Standard',
               badge: 'MONTHLY',
-              price: '₹299',
+              price: '₹999',
               period: 'per month',
               color: const Color(0xFF6A1B9A),
               features: const [
@@ -120,15 +120,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 'Report history saved permanently',
                 'Cancel anytime',
               ],
-              buttonText: 'Subscribe Standard — ₹299/mo',
-              onTap: () => _pay(299, 'DigiSampatti — Standard Plan'),
+              buttonText: 'Subscribe Standard — ₹999/mo',
+              onTap: () => _pay(999, 'DigiSampatti — Standard Plan'),
               isPopular: false,
             ),
             const SizedBox(height: 12),
             _buildPlanCard(
               title: 'Premium',
               badge: 'MOST POPULAR',
-              price: '₹699',
+              price: '₹1,999',
               period: 'per month',
               color: AppColors.primary,
               features: const [
@@ -139,17 +139,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 'Priority WhatsApp support',
                 'Broker branded reports',
               ],
-              buttonText: 'Subscribe Premium — ₹699/mo',
-              onTap: () => _pay(699, 'DigiSampatti — Premium Plan'),
+              buttonText: 'Subscribe Premium — ₹1,999/mo',
+              onTap: () => _pay(1999, 'DigiSampatti — Premium Plan'),
               isPopular: true,
             ),
             const SizedBox(height: 12),
             _buildPlanCard(
               title: 'NRI Pro',
               badge: 'FOR NRIs',
-              price: '₹999',
+              price: '₹2,999',
               period: 'per month',
-              color: const Color(0xFF0D47A1),
+              color: AppColors.arthBlue,
               features: const [
                 'Unlimited reports — all features',
                 '2 Ground Verifications per month',
@@ -158,8 +158,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 'POA guidance + lawyer referral',
                 'USD / AED invoice on request',
               ],
-              buttonText: 'Subscribe NRI Pro — ₹999/mo',
-              onTap: () => _pay(999, 'DigiSampatti — NRI Pro Plan'),
+              buttonText: 'Subscribe NRI Pro — ₹2,999/mo',
+              onTap: () => _pay(2999, 'DigiSampatti — NRI Pro Plan'),
               isPopular: false,
             ),
             const SizedBox(height: 12),
@@ -203,16 +203,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: AppColors.surfaceGreen,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
-              color: Color(0xFF1B5E20),
+              color: AppColors.primary,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
@@ -224,7 +224,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               children: [
                 Text('Free — Always',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15,
-                        color: Color(0xFF1B5E20))),
+                        color: AppColors.primary)),
                 SizedBox(height: 4),
                 Text('1 free report/month for everyone\nPermanent free access for BPL · SC/ST · Tribal users',
                     style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
@@ -325,20 +325,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A237E).withOpacity(0.05),
+        color: AppColors.indigo.withOpacity(0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1A237E).withOpacity(0.2)),
+        border: Border.all(color: AppColors.indigo.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.people, color: Color(0xFF1A237E), size: 32),
+          const Icon(Icons.people, color: AppColors.indigo, size: 32),
           const SizedBox(width: 12),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Broker / Agency Plan',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1A237E))),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.indigo)),
                 SizedBox(height: 3),
                 Text('Custom pricing for teams with 5+ users. Volume discounts available.',
                   style: TextStyle(fontSize: 12, color: AppColors.textLight, height: 1.4)),

@@ -166,7 +166,7 @@ class _PropertyProfileSheetState extends ConsumerState<_PropertyProfileSheet> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: (widget.isSeller
-                          ? const Color(0xFF880E4F)
+                          ? AppColors.seller
                           : AppColors.primary)
                       .withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
@@ -354,7 +354,7 @@ class _PropertyProfileSheetState extends ConsumerState<_PropertyProfileSheet> {
                       label: const Text('Save & Continue'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.isSeller
-                            ? const Color(0xFF880E4F) : AppColors.primary,
+                            ? AppColors.seller : AppColors.primary,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 52),
                         shape: RoundedRectangleBorder(

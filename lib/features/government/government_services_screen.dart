@@ -484,9 +484,9 @@ class _ServiceDetails extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.08),
+              color: AppColors.primaryLight.withOpacity(0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.2)),
+              border: Border.all(color: AppColors.primaryLight.withOpacity(0.2)),
             ),
             child: Row(
               children: [
@@ -495,7 +495,7 @@ class _ServiceDetails extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Survey $surveyNumber data pre-filled from your verification report',
-                    style: const TextStyle(fontSize: 9, color: Color(0xFF4CAF50)),
+                    style: const TextStyle(fontSize: 9, color: AppColors.primaryLight),
                   ),
                 ),
               ],

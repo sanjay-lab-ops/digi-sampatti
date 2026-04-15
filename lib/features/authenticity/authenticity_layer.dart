@@ -64,7 +64,7 @@ class EvidenceItem {
 
   Color get confidenceColor => switch (confidence) {
     ConfidenceLevel.verified   => AppColors.safe,
-    ConfidenceLevel.high       => const Color(0xFF1565C0),
+    ConfidenceLevel.high       => AppColors.info,
     ConfidenceLevel.medium     => Colors.orange,
     ConfidenceLevel.low        => Colors.red.shade300,
     ConfidenceLevel.unverified => Colors.grey,
@@ -218,7 +218,7 @@ class _EvidenceCardState extends State<EvidenceCard> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0D47A1).withOpacity(0.06),
+                        color: AppColors.arthBlue.withOpacity(0.06),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Column(
@@ -227,7 +227,7 @@ class _EvidenceCardState extends State<EvidenceCard> {
                           const Text('Verify this independently:',
                               style: TextStyle(fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0D47A1))),
+                                  color: AppColors.arthBlue)),
                           if (e.verifyInstructions != null) ...[
                             const SizedBox(height: 3),
                             Text(e.verifyInstructions!,
@@ -291,9 +291,9 @@ class AnalysisAuthenticitySummary extends StatelessWidget {
           Row(children: [
             _stat('$portalsVerified', 'Portals\nchecked', AppColors.safe),
             const SizedBox(width: 12),
-            _stat('$documentsChecked', 'Documents\nread', const Color(0xFF0D47A1)),
+            _stat('$documentsChecked', 'Documents\nread', AppColors.arthBlue),
             const SizedBox(width: 12),
-            _stat('$aiExtracted', 'AI findings\nextracted', const Color(0xFF4A148C)),
+            _stat('$aiExtracted', 'AI findings\nextracted', AppColors.esign),
           ]),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -304,16 +304,16 @@ class AnalysisAuthenticitySummary extends StatelessWidget {
               AppColors.safe),
           _chainStep(Icons.auto_awesome, 'Claude AI reads documents',
               'claude-sonnet-4-6 extracts data from every document — any Indian language',
-              const Color(0xFF4A148C)),
+              AppColors.esign),
           _chainStep(Icons.rule, '30+ rules checked',
               'Deterministic rule engine checks: injunctions, loans, land type, encumbrances',
-              const Color(0xFF0D47A1)),
+              AppColors.arthBlue),
           _chainStep(Icons.score, 'Risk score calculated',
               'Each risk deducts from 100. Score is transparent — see what reduced it',
               Colors.orange),
           _chainStep(Icons.fingerprint, 'Report sealed',
               'Report ID: $reportId · ${_dateStr(analysisTime)} · Tamper-evident',
-              const Color(0xFF1B5E20)),
+              AppColors.primary),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(10),

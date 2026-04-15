@@ -43,7 +43,7 @@ class _NriModeScreenState extends ConsumerState<NriModeScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('NRI Property Guide'),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.arthBlue,
         foregroundColor: Colors.white,
         actions: [
           Padding(
@@ -107,7 +107,7 @@ class _NriOffScreen extends StatelessWidget {
             const SizedBox(height: 20),
             const Text('NRI Mode',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D47A1))),
+                    color: AppColors.arthBlue)),
             const SizedBox(height: 12),
             const Text(
               'Turn on NRI Mode to see:\n'
@@ -124,7 +124,7 @@ class _NriOffScreen extends StatelessWidget {
               icon: const Icon(Icons.flight_takeoff),
               label: const Text('Turn On NRI Mode'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1),
+                backgroundColor: AppColors.arthBlue,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -136,8 +136,8 @@ class _NriOffScreen extends StatelessWidget {
               icon: const Icon(Icons.calculate_outlined),
               label: const Text('Stamp Duty + FEMA + TDS Calculator'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF0D47A1),
-                side: const BorderSide(color: Color(0xFF0D47A1)),
+                foregroundColor: AppColors.arthBlue,
+                side: const BorderSide(color: AppColors.arthBlue),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -167,7 +167,7 @@ class _OverviewTab extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
@@ -178,7 +178,7 @@ class _OverviewTab extends ConsumerWidget {
               const SizedBox(height: 8),
               DropdownButton<String>(
                 value: country,
-                dropdownColor: const Color(0xFF0D47A1),
+                dropdownColor: AppColors.arthBlue,
                 isExpanded: true,
                 underline: const SizedBox(),
                 style: const TextStyle(color: Colors.white, fontSize: 15),
@@ -191,7 +191,7 @@ class _OverviewTab extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 8),
-              Text('Report fee: ${countryData.$3} $price99 (₹99)',
+              Text('Report fee: ${countryData.$3} $price99 (₹499)',
                   style: const TextStyle(color: Colors.amber, fontSize: 13,
                       fontWeight: FontWeight.bold)),
             ],
@@ -202,7 +202,7 @@ class _OverviewTab extends ConsumerWidget {
         // What NRIs can buy
         _SectionCard(
           icon: Icons.home,
-          color: const Color(0xFF1B5E20),
+          color: AppColors.primary,
           title: 'What NRIs Can Buy in India',
           child: Column(
             children: const [
@@ -221,7 +221,7 @@ class _OverviewTab extends ConsumerWidget {
         // Payment rules
         _SectionCard(
           icon: Icons.account_balance,
-          color: const Color(0xFF0D47A1),
+          color: AppColors.arthBlue,
           title: 'Payment Rules (FEMA)',
           child: Column(
             children: const [
@@ -239,7 +239,7 @@ class _OverviewTab extends ConsumerWidget {
         // Power of Attorney
         _SectionCard(
           icon: Icons.description,
-          color: const Color(0xFF4A148C),
+          color: AppColors.esign,
           title: 'Power of Attorney (POA)',
           child: Column(
             children: const [
@@ -296,7 +296,7 @@ class _FemaTab extends StatelessWidget {
       children: [
         _FemaCard(
           title: '1. Before Buying',
-          color: const Color(0xFF1B5E20),
+          color: AppColors.primary,
           items: const [
             'Verify property title with DigiSampatti — before paying advance',
             'Check property is residential or commercial (not agricultural)',
@@ -308,7 +308,7 @@ class _FemaTab extends StatelessWidget {
         const SizedBox(height: 12),
         _FemaCard(
           title: '2. Payment Compliance',
-          color: const Color(0xFF0D47A1),
+          color: AppColors.arthBlue,
           items: const [
             'Open NRE account (for repatriable funds) or NRO account',
             'Transfer money from abroad via banking channel only',
@@ -320,7 +320,7 @@ class _FemaTab extends StatelessWidget {
         const SizedBox(height: 12),
         _FemaCard(
           title: '3. During Registration',
-          color: const Color(0xFF4A148C),
+          color: AppColors.esign,
           items: const [
             'POA holder attends Sub-Registrar Office on your behalf',
             'Stamp duty same as resident Indians',
@@ -388,12 +388,12 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: AppColors.surfaceGreen,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1B5E20), width: 2),
+                  border: Border.all(color: AppColors.primary, width: 2),
                 ),
                 child: const Icon(Icons.check_circle,
-                    color: Color(0xFF1B5E20), size: 48),
+                    color: AppColors.primary, size: 48),
               ),
               const SizedBox(height: 20),
               const Text('Verification Request Submitted',
@@ -409,7 +409,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               const SizedBox(height: 24),
               const Text('Request ID: DS-NRI-2026-1001',
                   style: TextStyle(fontWeight: FontWeight.bold,
-                      color: Color(0xFF0D47A1))),
+                      color: AppColors.arthBlue)),
               const SizedBox(height: 24),
               OutlinedButton(
                 onPressed: () => setState(() => _submitted = false),
@@ -427,7 +427,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Column(
@@ -576,7 +576,7 @@ class _PricingTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
@@ -599,7 +599,7 @@ class _PricingTab extends StatelessWidget {
         const SizedBox(height: 16),
         _PriceCard(
           title: 'Single Report',
-          inr: '₹99',
+          inr: '₹499',
           foreign: '$curr ${(99 / rate).toStringAsFixed(2)}',
           features: const [
             'Full legal verification report',
@@ -608,7 +608,7 @@ class _PricingTab extends StatelessWidget {
             'FEMA compliance note',
             'PDF download + WhatsApp share',
           ],
-          color: const Color(0xFF1B5E20),
+          color: AppColors.primary,
         ),
         const SizedBox(height: 12),
         _PriceCard(
@@ -622,13 +622,13 @@ class _PricingTab extends StatelessWidget {
             'Full DigiSampatti report',
             'WhatsApp delivery in 2–3 days',
           ],
-          color: const Color(0xFF0D47A1),
+          color: AppColors.arthBlue,
           highlighted: true,
         ),
         const SizedBox(height: 12),
         _PriceCard(
           title: 'NRI Pro (Monthly)',
-          inr: '₹999/month',
+          inr: '₹1,999/month',
           foreign: '$curr ${(999 / rate).toStringAsFixed(2)}/mo',
           features: const [
             'Unlimited online reports',
@@ -637,7 +637,7 @@ class _PricingTab extends StatelessWidget {
             'Document storage — Property Locker',
             'POA guidance + lawyer referral',
           ],
-          color: const Color(0xFF4A148C),
+          color: AppColors.esign,
         ),
         const SizedBox(height: 16),
         Container(
@@ -820,14 +820,14 @@ class _HowItWorksCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: AppColors.surfaceGreen,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('How It Works', style: TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1B5E20))),
+              fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary)),
           const SizedBox(height: 10),
           ...[
             ('1', 'Submit request with survey no. + district'),
@@ -839,7 +839,7 @@ class _HowItWorksCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(children: [
               CircleAvatar(radius: 12,
-                  backgroundColor: const Color(0xFF1B5E20),
+                  backgroundColor: AppColors.primary,
                   child: Text(s.$1, style: const TextStyle(
                       color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
               const SizedBox(width: 10),

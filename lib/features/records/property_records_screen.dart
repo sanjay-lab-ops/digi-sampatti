@@ -8,7 +8,7 @@ import 'package:digi_sampatti/core/services/instamojo_service.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 
 // ─── Property Records Screen ──────────────────────────────────────────────────
-// Shows all raw government portal data on-screen for ₹99.
+// Shows all raw government portal data on-screen for ₹499.
 // Owner → Land Type → Extent → Khata → EC Transactions →
 // Court Cases → CERSAI → Guidance Value → FMB
 // ─────────────────────────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('What you get for ₹99',
+                const Text('What you get for ₹499',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 16),
                 ...[
@@ -240,7 +240,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
                 : const Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('View All Records — ₹99',
+                      Text('View All Records — ₹499',
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -267,7 +267,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           OutlinedButton.icon(
             onPressed: () => context.push('/report'),
             icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('Get PDF Report instead — ₹149'),
+            label: const Text('Get PDF Report instead — ₹499'),
             style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48)),
           ),
@@ -315,7 +315,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── Bhoomi RTC ──────────────────────────────────────────────────────
           _sectionHeader('Bhoomi RTC — Land Record',
-              Icons.article_outlined, const Color(0xFF1B5E20)),
+              Icons.article_outlined, AppColors.primary),
           _buildRtcCard(),
           _verifyBanner(
             'Bhoomi Portal',
@@ -326,7 +326,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── Kaveri EC ───────────────────────────────────────────────────────
           _sectionHeader('Kaveri EC — Encumbrance Certificate',
-              Icons.account_balance_outlined, const Color(0xFF0D47A1)),
+              Icons.account_balance_outlined, AppColors.arthBlue),
           _buildEcCard(),
           _verifyBanner(
             'Kaveri EC Portal',
@@ -337,7 +337,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── eCourts ─────────────────────────────────────────────────────────
           _sectionHeader('eCourts — Court Cases',
-              Icons.gavel_outlined, const Color(0xFFBF360C)),
+              Icons.gavel_outlined, AppColors.deepOrange),
           _buildCourtsCard(),
           _verifyBanner(
             'eCourts India',
@@ -348,7 +348,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── CERSAI ──────────────────────────────────────────────────────────
           _sectionHeader('CERSAI — Bank Mortgage Registry',
-              Icons.lock_outlined, const Color(0xFF880E4F)),
+              Icons.lock_outlined, AppColors.seller),
           _buildCersaiCard(),
           _verifyBanner(
             'CERSAI Portal',
@@ -359,7 +359,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── Guidance Value ──────────────────────────────────────────────────
           _sectionHeader('Guidance Value — IGR Karnataka',
-              Icons.attach_money, const Color(0xFF006064)),
+              Icons.attach_money, AppColors.teal),
           _buildGvCard(),
           _verifyBanner(
             'IGR Karnataka',
@@ -370,7 +370,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
 
           // ── FMB Sketch ──────────────────────────────────────────────────────
           _sectionHeader('FMB Sketch — Land Boundary Map',
-              Icons.map_outlined, const Color(0xFF37474F)),
+              Icons.map_outlined, AppColors.slate),
           _buildFmbCard(),
           _verifyBanner(
             'Bhoomi FMB',
@@ -384,7 +384,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                  colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)]),
+                  colors: [AppColors.primary, AppColors.safe]),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -425,22 +425,22 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
       margin: const EdgeInsets.only(top: 10, bottom: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D47A1).withOpacity(0.06),
+        color: AppColors.arthBlue.withOpacity(0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF0D47A1).withOpacity(0.2)),
+        border: Border.all(color: AppColors.arthBlue.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.compare_arrows, size: 16, color: Color(0xFF0D47A1)),
+              const Icon(Icons.compare_arrows, size: 16, color: AppColors.arthBlue),
               const SizedBox(width: 6),
               const Text('Verify this data yourself',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
-                      color: Color(0xFF0D47A1))),
+                      color: AppColors.arthBlue)),
             ],
           ),
           const SizedBox(height: 4),
@@ -460,8 +460,8 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
               label: Text('Open $portalName →',
                   style: const TextStyle(fontSize: 12)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF0D47A1),
-                side: const BorderSide(color: Color(0xFF0D47A1)),
+                foregroundColor: AppColors.arthBlue,
+                side: const BorderSide(color: AppColors.arthBlue),
                 minimumSize: const Size(0, 36),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
@@ -584,7 +584,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
     ];
     return ExpansionTile(
       initiallyExpanded: false,
-      leading: const Icon(Icons.school_outlined, color: Color(0xFF1B5E20)),
+      leading: const Icon(Icons.school_outlined, color: AppColors.primary),
       title: const Text('What do these documents mean?',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
       subtitle: const Text('Tap to understand each record — read before buying',
@@ -593,10 +593,10 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
       collapsedBackgroundColor: const Color(0xFFF1F8E9),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFF1B5E20), width: 0.5)),
+          side: const BorderSide(color: AppColors.primary, width: 0.5)),
       collapsedShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFF1B5E20), width: 0.5)),
+          side: const BorderSide(color: AppColors.primary, width: 0.5)),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -609,10 +609,10 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1B5E20).withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(s.$1, color: const Color(0xFF1B5E20), size: 18),
+                    child: Icon(s.$1, color: AppColors.primary, size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -676,19 +676,19 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF7B0000).withOpacity(0.07),
+              color: AppColors.critical.withOpacity(0.07),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF7B0000), width: 1.5),
+              border: Border.all(color: AppColors.critical, width: 1.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(children: [
-                  Icon(Icons.gavel, color: Color(0xFF7B0000), size: 22),
+                  Icon(Icons.gavel, color: AppColors.critical, size: 22),
                   SizedBox(width: 10),
                   Expanded(child: Text(
                     'CRITICAL: Court Injunction Recorded in RTC',
-                    style: TextStyle(color: Color(0xFF7B0000),
+                    style: TextStyle(color: AppColors.critical,
                         fontWeight: FontWeight.bold, fontSize: 15),
                   )),
                 ]),
@@ -697,13 +697,13 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7B0000).withOpacity(0.1),
+                      color: AppColors.critical.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text('Case: $caseNumber',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 13, color: Color(0xFF7B0000))),
+                            fontSize: 13, color: AppColors.critical)),
                   ),
                 ],
                 const SizedBox(height: 10),
@@ -736,7 +736,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
                       icon: const Icon(Icons.search, size: 16),
                       label: Text('Search "$caseNumber" on eCourts →'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7B0000),
+                        backgroundColor: AppColors.critical,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 40),
                       ),
@@ -888,7 +888,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           Color flagColor = Colors.grey.shade600;
           IconData flagIcon = Icons.history;
           String flagLabel = type.isNotEmpty ? type : 'Mutation ${idx + 1}';
-          if (isInjunction) { flagColor = const Color(0xFF7B0000); flagIcon = Icons.gavel; flagLabel = 'COURT INJUNCTION'; }
+          if (isInjunction) { flagColor = AppColors.critical; flagIcon = Icons.gavel; flagLabel = 'COURT INJUNCTION'; }
           else if (isAgreement) { flagColor = Colors.orange.shade800; flagIcon = Icons.handshake; flagLabel = 'AGREEMENT / TRANSFER'; }
           else if (isMortgage)  { flagColor = Colors.purple.shade700; flagIcon = Icons.lock; flagLabel = 'MORTGAGE / LOAN'; }
           else if (isCourtCase) { flagColor = Colors.red.shade700; flagIcon = Icons.account_balance; flagLabel = 'COURT CASE'; }
@@ -900,12 +900,12 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
-              color: isInjunction ? const Color(0xFF7B0000).withOpacity(0.05)
+              color: isInjunction ? AppColors.critical.withOpacity(0.05)
                    : isAgreement  ? Colors.orange.withOpacity(0.05)
                    : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isInjunction ? const Color(0xFF7B0000).withOpacity(0.4)
+                color: isInjunction ? AppColors.critical.withOpacity(0.4)
                      : isAgreement  ? Colors.orange.withOpacity(0.4)
                      : Colors.grey.shade200,
               ),
@@ -1181,7 +1181,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF006064)),
+              color: AppColors.teal),
         ),
         const SizedBox(height: 8),
         _row('Taluk', d['taluk']?.toString()),
@@ -1192,7 +1192,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           margin: const EdgeInsets.only(top: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF006064).withOpacity(0.07),
+            color: AppColors.teal.withOpacity(0.07),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Text(

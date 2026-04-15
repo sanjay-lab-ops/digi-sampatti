@@ -104,10 +104,10 @@ class AppStrings {
 
   // ─── Payment ───────────────────────────────────────────────────────────────
   static const String generateReport = 'Generate Report';
-  static const String reportPrice = '₹149';
+  static const String reportPrice = '₹499';
   static const String paymentSuccess = 'Payment Successful';
   static const String paymentFailed = 'Payment Failed';
-  static const String subscribeMonthly = 'Subscribe - ₹999/month';
+  static const String subscribeMonthly = 'Subscribe - ₹1,999/month';
   static const String unlimitedReports = 'Unlimited Reports';
 
   // ─── Error Messages ────────────────────────────────────────────────────────

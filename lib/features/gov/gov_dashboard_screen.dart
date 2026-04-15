@@ -18,7 +18,7 @@ class _GovDashboardScreenState extends State<GovDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.arthBlue,
         foregroundColor: Colors.white,
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -83,7 +83,7 @@ class _OverviewTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Row(
@@ -118,7 +118,7 @@ class _OverviewTab extends StatelessWidget {
         // Stats row
         Row(
           children: [
-            _StatCard('12', 'Reports\nThis Week', const Color(0xFF1B5E20)),
+            _StatCard('12', 'Reports\nThis Week', AppColors.primary),
             const SizedBox(width: 10),
             _StatCard('3', 'Pending\nGrievances', Colors.orange),
             const SizedBox(width: 10),
@@ -134,14 +134,14 @@ class _OverviewTab extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border:
-                Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+                Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Row(
                 children: [
-                  Icon(Icons.sync, color: Color(0xFF1B5E20), size: 18),
+                  Icon(Icons.sync, color: AppColors.primary, size: 18),
                   SizedBox(width: 8),
                   Text('Data Sync Status',
                       style: TextStyle(
@@ -169,7 +169,7 @@ class _OverviewTab extends StatelessWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: Color(0xFF0D47A1))),
+                color: AppColors.arthBlue)),
         const SizedBox(height: 8),
         _ActivityTile('Survey 45/2, Yelahanka',
             'Verified — Score 87/100', '2 hours ago', Icons.check_circle,
@@ -329,7 +329,7 @@ class _FraudTab extends StatelessWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: Color(0xFF0D47A1))),
+                color: AppColors.arthBlue)),
         const SizedBox(height: 8),
         _RuleCard('Same survey no. searched 3+ times in 24 hrs',
             'Possible double-sale attempt', Colors.red),
@@ -388,20 +388,20 @@ class _SignTabState extends State<_SignTab> {
               const SizedBox(height: 8),
               const Text('Report verified — all checks passed',
                   style: TextStyle(
-                      fontSize: 13, color: Color(0xFF1B5E20))),
+                      fontSize: 13, color: AppColors.primary)),
               const SizedBox(height: 12),
               if (_signed)
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: AppColors.surfaceGreen,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                        color: const Color(0xFF1B5E20).withOpacity(0.4)),
+                        color: AppColors.primary.withOpacity(0.4)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.verified, color: Color(0xFF1B5E20), size: 20),
+                      Icon(Icons.verified, color: AppColors.primary, size: 20),
                       SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -410,7 +410,7 @@ class _SignTabState extends State<_SignTab> {
                             Text('Digitally Signed',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1B5E20))),
+                                    color: AppColors.primary)),
                             Text(
                                 'Tahsildar, Bengaluru Urban • 26 Mar 2026\n'
                                 'Aadhaar-verified • Blockchain: tx-8f2a...3c1d',
@@ -427,7 +427,7 @@ class _SignTabState extends State<_SignTab> {
                   icon: const Icon(Icons.draw),
                   label: const Text('Sign with Aadhaar e-Sign'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D47A1),
+                    backgroundColor: AppColors.arthBlue,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 46),
                   ),
@@ -473,11 +473,11 @@ class _SignTabState extends State<_SignTab> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('Report signed and stored on blockchain'),
-                    backgroundColor: Color(0xFF1B5E20)),
+                    backgroundColor: AppColors.primary),
               );
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1)),
+                backgroundColor: AppColors.arthBlue),
             child: const Text('Sign Now',
                 style: TextStyle(color: Colors.white)),
           ),
@@ -561,7 +561,7 @@ class _SyncRow extends StatelessWidget {
           children: [
             Icon(
                 synced ? Icons.check_circle : Icons.pending,
-                color: synced ? const Color(0xFF1B5E20) : Colors.grey,
+                color: synced ? AppColors.primary : Colors.grey,
                 size: 14),
             const SizedBox(width: 8),
             Expanded(

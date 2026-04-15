@@ -114,7 +114,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Survey $effectiveSurveyNumber — Bhoomi Map'),
-          backgroundColor: const Color(0xFF1B5E20),
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -172,7 +172,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
       floatingActionButton: hasSurvey
           ? FloatingActionButton.extended(
               onPressed: () => setState(() => _showBhoomiMap = true),
-              backgroundColor: const Color(0xFF1B5E20),
+              backgroundColor: AppColors.primary,
               icon: const Icon(Icons.map, color: Colors.white),
               label: Text('Survey $effectiveSurveyNumber Boundary Map',
                   style: const TextStyle(color: Colors.white)),
@@ -208,7 +208,7 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen> {
               icon: const Icon(Icons.satellite_alt),
               label: Text('Open Survey $surveyNumber Map on Bhoomi'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B5E20),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),

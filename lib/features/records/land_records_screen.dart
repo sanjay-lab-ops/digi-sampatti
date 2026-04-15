@@ -165,7 +165,7 @@ class _RecordsView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            '₹99 — Pay after analysis',
+            '₹499 — Pay after analysis',
             style: TextStyle(color: AppColors.textLight, fontSize: 12),
             textAlign: TextAlign.center,
           ),
@@ -584,7 +584,7 @@ class _PortalVerifyCard extends StatelessWidget {
               _PortalButton(
                 label: 'Bhoomi RTC',
                 icon: Icons.article_outlined,
-                color: const Color(0xFF1B5E20),
+                color: AppColors.primary,
                 onTap: () => GovPortalLauncher.open(
                   context, GovPortal.bhoomi,
                   surveyNumber: survey, district: district, taluk: taluk,
@@ -593,7 +593,7 @@ class _PortalVerifyCard extends StatelessWidget {
               _PortalButton(
                 label: 'Kaveri EC',
                 icon: Icons.account_balance_outlined,
-                color: const Color(0xFF0D47A1),
+                color: AppColors.arthBlue,
                 onTap: () => GovPortalLauncher.open(
                   context, GovPortal.kaveri,
                   surveyNumber: survey, district: district, taluk: taluk,
@@ -602,25 +602,25 @@ class _PortalVerifyCard extends StatelessWidget {
               _PortalButton(
                 label: 'RERA',
                 icon: Icons.business_outlined,
-                color: const Color(0xFF4A148C),
+                color: AppColors.esign,
                 onTap: () => GovPortalLauncher.open(context, GovPortal.rera),
               ),
               _PortalButton(
                 label: 'eCourts',
                 icon: Icons.gavel_outlined,
-                color: const Color(0xFFBF360C),
+                color: AppColors.deepOrange,
                 onTap: () => GovPortalLauncher.open(context, GovPortal.eCourts),
               ),
               _PortalButton(
                 label: 'CERSAI',
                 icon: Icons.lock_outline,
-                color: const Color(0xFF37474F),
+                color: AppColors.slate,
                 onTap: () => GovPortalLauncher.open(context, GovPortal.cersai),
               ),
               _PortalButton(
                 label: 'Dishank Maps',
                 icon: Icons.map_outlined,
-                color: const Color(0xFF1565C0),
+                color: AppColors.info,
                 onTap: () => GovPortalLauncher.open(context, GovPortal.dishank),
               ),
             ],

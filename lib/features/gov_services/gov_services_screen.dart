@@ -29,7 +29,7 @@ class _GovService {
 
 const _services = [
   _GovService(
-    icon: Icons.verified_outlined, color: Color(0xFF1B5E20),
+    icon: Icons.verified_outlined, color: AppColors.primary,
     titleEn: 'Encumbrance Certificate (EC)', titleKn: 'ಭಾರ ಪ್ರಮಾಣಪತ್ರ (EC)',
     subtitleEn: 'Kaveri Online Services', subtitleKn: 'ಕಾವೇರಿ ಆನ್‌ಲೈನ್ ಸೇವೆಗಳು',
     whatYouGetEn: 'Proves property has no loans, legal charges, or disputes registered',
@@ -38,7 +38,7 @@ const _services = [
     department: 'Dept. of Stamps & Registration, Karnataka',
   ),
   _GovService(
-    icon: Icons.article_outlined, color: Color(0xFF0D47A1),
+    icon: Icons.article_outlined, color: AppColors.arthBlue,
     titleEn: 'RTC / Pahani (Land Record)', titleKn: 'ಆರ್‌ಟಿಸಿ / ಪಹಣಿ',
     subtitleEn: 'Bhoomi Online', subtitleKn: 'ಭೂಮಿ ಆನ್‌ಲೈನ್',
     whatYouGetEn: 'Official land ownership record — owner name, survey no., extent, crop details',
@@ -47,7 +47,7 @@ const _services = [
     department: 'Revenue Dept., Government of Karnataka',
   ),
   _GovService(
-    icon: Icons.swap_horiz, color: Color(0xFF4A148C),
+    icon: Icons.swap_horiz, color: AppColors.esign,
     titleEn: 'Mutation / Khata Transfer', titleKn: 'ಮ್ಯುಟೇಷನ್ / ಖಾತಾ ವರ್ಗಾವಣೆ',
     subtitleEn: 'SAKALA — Guaranteed Time-Bound Services', subtitleKn: 'ಸಕಾಲ — ಸಮಯ ಬದ್ಧ ಸೇವೆ',
     whatYouGetEn: 'Transfer property ownership in revenue records after sale/inheritance',
@@ -74,7 +74,7 @@ const _services = [
     department: 'Karnataka Real Estate Regulatory Authority',
   ),
   _GovService(
-    icon: Icons.gavel, color: Color(0xFF37474F),
+    icon: Icons.gavel, color: AppColors.slate,
     titleEn: 'Court Case Status', titleKn: 'ನ್ಯಾಯಾಲಯ ಪ್ರಕರಣ ಸ್ಥಿತಿ',
     subtitleEn: 'eCourts — National Judicial Data Grid', subtitleKn: 'eCourts — ರಾಷ್ಟ್ರೀಯ ನ್ಯಾಯಾಂಗ ದತ್ತಾಂಶ',
     whatYouGetEn: 'Check if property or owner has any pending court case in India',
@@ -83,7 +83,7 @@ const _services = [
     department: 'Ministry of Law & Justice, Govt. of India',
   ),
   _GovService(
-    icon: Icons.landscape, color: Color(0xFF1A237E),
+    icon: Icons.landscape, color: AppColors.indigo,
     titleEn: 'Land Use / Zone Certificate', titleKn: 'ಭೂ ಬಳಕೆ / ವಲಯ ಪ್ರಮಾಣಪತ್ರ',
     subtitleEn: 'e-Swathu / BDA / BBMP', subtitleKn: 'ಇ-ಸ್ವತ್ಥು / BDA / BBMP',
     whatYouGetEn: 'Confirm if land is agricultural, residential, or commercial — vital before buying',
@@ -110,7 +110,7 @@ const _services = [
     department: 'Deputy Commissioner Office, Karnataka',
   ),
   _GovService(
-    icon: Icons.receipt, color: Color(0xFF0D47A1),
+    icon: Icons.receipt, color: AppColors.arthBlue,
     titleEn: 'NOC from Bank (Loan Closure)', titleKn: 'ಬ್ಯಾಂಕ್ ನಿಂದ NOC',
     subtitleEn: 'After repaying home loan', subtitleKn: 'ಗೃಹ ಸಾಲ ತೀರಿಸಿದ ನಂತರ',
     whatYouGetEn: 'After repaying loan, bank must give NOC and release original documents within 30 days.',
@@ -119,7 +119,7 @@ const _services = [
     department: 'Your Bank (legally mandated — free of charge)',
   ),
   _GovService(
-    icon: Icons.crisis_alert, color: Color(0xFF880E4F),
+    icon: Icons.crisis_alert, color: AppColors.seller,
     titleEn: 'RERA Complaint — Builder Delay', titleKn: 'RERA ದೂರು — ಬಿಲ್ಡರ್ ವಿಳಂಬ',
     subtitleEn: 'Karnataka RERA — File Complaint', subtitleKn: 'ಕರ್ನಾಟಕ RERA — ದೂರು ದಾಖಲಿಸಿ',
     whatYouGetEn: 'File complaint against builder for delay, defects, or false promises. Compensation + interest enforced.',
@@ -128,7 +128,7 @@ const _services = [
     department: 'Karnataka Real Estate Regulatory Authority',
   ),
   _GovService(
-    icon: Icons.search, color: Color(0xFF37474F),
+    icon: Icons.search, color: AppColors.slate,
     titleEn: 'Benami Property Check', titleKn: 'ಬೇನಾಮಿ ಆಸ್ತಿ ತಪಾಸಣೆ',
     subtitleEn: 'Income Tax — Benami Portal', subtitleKn: 'ಆದಾಯ ತೆರಿಗೆ — ಬೇನಾಮಿ',
     whatYouGetEn: 'Check if property is flagged as benami. Report suspected benami property to Income Tax.',
@@ -199,7 +199,7 @@ const _grievances = [
     url: 'https://sakala.kar.nic.in',
   ),
   _GrievanceService(
-    icon: Icons.apartment, color: Color(0xFF4A148C),
+    icon: Icons.apartment, color: AppColors.esign,
     titleEn: 'Builder / RERA Violation Complaint',
     titleKn: 'ಬಿಲ್ಡರ್ / RERA ಉಲ್ಲಂಘನೆ ದೂರು',
     descEn: 'Karnataka RERA Complaint Portal',
@@ -209,7 +209,7 @@ const _grievances = [
     url: 'https://rera.karnataka.gov.in/viewComplaint',
   ),
   _GrievanceService(
-    icon: Icons.privacy_tip_outlined, color: Color(0xFF1B5E20),
+    icon: Icons.privacy_tip_outlined, color: AppColors.primary,
     titleEn: 'File RTI — Right to Information',
     titleKn: 'RTI ಸಲ್ಲಿಸಿ — ಮಾಹಿತಿ ಹಕ್ಕು',
     descEn: 'RTI Online — Central / State',
@@ -219,7 +219,7 @@ const _grievances = [
     url: 'https://rtionline.gov.in',
   ),
   _GrievanceService(
-    icon: Icons.record_voice_over_outlined, color: Color(0xFF37474F),
+    icon: Icons.record_voice_over_outlined, color: AppColors.slate,
     titleEn: 'CM Helpline / Jan Spandana',
     titleKn: 'ಸಿಎಂ ಹೆಲ್ಪ್‌ಲೈನ್ / ಜನ ಸ್ಪಂದನ',
     descEn: 'Karnataka CM Helpline 1902 — escalate unresolved issues',
@@ -351,20 +351,20 @@ class _GovServicesScreenState extends ConsumerState<GovServicesScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+              color: AppColors.surfaceGreen,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFF81C784)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.verified_user, color: Color(0xFF2E7D32), size: 18),
+                const Icon(Icons.verified_user, color: AppColors.safe, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     isKn
                         ? 'ಅಧಿಕೃತ ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗಳು. ಎಲ್ಲಾ ಅರ್ಜಿಗಳು ಸರ್ಕಾರಿ ಇಲಾಖೆಗಳು ನಿರ್ವಹಿಸುತ್ತವೆ.'
                         : 'Official Government portals only. All applications processed by Government departments.',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), height: 1.4),
+                    style: const TextStyle(fontSize: 12, color: AppColors.safe, height: 1.4),
                   ),
                 ),
               ],
@@ -720,14 +720,14 @@ class _GovServicesScreenState extends ConsumerState<GovServicesScreen>
             ),
             child: Row(
               children: [
-                const Icon(Icons.gavel, color: Color(0xFFC62828), size: 18),
+                const Icon(Icons.gavel, color: AppColors.danger, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     isKn
                         ? 'ಅಕ್ರಮ ಕಂಡರೆ ಅಧಿಕೃತ ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗಳ ಮೂಲಕ ದೂರು ಸಲ್ಲಿಸಿ.'
                         : 'If you find wrongdoing, file a complaint on official Government portals. Your rights are protected by law.',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFFC62828), height: 1.4),
+                    style: const TextStyle(fontSize: 12, color: AppColors.danger, height: 1.4),
                   ),
                 ),
               ],

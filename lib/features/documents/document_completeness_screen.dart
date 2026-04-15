@@ -274,14 +274,14 @@ class _DocumentCompletenessScreenState
                 _buildExplainer(),
                 const SizedBox(height: 20),
                 _buildDocGroup('Critical — Required for Analysis',
-                    critical, const Color(0xFF7B0000)),
+                    critical, AppColors.critical),
                 const SizedBox(height: 16),
                 _buildDocGroup('Important — Affects Accuracy',
                     important, Colors.orange.shade800),
                 if (optional.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildDocGroup('Optional — Adds Confidence',
-                      optional, const Color(0xFF1B5E20)),
+                      optional, AppColors.primary),
                 ],
                 const SizedBox(height: 24),
                 _buildProceedButton(),
@@ -349,19 +349,19 @@ class _DocumentCompletenessScreenState
   Widget _buildExplainer() => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: const Color(0xFF0D47A1).withOpacity(0.07),
+      color: AppColors.arthBlue.withOpacity(0.07),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF0D47A1).withOpacity(0.2)),
+      border: Border.all(color: AppColors.arthBlue.withOpacity(0.2)),
     ),
     child: const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Icon(Icons.info_outline, color: Color(0xFF0D47A1), size: 18),
+          Icon(Icons.info_outline, color: AppColors.arthBlue, size: 18),
           SizedBox(width: 8),
           Text('Why documents matter',
               style: TextStyle(fontWeight: FontWeight.bold,
-                  fontSize: 13, color: Color(0xFF0D47A1))),
+                  fontSize: 13, color: AppColors.arthBlue)),
         ]),
         SizedBox(height: 6),
         Text(
@@ -585,9 +585,9 @@ class _DocumentCompletenessScreenState
       DocLevel.optional  => 'OPTIONAL',
     };
     final color = switch (level) {
-      DocLevel.critical  => const Color(0xFF7B0000),
+      DocLevel.critical  => AppColors.critical,
       DocLevel.important => Colors.orange.shade800,
-      DocLevel.optional  => const Color(0xFF1B5E20),
+      DocLevel.optional  => AppColors.primary,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

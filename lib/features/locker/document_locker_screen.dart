@@ -126,14 +126,14 @@ class _DocumentLockerScreenState
   };
 
   static const _catColors = {
-    'rtc':        Color(0xFF1B5E20),
-    'ec':         Color(0xFF0D47A1),
-    'agreement':  Color(0xFF4A148C),
-    'inspection': Color(0xFF37474F),
-    'legal':      Color(0xFFBF360C),
+    'rtc':        AppColors.primary,
+    'ec':         AppColors.arthBlue,
+    'agreement':  AppColors.esign,
+    'inspection': AppColors.slate,
+    'legal':      AppColors.deepOrange,
     'deed':       Color(0xFF00695C),
-    'mutation':   Color(0xFF880E4F),
-    'tax':        Color(0xFF006064),
+    'mutation':   AppColors.seller,
+    'tax':        AppColors.teal,
   };
 
   @override

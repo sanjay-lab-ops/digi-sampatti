@@ -78,10 +78,10 @@ class GvEntry {
   };
 
   Color get zoneColor => switch (zone) {
-    1 => const Color(0xFF7B0000),
-    2 => const Color(0xFFBF360C),
-    3 => const Color(0xFF1B5E20),
-    4 => const Color(0xFF0D47A1),
+    1 => AppColors.critical,
+    2 => AppColors.deepOrange,
+    3 => AppColors.primary,
+    4 => AppColors.arthBlue,
     _ => Colors.grey.shade700,
   };
 }
@@ -590,11 +590,11 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
     color: Colors.white,
     padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
     child: Row(children: [
-      _modeChip(_GvMode.buyer,     '🏠 Buyer',     const Color(0xFF1B5E20)),
+      _modeChip(_GvMode.buyer,     '🏠 Buyer',     AppColors.primary),
       const SizedBox(width: 8),
-      _modeChip(_GvMode.seller,    '💰 Seller',    const Color(0xFF880E4F)),
+      _modeChip(_GvMode.seller,    '💰 Seller',    AppColors.seller),
       const SizedBox(width: 8),
-      _modeChip(_GvMode.developer, '🏗️ Developer', const Color(0xFF0D47A1)),
+      _modeChip(_GvMode.developer, '🏗️ Developer', AppColors.arthBlue),
     ]),
   );
 
@@ -689,17 +689,17 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   Widget _explanationCard() => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: const Color(0xFF006064).withOpacity(0.07),
+      color: AppColors.teal.withOpacity(0.07),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF006064).withOpacity(0.25)),
+      border: Border.all(color: AppColors.teal.withOpacity(0.25)),
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Row(children: [
-        Icon(Icons.info_outline, color: Color(0xFF006064), size: 18),
+        Icon(Icons.info_outline, color: AppColors.teal, size: 18),
         SizedBox(width: 8),
         Text('What is Guidance Value?',
             style: TextStyle(fontWeight: FontWeight.bold,
-                fontSize: 13, color: Color(0xFF006064))),
+                fontSize: 13, color: AppColors.teal)),
       ]),
       const SizedBox(height: 8),
       const Text(
@@ -877,7 +877,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
         _headerStat('GV 2024-25', '₹${_fmt(e.currentGv)}/sqft', e.zoneColor),
         const SizedBox(width: 12),
         _headerStat('Market Est.', '₹${_fmt(e.estimatedMarketSqft)}/sqft',
-            const Color(0xFF880E4F)),
+            AppColors.seller),
         const SizedBox(width: 12),
         _headerStat('Annual Rise',
             '${e.annualGainPct > 0 ? '+' : ''}${e.annualGainPct}%',
@@ -912,7 +912,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   // ── Buyer View ──────────────────────────────────────────────────────────────
   Widget _buildBuyerView(GvEntry e) => _card(
     title: '🏠 Buyer — Is the Price Fair?',
-    color: const Color(0xFF1B5E20),
+    color: AppColors.primary,
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text(
         'When a seller quotes a price, compare it against these benchmarks:',
@@ -921,7 +921,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       _priceRow('Government Minimum (GV)', e.currentGv, Colors.blue,
           'Stamp duty calculated on this. Cannot register below this.'),
       _priceRow('Fair Market Value (est.)', e.estimatedMarketSqft,
-          const Color(0xFF1B5E20),
+          AppColors.primary,
           'Typical selling price in this area based on recent registrations.'),
       _priceRow('Premium Max (Zone ${e.zone})',
           (e.estimatedMarketSqft * 1.3).round(), Colors.orange,
@@ -930,7 +930,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: const Color(0xFF1B5E20).withOpacity(0.07),
+          color: AppColors.primary.withOpacity(0.07),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -938,7 +938,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
           '  Fair price range: ₹${_fmtL(e.estimatedMarketSqft * 1200)} – '
           '₹${_fmtL((e.estimatedMarketSqft * 1.3 * 1200).round())}',
           style: const TextStyle(fontSize: 12, height: 1.5,
-              color: Color(0xFF1B5E20)),
+              color: AppColors.primary),
         ),
       ),
     ]),
@@ -947,7 +947,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   // ── Seller View ─────────────────────────────────────────────────────────────
   Widget _buildSellerView(GvEntry e) => _card(
     title: '💰 Seller — What Is My Property Worth?',
-    color: const Color(0xFF880E4F),
+    color: AppColors.seller,
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text(
         'If you are selling your property in this area, here is the price guide:',
@@ -957,7 +957,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
           e.currentGv, Colors.grey,
           'You CANNOT sell below this. Stamp duty is on this minimum.'),
       _priceRow('Recommended Asking Price',
-          e.estimatedMarketSqft, const Color(0xFF880E4F),
+          e.estimatedMarketSqft, AppColors.seller,
           'Current market rate buyers are paying in ${e.area}.'),
       _priceRow('If You Need Quick Sale',
           (e.estimatedMarketSqft * 0.85).round(), Colors.orange,
@@ -967,9 +967,9 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF880E4F).withOpacity(0.06),
+          color: AppColors.seller.withOpacity(0.06),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF880E4F).withOpacity(0.2)),
+          border: Border.all(color: AppColors.seller.withOpacity(0.2)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('For 1,200 sqft at market rate:',
@@ -986,7 +986,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
           const Divider(height: 10),
           _deductRow('You receive approximately',
               '₹${_fmtL((e.estimatedMarketSqft * 1200 * 0.97).round())}',
-              const Color(0xFF1B5E20)),
+              AppColors.primary),
         ]),
       ),
     ]),
@@ -995,7 +995,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   // ── Developer View ──────────────────────────────────────────────────────────
   Widget _buildDeveloperView(GvEntry e) => _card(
     title: '🏗️ Developer / Official — Project Feasibility',
-    color: const Color(0xFF0D47A1),
+    color: AppColors.arthBlue,
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text(
         'For layout developers, builders, and government officials:',
@@ -1023,7 +1023,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: const Color(0xFF0D47A1).withOpacity(0.06),
+          color: AppColors.arthBlue.withOpacity(0.06),
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Text(
@@ -1201,7 +1201,7 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
           icon: const Icon(Icons.open_in_browser, size: 16),
           label: const Text('Download IGR Guidance Value PDFs →'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF006064),
+            backgroundColor: AppColors.teal,
             foregroundColor: Colors.white,
           ),
         ),

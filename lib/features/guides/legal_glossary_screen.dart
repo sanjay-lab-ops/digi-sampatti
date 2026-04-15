@@ -58,7 +58,7 @@ class _LegalGlossaryScreenState extends State<LegalGlossaryScreen> {
 
   static const _categoryColors = {
     'Land Records': AppColors.primary,
-    'Legal': Color(0xFF7C3AED),
+    'Legal': AppColors.violet,
     'Municipal': AppColors.info,
     'Apartment': AppColors.safe,
     'Land': Color(0xFFB45309),

@@ -696,7 +696,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
         Text(label, style: TextStyle(fontSize: 12, color: selected ? Colors.white : Colors.grey.shade800)),
       ]),
       selected: selected,
-      selectedColor: const Color(0xFF1B5E20),
+      selectedColor: AppColors.primary,
       backgroundColor: Colors.grey.shade100,
       onSelected: (_) => setState(() => _propertyType = type),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -734,7 +734,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                         const SizedBox(width: 8),
                         Expanded(child: Text(
                           widget.buildingName ?? 'Building Scan',
-                          style: const TextStyle(color: Color(0xFF1565C0), fontSize: 13, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppColors.info, fontSize: 13, fontWeight: FontWeight.bold),
                         )),
                       ]),
                       if (widget.selectedBlock != null || widget.selectedFlat != null)
@@ -745,7 +745,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                               if (widget.selectedBlock != null) 'Block: ${widget.selectedBlock}',
                               if (widget.selectedFlat != null) 'Flat: ${widget.selectedFlat}',
                             ].join('  |  '),
-                            style: const TextStyle(color: Color(0xFF1565C0), fontSize: 12),
+                            style: const TextStyle(color: AppColors.info, fontSize: 12),
                           ),
                         ),
                       const Padding(
@@ -765,7 +765,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: AppColors.surfaceGreen,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.green.shade300),
                   ),
@@ -776,7 +776,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                       const Expanded(
                         child: Text(
                           'Fields pre-filled from your document scan. Review and confirm before checking.',
-                          style: TextStyle(color: Color(0xFF2E7D32), fontSize: 12),
+                          style: TextStyle(color: AppColors.safe, fontSize: 12),
                         ),
                       ),
                     ],
@@ -838,7 +838,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                                   color: selected
                                       ? AppColors.primary
                                       : live
-                                          ? const Color(0xFFE8F5E9)
+                                          ? AppColors.surfaceGreen
                                           : const Color(0xFFF5F5F5),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
@@ -904,7 +904,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                      colors: [AppColors.primary, AppColors.safe],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
@@ -963,7 +963,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: _gpsMessage!.contains('detected')
-                        ? const Color(0xFFE8F5E9)
+                        ? AppColors.surfaceGreen
                         : const Color(0xFFFFF3E0),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -1054,7 +1054,7 @@ class _ManualSearchScreenState extends ConsumerState<ManualSearchScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: AppColors.surfaceGreen,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(

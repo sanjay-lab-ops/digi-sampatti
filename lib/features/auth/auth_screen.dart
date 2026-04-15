@@ -260,7 +260,7 @@ class _FeatureChips extends StatelessWidget {
             builder: (_) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Row(children: [
-                Icon(Icons.psychology_outlined, color: Color(0xFF1B5E20)),
+                Icon(Icons.psychology_outlined, color: AppColors.primary),
                 SizedBox(width: 8),
                 Text('AI Legal Score', style: TextStyle(fontWeight: FontWeight.bold)),
               ]),
@@ -286,7 +286,7 @@ class _FeatureChips extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                colors: [AppColors.primary, AppColors.safe],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
@@ -347,9 +347,9 @@ class _Chip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: const Color(0xFF2E7D32)),
+          Icon(icon, size: 13, color: AppColors.safe),
           const SizedBox(width: 5),
-          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600)),
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
         ],
       ),
     );

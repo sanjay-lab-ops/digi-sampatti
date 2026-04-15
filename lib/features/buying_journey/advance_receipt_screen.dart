@@ -377,20 +377,20 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: AppColors.surfaceGreen,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF81C784)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.receipt_long, color: Color(0xFF2E7D32), size: 18),
+                    const Icon(Icons.receipt_long, color: AppColors.safe, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         isKn
                             ? 'ಎಲ್ಲ ವಿವರ ಭರ್ತಿ ಮಾಡಿ. PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ ಎರಡೂ ಕಡೆ ಸಹಿ ಮಾಡಿ.'
                             : 'Fill all details. Download PDF and get signatures from both parties.',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), height: 1.4),
+                        style: const TextStyle(fontSize: 12, color: AppColors.safe, height: 1.4),
                       ),
                     ),
                   ],
@@ -492,7 +492,7 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
                         onPressed: () => OpenFile.open(_pdfPath!),
                         icon: const Icon(Icons.open_in_new),
                         label: Text(isKn ? 'ತೆರೆಯಿರಿ' : 'Open'),
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B5E20)),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -510,14 +510,14 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: AppColors.surfaceGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     isKn
                         ? 'PDF ತಯಾರಾಗಿದೆ. WhatsApp ಮೂಲಕ ಮಾರಾಟಗಾರರಿಗೆ ಕಳುಹಿಸಿ, ಪ್ರಿಂಟ್ ತೆಗೆದು ಎರಡೂ ಕಡೆ ಸಹಿ ಮಾಡಿ.'
                         : 'PDF ready. Share via WhatsApp with seller, print and get signatures from both parties.',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), height: 1.4),
+                    style: const TextStyle(fontSize: 12, color: AppColors.safe, height: 1.4),
                   ),
                 ),
               ],

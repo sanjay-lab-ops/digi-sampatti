@@ -133,7 +133,7 @@ class _ProfessionalDetailScreenState
         background: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+              colors: [AppColors.primary, AppColors.safe],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -191,7 +191,7 @@ class _ProfessionalDetailScreenState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: AppColors.surfaceGreen,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.primary.withOpacity(0.3)),
       ),
@@ -366,7 +366,7 @@ class _ProfessionalDetailScreenState
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: AppColors.surfaceGreen,
             borderRadius: BorderRadius.circular(12)),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,

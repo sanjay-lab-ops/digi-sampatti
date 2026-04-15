@@ -120,7 +120,7 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
                 icon: Icons.attach_money,
                 label: 'Guidance Value',
                 sub: 'Check area GV',
-                color: const Color(0xFF006064),
+                color: AppColors.teal,
                 onTap: () => context.push('/guidance-value'),
               )),
               const SizedBox(width: 10),
@@ -128,7 +128,7 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
                 icon: Icons.calculate_outlined,
                 label: 'Stamp Duty',
                 sub: 'Calculate cost',
-                color: const Color(0xFF0D47A1),
+                color: AppColors.arthBlue,
                 onTap: () => context.push('/transfer/stamp-duty'),
               )),
               const SizedBox(width: 10),
@@ -136,7 +136,7 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
                 icon: Icons.calendar_today_outlined,
                 label: 'Book Slot',
                 sub: 'Kaveri Online',
-                color: const Color(0xFF1B5E20),
+                color: AppColors.primary,
                 onTap: () async {
                   final uri = Uri.parse('https://kaverionline.karnataka.gov.in');
                   if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);

@@ -42,7 +42,7 @@ class PropertyTransferScreen extends StatelessWidget {
               icon: Icons.swap_horiz,
               title: 'Mutation Guide',
               subtitle: 'Step-by-step Bhoomi + Khata name transfer',
-              color: const Color(0xFF7C3AED),
+              color: AppColors.violet,
               onTap: () => context.push('/transfer/mutation'),
             ),
             const SizedBox(height: 10),
@@ -77,7 +77,7 @@ class PropertyTransferScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          colors: [AppColors.indigo, Color(0xFF283593)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

@@ -144,14 +144,14 @@ class _DcConversionScreenState extends State<DcConversionScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF7C3AED).withOpacity(0.06),
+            color: AppColors.violet.withOpacity(0.06),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.2)),
+            border: Border.all(color: AppColors.violet.withOpacity(0.2)),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Joint Development Agreement (JDA)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7C3AED), fontSize: 14)),
+              Text('Joint Development Agreement (JDA)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.violet, fontSize: 14)),
               SizedBox(height: 6),
               Text('Landowner gives land to builder. Builder constructs. They share flats or revenue. Very common in Bengaluru. High risk for flat buyers if not done legally.',
                 style: TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),

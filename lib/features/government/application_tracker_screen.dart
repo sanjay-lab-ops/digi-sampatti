@@ -343,20 +343,20 @@ class _NoBribePledge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF4CAF50).withOpacity(0.06),
+        color: AppColors.primaryLight.withOpacity(0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.2)),
+        border: Border.all(color: AppColors.primaryLight.withOpacity(0.2)),
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('✅  Zero Office Visits · Zero Bribes · Government Fee Only',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF4CAF50))),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryLight)),
           SizedBox(height: 4),
           Text(
             'All applications submitted digitally. Fees paid online. Every step tracked with timestamps. '
             'If an officer demands payment outside official fee → file a complaint instantly.',
-            style: TextStyle(fontSize: 9, color: Color(0xFF4CAF50), height: 1.5),
+            style: TextStyle(fontSize: 9, color: AppColors.primaryLight, height: 1.5),
           ),
         ],
       ),
@@ -535,7 +535,7 @@ class _AppCard extends StatelessWidget {
   Color get _borderColor {
     switch (app.status) {
       case AppStatus.approved:
-      case AppStatus.completed:   return const Color(0xFF4CAF50);
+      case AppStatus.completed:   return AppColors.primaryLight;
       case AppStatus.rejected:    return Colors.red;
       case AppStatus.slaBreached: return Colors.orange;
       case AppStatus.underReview:
@@ -646,7 +646,7 @@ class _Timeline extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: step.isDone
-                          ? const Color(0xFF4CAF50)
+                          ? AppColors.primaryLight
                           : step.isActive
                           ? Colors.orange
                           : Colors.grey.shade800,

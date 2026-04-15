@@ -286,7 +286,7 @@ class _RegistrationGuideScreenState extends State<RegistrationGuideScreen> {
         'Karnataka requires sale deed to be in Kannada. English version alone is NOT accepted. Your advocate should provide the bilingual version.'),
       _Tip(Icons.money_off, AppColors.danger, 'Do Not Pay Bribes',
         'Registration is a government right. If asked for extra money, refuse and file complaint at district IGR office. Keep all payment receipts.'),
-      _Tip(Icons.format_list_numbered, const Color(0xFF7C3AED), 'Note Your Registration Number',
+      _Tip(Icons.format_list_numbered, AppColors.violet, 'Note Your Registration Number',
         'After registration, note the Document Number immediately. You need this for Bhoomi mutation, Khata transfer, and future property transactions.'),
       _Tip(Icons.wb_sunny, AppColors.info, 'Avoid Monday & Friday',
         'These are the busiest days at SRO. Tuesday–Thursday mornings are fastest. Avoid end-of-month rush (all month\'s pending cases pile up).'),

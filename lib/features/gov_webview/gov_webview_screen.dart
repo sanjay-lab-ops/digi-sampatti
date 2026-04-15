@@ -170,28 +170,28 @@ extension GovPortalInfo on GovPortal {
 
   Color get color {
     switch (this) {
-      case GovPortal.bhoomi:  return const Color(0xFF1B5E20);
-      case GovPortal.kaveri:  return const Color(0xFF0D47A1);
-      case GovPortal.rera:    return const Color(0xFF4A148C);
-      case GovPortal.eCourts: return const Color(0xFFBF360C);
-      case GovPortal.bbmp:    return const Color(0xFF004D40);
-      case GovPortal.cersai:  return const Color(0xFF37474F);
-      case GovPortal.dishank: return const Color(0xFF1565C0);
-      case GovPortal.sakala:       return const Color(0xFF880E4F);
-      case GovPortal.janaspandana: return const Color(0xFF4A148C);
-      case GovPortal.rtiOnline:    return const Color(0xFF37474F);
+      case GovPortal.bhoomi:  return AppColors.primary;
+      case GovPortal.kaveri:  return AppColors.arthBlue;
+      case GovPortal.rera:    return AppColors.esign;
+      case GovPortal.eCourts: return AppColors.deepOrange;
+      case GovPortal.bbmp:    return AppColors.navy;
+      case GovPortal.cersai:  return AppColors.slate;
+      case GovPortal.dishank: return AppColors.info;
+      case GovPortal.sakala:       return AppColors.seller;
+      case GovPortal.janaspandana: return AppColors.esign;
+      case GovPortal.rtiOnline:    return AppColors.slate;
       case GovPortal.benami:    return const Color(0xFFB71C1C);
-      case GovPortal.bdaLayout:  return const Color(0xFF1A237E);
-      case GovPortal.bdaTax:     return const Color(0xFF1565C0);
-      case GovPortal.bmrda:      return const Color(0xFF006064);
-      case GovPortal.nocBank:    return const Color(0xFF37474F);
-      case GovPortal.kaveriGuidance: return const Color(0xFF0D47A1);
-      case GovPortal.bbmpPlan:       return const Color(0xFF004D40);
+      case GovPortal.bdaLayout:  return AppColors.indigo;
+      case GovPortal.bdaTax:     return AppColors.info;
+      case GovPortal.bmrda:      return AppColors.teal;
+      case GovPortal.nocBank:    return AppColors.slate;
+      case GovPortal.kaveriGuidance: return AppColors.arthBlue;
+      case GovPortal.bbmpPlan:       return AppColors.navy;
       case GovPortal.dcConversion:   return const Color(0xFF4E342E);
-      case GovPortal.wakfBoard:      return const Color(0xFF1A237E);
+      case GovPortal.wakfBoard:      return AppColors.indigo;
       case GovPortal.gramPanchayat:  return const Color(0xFF33691E);
-      case GovPortal.digilocker:     return const Color(0xFF1565C0);
-      case GovPortal.igrGuidance:    return const Color(0xFF006064);
+      case GovPortal.digilocker:     return AppColors.info;
+      case GovPortal.igrGuidance:    return AppColors.teal;
     }
   }
 }

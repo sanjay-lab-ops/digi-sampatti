@@ -137,7 +137,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
               title: 'Search by BBMP PID',
               subtitle: 'PID = Property Identification Number. Found on BBMP '
                   'tax receipt or e-Aasthi portal. Best for exact match.',
-              color: const Color(0xFF004D40),
+              color: AppColors.navy,
               child: Column(children: [
                 TextField(
                   controller: _pidCtrl,
@@ -164,7 +164,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
                     label: Text(_step == _BbmpStep.searching
                         ? 'Searching...' : 'Check Tax Status'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF004D40),
+                      backgroundColor: AppColors.navy,
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -178,7 +178,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
             _card(
               title: 'Search by Owner Name',
               subtitle: 'Enter seller\'s name exactly as it appears in BBMP records.',
-              color: const Color(0xFF1565C0),
+              color: AppColors.info,
               child: Column(children: [
                 TextField(
                   controller: _ownerCtrl,
@@ -211,8 +211,8 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
                     icon: const Icon(Icons.open_in_browser, size: 16),
                     label: const Text('Search on BBMP e-Aasthi'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1565C0),
-                      side: const BorderSide(color: Color(0xFF1565C0)),
+                      foregroundColor: AppColors.info,
+                      side: const BorderSide(color: AppColors.info),
                     ),
                   ),
                 ),
@@ -371,7 +371,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
             icon: const Icon(Icons.open_in_browser, size: 16),
             label: const Text('Open BBMP e-Aasthi to Check'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF004D40),
+              backgroundColor: AppColors.navy,
               foregroundColor: Colors.white,
             ),
           ),
@@ -383,7 +383,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
   Widget _buildWebViewFallback() => Scaffold(
     appBar: AppBar(
       title: const Text('BBMP e-Aasthi'),
-      backgroundColor: const Color(0xFF004D40),
+      backgroundColor: AppColors.navy,
       foregroundColor: Colors.white,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -393,7 +393,7 @@ class _BbmpTaxCheckScreenState extends ConsumerState<BbmpTaxCheckScreen> {
         preferredSize: const Size.fromHeight(44),
         child: Container(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          color: const Color(0xFF004D40),
+          color: AppColors.navy,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(

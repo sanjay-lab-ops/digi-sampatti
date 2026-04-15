@@ -384,7 +384,7 @@ class _HiddenIssuesScreenState extends ConsumerState<HiddenIssuesScreen> {
           const SizedBox(height: 16),
           _buildGroup('High Risk — Significant Impact', high, Colors.orange.shade800),
           const SizedBox(height: 16),
-          _buildGroup('Medium Risk — Should Investigate', medium, const Color(0xFF1565C0)),
+          _buildGroup('Medium Risk — Should Investigate', medium, AppColors.info),
           const SizedBox(height: 32),
         ],
       ),

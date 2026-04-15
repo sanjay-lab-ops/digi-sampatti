@@ -188,7 +188,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          colors: [AppColors.primary, AppColors.safe],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -216,7 +216,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('₹149', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text('₹499', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                   Text('one-time · instant download', style: TextStyle(color: Colors.white70, fontSize: 11)),
                 ],
               ),
@@ -225,7 +225,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
                 onPressed: _isVerifyingPayment ? null : () => _startPayment(reportId),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF1B5E20),
+                  foregroundColor: AppColors.primary,
                   minimumSize: const Size(0, 44),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -233,7 +233,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
                 child: _isVerifyingPayment
                     ? const SizedBox(
                         width: 18, height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1B5E20)))
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
                     : const Text('Pay & Download', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
@@ -257,7 +257,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
                 }
               },
               icon: const Icon(Icons.payments_outlined, color: Colors.white, size: 16),
-              label: const Text('Pay ₹149 via UPI (PhonePe / GPay)',
+              label: const Text('Pay ₹499 via UPI (PhonePe / GPay)',
                   style: TextStyle(color: Colors.white, fontSize: 12)),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.white54),
@@ -321,9 +321,9 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
         Row(children: [
           _authBadge('${portals.length} Portals', Icons.verified, AppColors.safe),
           const SizedBox(width: 8),
-          _authBadge('Claude AI', Icons.auto_awesome, const Color(0xFF4A148C)),
+          _authBadge('Claude AI', Icons.auto_awesome, AppColors.esign),
           const SizedBox(width: 8),
-          _authBadge('30+ Rules', Icons.rule, const Color(0xFF0D47A1)),
+          _authBadge('30+ Rules', Icons.rule, AppColors.arthBlue),
         ]),
         const SizedBox(height: 10),
         // What was checked
@@ -636,7 +636,7 @@ _Verified by DigiSampatti — Property Verification Platform_
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                    colors: [Color(0xFF0D47A1), Color(0xFF1565C0)]),
+                    colors: [AppColors.arthBlue, AppColors.info]),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -663,10 +663,10 @@ _Verified by DigiSampatti — Property Verification Platform_
                     child: ElevatedButton.icon(
                       onPressed: () => context.push('/loan-eligibility'),
                       icon: const Icon(Icons.arrow_forward,
-                          color: Color(0xFF0D47A1), size: 16),
+                          color: AppColors.arthBlue, size: 16),
                       label: const Text('Check Loan Eligibility — FinSelf Lite',
                           style: TextStyle(
-                              color: Color(0xFF0D47A1), fontSize: 13)),
+                              color: AppColors.arthBlue, fontSize: 13)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 44),
@@ -788,7 +788,7 @@ _Verified by DigiSampatti — Property Verification Platform_
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
+                color: AppColors.surfaceGreen,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFF81C784)),
               ),
@@ -797,10 +797,10 @@ _Verified by DigiSampatti — Property Verification Platform_
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.assignment_turned_in, size: 16, color: Color(0xFF2E7D32)),
+                      Icon(Icons.assignment_turned_in, size: 16, color: AppColors.safe),
                       SizedBox(width: 6),
                       Text('Government Services — Apply Online',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2E7D32))),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.safe)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -819,7 +819,7 @@ _Verified by DigiSampatti — Property Verification Platform_
                       icon: const Icon(Icons.open_in_new),
                       label: const Text('Apply & Track Applications'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E7D32),
+                        backgroundColor: AppColors.safe,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),

@@ -138,7 +138,7 @@ class _FieldInspectionScreenState
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
-          colors: [Color(0xFF37474F), Color(0xFF263238)]),
+          colors: [AppColors.slate, Color(0xFF263238)]),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Column(
@@ -299,18 +299,18 @@ class _FieldInspectionScreenState
       Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF37474F).withOpacity(0.06),
+          color: AppColors.slate.withOpacity(0.06),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF37474F).withOpacity(0.2)),
+          border: Border.all(color: AppColors.slate.withOpacity(0.2)),
         ),
         child: Row(children: [
           const Icon(Icons.receipt_outlined,
-              color: Color(0xFF37474F), size: 20),
+              color: AppColors.slate, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text('Total: $_price',
                 style: const TextStyle(fontWeight: FontWeight.bold,
-                    fontSize: 16, color: Color(0xFF37474F))),
+                    fontSize: 16, color: AppColors.slate)),
           ),
           const Text('Pay on confirmation',
               style: TextStyle(fontSize: 11, color: Colors.grey)),
@@ -324,7 +324,7 @@ class _FieldInspectionScreenState
           icon: const Icon(Icons.calendar_today_outlined),
           label: const Text('Book Inspection'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF37474F),
+            backgroundColor: AppColors.slate,
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 52),
           ),
@@ -341,11 +341,11 @@ class _FieldInspectionScreenState
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: _inspectionType == value
-              ? const Color(0xFF37474F).withOpacity(0.08) : Colors.transparent,
+              ? AppColors.slate.withOpacity(0.08) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: _inspectionType == value
-                ? const Color(0xFF37474F) : Colors.grey.shade300,
+                ? AppColors.slate : Colors.grey.shade300,
           ),
         ),
         child: Row(children: [
@@ -353,7 +353,7 @@ class _FieldInspectionScreenState
             value: value,
             groupValue: _inspectionType,
             onChanged: (v) => setState(() => _inspectionType = v!),
-            activeColor: const Color(0xFF37474F),
+            activeColor: AppColors.slate,
           ),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

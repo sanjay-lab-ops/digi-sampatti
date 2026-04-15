@@ -122,7 +122,7 @@ class _VerdictBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = result.verdict == 'SAFE'
-        ? const Color(0xFF1B5E20)
+        ? AppColors.primary
         : result.verdict == 'CAUTION'
             ? Colors.orange[800]!
             : Colors.red[800]!;
@@ -204,18 +204,18 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: ok ? const Color(0xFF1B5E20).withOpacity(0.1) : Colors.red.withOpacity(0.1),
+        color: ok ? AppColors.primary.withOpacity(0.1) : Colors.red.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
             color: ok
-                ? const Color(0xFF1B5E20).withOpacity(0.3)
+                ? AppColors.primary.withOpacity(0.3)
                 : Colors.red.withOpacity(0.3)),
       ),
       child: Text(label,
           style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: ok ? const Color(0xFF1B5E20) : Colors.red[700])),
+              color: ok ? AppColors.primary : Colors.red[700])),
     );
   }
 }
@@ -228,7 +228,7 @@ class _RulingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = ruling.verdict == 'SAFE'
-        ? const Color(0xFF1B5E20)
+        ? AppColors.primary
         : ruling.verdict == 'DO_NOT_BUY' || ruling.verdict == 'BLOCKED'
             ? Colors.red[700]!
             : Colors.orange[700]!;
@@ -313,7 +313,7 @@ class _MiniAction extends StatelessWidget {
           Icon(
             isPositive ? Icons.check : Icons.close,
             size: 13,
-            color: isPositive ? const Color(0xFF1B5E20) : Colors.red[700],
+            color: isPositive ? AppColors.primary : Colors.red[700],
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -337,7 +337,7 @@ class _ActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isPositive ? const Color(0xFF1B5E20) : Colors.red[700]!;
+    final color = isPositive ? AppColors.primary : Colors.red[700]!;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -409,7 +409,7 @@ class _RegistrationCard extends StatelessWidget {
       title: 'Registration Process — Step by Step',
       subtitle: info.timeFrame,
       icon: Icons.how_to_reg_outlined,
-      color: const Color(0xFF0D47A1),
+      color: AppColors.arthBlue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -461,35 +461,35 @@ class _ExpertHelpCard extends StatelessWidget {
             icon: Icons.gavel,
             title: 'Property Lawyer',
             subtitle: 'Title verification, sale deed drafting, court matters',
-            color: const Color(0xFFBF360C),
+            color: AppColors.deepOrange,
             badge: 'From ₹5,000',
           ),
           _ExpertRow(
             icon: Icons.account_balance,
             title: 'Bank Home Loan',
             subtitle: 'SBI, HDFC, ICICI — get loan eligibility in 10 minutes',
-            color: const Color(0xFF0D47A1),
+            color: AppColors.arthBlue,
             badge: 'Free check',
           ),
           _ExpertRow(
             icon: Icons.maps_home_work,
             title: 'Licensed Surveyor',
             subtitle: 'Physical survey, boundary verification, sketch map',
-            color: const Color(0xFF1565C0),
+            color: AppColors.info,
             badge: 'From ₹5,000',
           ),
           _ExpertRow(
             icon: Icons.description_outlined,
             title: 'RERA Complaint',
             subtitle: 'Builder not complying? File complaint at RERA Karnataka',
-            color: const Color(0xFF4A148C),
+            color: AppColors.esign,
             badge: 'Free',
           ),
           _ExpertRow(
             icon: Icons.transform,
             title: 'B Khata Conversion',
             subtitle: 'Betterment charges + BBMP application assistance',
-            color: const Color(0xFF1B5E20),
+            color: AppColors.primary,
             badge: 'From ₹2,000',
           ),
         ],

@@ -714,10 +714,10 @@ class _PhotoPreviewSheet extends StatelessWidget {
                       children: [
                         // DigiSampatti brand
                         Row(children: [
-                          const Icon(Icons.verified_user, color: Color(0xFF4CAF50), size: 14),
+                          const Icon(Icons.verified_user, color: AppColors.primaryLight, size: 14),
                           const SizedBox(width: 4),
                           const Text('DigiSampatti',
-                              style: TextStyle(color: Color(0xFF4CAF50), fontSize: 12, fontWeight: FontWeight.bold)),
+                              style: TextStyle(color: AppColors.primaryLight, fontSize: 12, fontWeight: FontWeight.bold)),
                           const Spacer(),
                           Text(dateStr,
                               style: const TextStyle(color: Colors.white70, fontSize: 10)),

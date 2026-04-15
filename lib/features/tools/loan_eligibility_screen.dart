@@ -283,7 +283,7 @@ class _BankConnectCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
+          colors: [AppColors.info, Color(0xFF1E88E5)],
         ),
         borderRadius: BorderRadius.circular(14),
       ),
@@ -302,7 +302,7 @@ class _BankConnectCard extends StatelessWidget {
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: preferredBank,
-            dropdownColor: const Color(0xFF1565C0),
+            dropdownColor: AppColors.info,
             style: const TextStyle(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
               filled: true,
@@ -326,7 +326,7 @@ class _BankConnectCard extends StatelessWidget {
               label: const Text('Request Callback', style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1565C0),
+                foregroundColor: AppColors.info,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),

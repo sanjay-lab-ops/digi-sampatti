@@ -86,7 +86,7 @@ class _ReportTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: AppColors.surfaceGreen,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
@@ -140,7 +140,7 @@ class _ReportTab extends StatelessWidget {
               const SizedBox(height: 8),
               const Row(
                 children: [
-                  Icon(Icons.verified, color: Color(0xFF1B5E20), size: 16),
+                  Icon(Icons.verified, color: AppColors.primary, size: 16),
                   SizedBox(width: 6),
                   Text('Data from Bhoomi, Kaveri, eCourts, RERA Karnataka',
                       style: TextStyle(fontSize: 11, color: Colors.grey)),
@@ -211,9 +211,9 @@ class _ReportTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: AppColors.surfaceGreen,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class _ReportTab extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Color(0xFF1B5E20))),
+                      color: AppColors.primary)),
               SizedBox(height: 8),
               Text(
                 'This property is GENERALLY SAFE to proceed with. '
@@ -594,7 +594,7 @@ class _TicketView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              color: Color(0xFFE8F5E9),
+              color: AppColors.surfaceGreen,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.check_circle,
@@ -671,7 +671,7 @@ class _ScoreCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = score >= 75
-        ? const Color(0xFF1B5E20)
+        ? AppColors.primary
         : score >= 50
             ? Colors.orange
             : Colors.red;
@@ -734,7 +734,7 @@ class _CheckCardState extends State<_CheckCard> {
   @override
   Widget build(BuildContext context) {
     final color = widget.status == 'clear'
-        ? const Color(0xFF1B5E20)
+        ? AppColors.primary
         : widget.status == 'warning'
             ? Colors.orange
             : Colors.red;
@@ -800,7 +800,7 @@ class _ChainRow extends StatelessWidget {
           children: [
             Icon(
                 verified ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: verified ? const Color(0xFF1B5E20) : Colors.grey,
+                color: verified ? AppColors.primary : Colors.grey,
                 size: 16),
             const SizedBox(width: 8),
             Expanded(
@@ -893,7 +893,7 @@ class _SignatureCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: signed
-                  ? const Color(0xFF1B5E20).withOpacity(0.4)
+                  ? AppColors.primary.withOpacity(0.4)
                   : Colors.grey.shade200),
         ),
         child: Row(
@@ -902,13 +902,13 @@ class _SignatureCard extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: signed
-                    ? const Color(0xFF1B5E20).withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.grey.shade100,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                   signed ? Icons.verified : Icons.pending,
-                  color: signed ? const Color(0xFF1B5E20) : Colors.grey,
+                  color: signed ? AppColors.primary : Colors.grey,
                   size: 20),
             ),
             const SizedBox(width: 12),
@@ -933,7 +933,7 @@ class _SignatureCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: signed
-                    ? const Color(0xFF1B5E20).withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -942,7 +942,7 @@ class _SignatureCard extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: signed ? const Color(0xFF1B5E20) : Colors.grey),
+                    color: signed ? AppColors.primary : Colors.grey),
               ),
             ),
           ],

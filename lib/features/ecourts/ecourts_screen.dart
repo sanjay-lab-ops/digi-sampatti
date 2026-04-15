@@ -110,20 +110,20 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A237E).withOpacity(0.08),
+        color: AppColors.indigo.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1A237E).withOpacity(0.2)),
+        border: Border.all(color: AppColors.indigo.withOpacity(0.2)),
       ),
       child: const Row(
         children: [
-          Icon(Icons.gavel, color: Color(0xFF1A237E), size: 28),
+          Icon(Icons.gavel, color: AppColors.indigo, size: 28),
           SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('eCourts Property Case Check',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1A237E))),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.indigo)),
                 SizedBox(height: 3),
                 Text('Check if owner or property has pending civil disputes, title claims, or injunctions in any court.',
                   style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.4)),
@@ -327,15 +327,15 @@ class _EcourtsScreenState extends State<EcourtsScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A237E).withOpacity(0.07),
+                color: AppColors.indigo.withOpacity(0.07),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.link, size: 16, color: Color(0xFF1A237E)),
+                  Icon(Icons.link, size: 16, color: AppColors.indigo),
                   SizedBox(width: 8),
                   Text('services.ecourts.gov.in',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF1A237E), fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 12, color: AppColors.indigo, fontWeight: FontWeight.w600)),
                   Spacer(),
                   Icon(Icons.copy, size: 14, color: AppColors.textLight),
                   SizedBox(width: 4),

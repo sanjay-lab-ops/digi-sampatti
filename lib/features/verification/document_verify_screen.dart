@@ -480,7 +480,7 @@ class _StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isGood
-        ? const Color(0xFF4CAF50)
+        ? AppColors.primaryLight
         : isCritical ? const Color(0xFFF44336) : Colors.orange;
     final icon = isGood ? '✅' : isCritical ? '🚨' : '⚠️';
 
@@ -737,7 +737,7 @@ class _DocCard extends StatelessWidget {
     if (state.checking) return Colors.orange;
     if (state.result == null) return Colors.grey;
     switch (state.result!.status) {
-      case SignatureStatus.authentic:     return const Color(0xFF4CAF50);
+      case SignatureStatus.authentic:     return AppColors.primaryLight;
       case SignatureStatus.tampered:      return const Color(0xFFF44336);
       case SignatureStatus.expired:       return const Color(0xFFFF9800);
       case SignatureStatus.unverifiable:

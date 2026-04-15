@@ -70,3 +70,6 @@ backend/serviceAccount.json
 # Python cache
 backend/__pycache__/
 backend/*.pyc
+test_ocr.py
+flutter_01.log
+gcloud

@@ -25,7 +25,7 @@ class BuyerGuidesScreen extends StatelessWidget {
             const SizedBox(height: 10),
             _buildCard(context, Icons.landscape, 'DC Conversion Guide',
               'Agricultural → Residential/Commercial/Industrial',
-              const Color(0xFF7C3AED), () => context.push('/guides/dc-conversion')),
+              AppColors.violet, () => context.push('/guides/dc-conversion')),
             const SizedBox(height: 10),
             _buildCard(context, Icons.warning_amber, 'Red Flags Guide',
               '15 warning signs of a fraudulent property deal',

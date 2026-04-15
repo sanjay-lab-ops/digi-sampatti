@@ -162,7 +162,7 @@ class BrokerScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Free Trial Active', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                Text('5 free reports for your first clients. After that ₹99/report or ₹999/month unlimited.', style: TextStyle(fontSize: 12, color: AppColors.textLight, height: 1.4)),
+                Text('5 free reports for your first clients. After that ₹499/report or ₹1,999/month unlimited.', style: TextStyle(fontSize: 12, color: AppColors.textLight, height: 1.4)),
               ],
             ),
           ),
@@ -216,7 +216,7 @@ class BrokerScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          colors: [AppColors.indigo, Color(0xFF283593)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

@@ -96,6 +96,17 @@ class AppColors {
   static const Color statusDangerBg    = Color(0xFFFFEBEE);
   static const Color statusDangerText  = Color(0xFFB71C1C);
 
+  // ─── Feature / Section Colors (replaces scattered hardcoded hex) ─────────
+  static const Color seller    = Color(0xFF880E4F); // Seller mode — deep pink
+  static const Color esign     = Color(0xFF4A148C); // e-Sign — deep purple
+  static const Color slate     = Color(0xFF37474F); // Inspection / tracking — blue-grey
+  static const Color teal      = Color(0xFF006064); // Guidance Value / teal
+  static const Color indigo    = Color(0xFF1A237E); // BDA / government — deep indigo
+  static const Color deepOrange = Color(0xFFBF360C); // Risk step 4 / deep orange
+  static const Color violet    = Color(0xFF7C3AED); // Reports / history — violet
+  static const Color emerald   = Color(0xFF00a878); // Success / verified — emerald
+  static const Color navy      = Color(0xFF004D40); // BBMP / tax — dark teal
+
   // ─── Shimmer Colors ────────────────────────────────────────────────────────
   static const Color shimmerBase      = Color(0xFFE0E0E0);
   static const Color shimmerHighlight = Color(0xFFF5F5F5);

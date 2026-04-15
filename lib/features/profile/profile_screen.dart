@@ -88,7 +88,7 @@ class ProfileScreen extends ConsumerWidget {
             // Menu
             _buildMenuCard([
               _MenuItem(Icons.subscriptions_outlined, l.plansPricing,
-                '₹99/report · ₹999/month', AppColors.primary,
+                '₹499/report · ₹1,999/month', AppColors.primary,
                 () => context.push('/subscription')),
               _MenuItem(Icons.history, l.myReports,
                 'View all past reports', AppColors.info,

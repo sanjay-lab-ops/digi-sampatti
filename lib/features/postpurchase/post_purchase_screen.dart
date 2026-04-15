@@ -330,7 +330,7 @@ class _PostPurchaseScreenState extends ConsumerState<PostPurchaseScreen> {
     final urgencyColor = isDone ? Colors.grey : switch (task.urgency) {
       _TaskUrgency.critical => Colors.red,
       _TaskUrgency.high     => Colors.orange,
-      _TaskUrgency.medium   => const Color(0xFF1565C0),
+      _TaskUrgency.medium   => AppColors.info,
       _TaskUrgency.low      => Colors.grey,
       _TaskUrgency.done     => Colors.grey,
     };

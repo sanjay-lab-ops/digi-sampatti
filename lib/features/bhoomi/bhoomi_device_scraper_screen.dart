@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 /// Opens a hidden WebView on the user's device that navigates Bhoomi's
 /// ASP.NET form automatically. The user's carrier IP (Jio/Airtel/BSNL) is
@@ -412,7 +413,7 @@ class _BhoomiDeviceScraperScreenState
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1B5E20),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Text(isManual ? 'Bhoomi — Fill & Capture' : 'Fetching from Bhoomi'),
         automaticallyImplyLeading: false,
@@ -482,14 +483,14 @@ class _BhoomiDeviceScraperScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.account_balance, size: 64, color: Color(0xFF1B5E20)),
+          const Icon(Icons.account_balance, size: 64, color: AppColors.primary),
           const SizedBox(height: 24),
           const Text(
             'Fetching RTC from Bhoomi',
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1B5E20)),
+                color: AppColors.primary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -507,7 +508,7 @@ class _BhoomiDeviceScraperScreenState
                   : null,
               backgroundColor: Colors.grey[200],
               valueColor:
-                  const AlwaysStoppedAnimation(Color(0xFF4CAF50)),
+                  AlwaysStoppedAnimation(AppColors.primaryLight),
               minHeight: 6,
             ),
           ),
@@ -527,9 +528,9 @@ class _BhoomiDeviceScraperScreenState
                             ? Icons.radio_button_checked
                             : Icons.radio_button_unchecked,
                     color: done
-                        ? const Color(0xFF1B5E20)
+                        ? AppColors.primary
                         : active
-                            ? const Color(0xFF4CAF50)
+                            ? AppColors.primaryLight
                             : Colors.grey[300],
                     size: 20,
                   ),
@@ -539,7 +540,7 @@ class _BhoomiDeviceScraperScreenState
                     style: TextStyle(
                       fontSize: 14,
                       color: done || active
-                          ? const Color(0xFF1B5E20)
+                          ? AppColors.primary
                           : Colors.grey[400],
                       fontWeight: active
                           ? FontWeight.bold
@@ -591,7 +592,7 @@ class _BhoomiDeviceScraperScreenState
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(null),
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B5E20)),
+                backgroundColor: AppColors.primary),
             child: const Text('Go Back',
                 style: TextStyle(color: Colors.white)),
           ),

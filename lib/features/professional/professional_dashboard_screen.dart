@@ -122,7 +122,7 @@ class ProfessionalDashboardScreen extends ConsumerWidget {
         icon = Icons.hourglass_empty;
         break;
       case VerificationStatus.verified:
-        bgColor = const Color(0xFFE8F5E9);
+        bgColor = AppColors.surfaceGreen;
         textColor = AppColors.primary;
         borderColor = AppColors.primary;
         icon = Icons.verified;
@@ -218,9 +218,9 @@ class ProfessionalDashboardScreen extends ConsumerWidget {
         const SizedBox(width: 10),
         _statCard(profile.rating.toStringAsFixed(1), 'Rating', Icons.star_outlined, const Color(0xFFF57C00)),
         const SizedBox(width: 10),
-        _statCard('${profile.reviewCount}', 'Reviews', Icons.reviews_outlined, const Color(0xFF0D47A1)),
+        _statCard('${profile.reviewCount}', 'Reviews', Icons.reviews_outlined, AppColors.arthBlue),
         const SizedBox(width: 10),
-        _statCard('${profile.yearsExperience}y', 'Exp', Icons.timeline_outlined, const Color(0xFF4A148C)),
+        _statCard('${profile.yearsExperience}y', 'Exp', Icons.timeline_outlined, AppColors.esign),
       ],
     );
   }

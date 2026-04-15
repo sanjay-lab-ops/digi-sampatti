@@ -158,7 +158,7 @@ class _AccountAggregatorScreenState
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppColors.arthBlue, Color(0xFF1565C0)],
+              colors: [AppColors.arthBlue, AppColors.info],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
