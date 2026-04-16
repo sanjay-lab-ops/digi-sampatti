@@ -601,7 +601,7 @@ class _ListingCard extends StatelessWidget {
   };
 }
 
-// ─── Contact Seller Sheet ─────────────────────────────────────────────────────
+// ─── Contact Seller Sheet — with escrow calculator + buyer search guide ────────
 class _ContactSellerSheet extends StatefulWidget {
   final PropertyListing listing;
   const _ContactSellerSheet({required this.listing});
@@ -616,6 +616,55 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
   final _phoneCtrl = TextEditingController();
   bool _submitted  = false;
   bool _escrow     = false;
+  bool _showGuide  = false;
+
+  // Escrow calc
+  // Standard in India: token = max(₹1L, 1% of deal), advance = 10% of deal
+  // DigiSampatti fee: 0.5% of escrow held (advance amount)
+  int get _priceLakhs  => widget.listing.priceInLakhs;
+  int get _priceRs     => _priceLakhs * 100000;
+  int get _token       => (_priceRs * 0.01).round().clamp(100000, 500000);
+  int get _advance     => (_priceRs * 0.10).round();  // 10% standard, negotiable
+  int get _dsFee       => (_advance * 0.005).round(); // 0.5% of advance
+  int get _balance     => _priceRs - _advance;        // balance at registration
+
+  String _fmt(int v) {
+    if (v >= 10000000) return '₹${(v / 10000000).toStringAsFixed(2)} Cr';
+    if (v >= 100000)   return '₹${(v / 100000).toStringAsFixed(1)} L';
+    return '₹$v';
+  }
+
+  // Buyer search guide by property type
+  Map<String, List<String>> get _searchGuide => {
+    'Apartment': [
+      'Ask seller for: Flat No. + Building Name + Floor',
+      'Search on BBMP e-Aasthi: Khata number',
+      'Check RERA: Builder + project registration no.',
+      'Verify on Kaveri EC: Apartment name + survey no.',
+      'Ask for: OC (Occupancy Certificate) copy',
+    ],
+    'Villa': [
+      'Ask seller for: Site No. + Layout Name',
+      'Search Bhoomi: Survey No. + Village + Taluk + District',
+      'Verify BDA/BBMP layout approval number',
+      'Check Kaveri EC: All transactions for 30 years',
+      'Ask for: DC Conversion + Layout approval order',
+    ],
+    'Plot': [
+      'Ask seller for: Survey No. + Hissa No. + Village name',
+      'Search Bhoomi RTC: survey number shows owner + land type',
+      'Verify DC Conversion (agricultural→residential)',
+      'Check if layout is BDA/BBMP/BMRDA/BIAAPA approved',
+      'Never buy without seeing the RTC in your own name after sale',
+    ],
+    'Commercial': [
+      'Ask seller for: Property Tax Account No. + Khata No.',
+      'Search on BBMP e-Aasthi or municipality portal',
+      'Verify RERA (if residential component inside)',
+      'Check Kaveri EC: all loans/mortgages on property',
+      'Ask for: Trade licence if running business',
+    ],
+  };
 
   @override
   void dispose() {
@@ -627,11 +676,10 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l = widget.listing;
     return DraggableScrollableSheet(
-      initialChildSize: 0.85,
+      initialChildSize: 0.92,
       minChildSize: 0.5,
-      maxChildSize: 0.95,
+      maxChildSize: 0.97,
       builder: (ctx, sc) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -647,14 +695,11 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
     padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Handle
-      Center(
-        child: Container(
-          width: 40, height: 4,
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-              color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
-        ),
-      ),
+      Center(child: Container(width: 40, height: 4,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(2)))),
+
       // Property summary
       Container(
         padding: const EdgeInsets.all(12),
@@ -665,113 +710,228 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
         ),
         child: Row(children: [
           Icon(_typeIcon(widget.listing.propertyType),
-              color: AppColors.primary, size: 28),
+              color: AppColors.primary, size: 26),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.listing.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold,
-                      fontSize: 13)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               Text('${widget.listing.locality}, ${widget.listing.city}',
                   style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
             ],
           )),
-          Text(widget.listing.priceInLakhs >= 100
-              ? '₹${(widget.listing.priceInLakhs / 100).toStringAsFixed(1)} Cr'
-              : '₹${widget.listing.priceInLakhs} L',
+          Text(_priceLakhs >= 100
+              ? '₹${(_priceLakhs / 100).toStringAsFixed(1)} Cr'
+              : '₹$_priceLakhs L',
               style: const TextStyle(fontWeight: FontWeight.bold,
                   color: AppColors.primary, fontSize: 14)),
         ]),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 16),
+
+      // ── Buyer's What-to-Search Guide ───────────────────────────────────
+      GestureDetector(
+        onTap: () => setState(() => _showGuide = !_showGuide),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.arthBlue.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.arthBlue.withOpacity(0.25)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.search, color: AppColors.arthBlue, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Text(
+              'What to ask the seller / what to search',
+              style: const TextStyle(fontWeight: FontWeight.bold,
+                  fontSize: 13, color: AppColors.arthBlue),
+            )),
+            Icon(_showGuide ? Icons.expand_less : Icons.expand_more,
+                color: AppColors.arthBlue, size: 18),
+          ]),
+        ),
+      ),
+      if (_showGuide) ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.arthBlue.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('For ${widget.listing.propertyType}:',
+                  style: const TextStyle(fontWeight: FontWeight.bold,
+                      fontSize: 12, color: AppColors.arthBlue)),
+              const SizedBox(height: 8),
+              ...(_searchGuide[widget.listing.propertyType] ??
+                  _searchGuide['Plot']!).map((step) => Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Icon(Icons.arrow_right, size: 16,
+                      color: AppColors.arthBlue),
+                  const SizedBox(width: 4),
+                  Expanded(child: Text(step,
+                      style: const TextStyle(fontSize: 11, height: 1.4,
+                          color: Colors.black87))),
+                ]),
+              )),
+              const Divider(height: 12),
+              const Text('If you already know the seller:',
+                  style: TextStyle(fontWeight: FontWeight.bold,
+                      fontSize: 11, color: AppColors.textDark)),
+              const SizedBox(height: 4),
+              const Text(
+                '1. Get the Survey No. / Flat No. from seller\n'
+                '2. Search Bhoomi or Kaveri EC yourself to verify\n'
+                '3. Confirm owner name matches seller\'s Aadhaar/PAN\n'
+                '4. Cross-check with DigiSampatti document scan',
+                style: TextStyle(fontSize: 11, height: 1.5,
+                    color: AppColors.textMedium),
+              ),
+            ],
+          ),
+        ),
+      ],
+      const SizedBox(height: 16),
+
+      // ── Escrow Calculator ───────────────────────────────────────────────
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.seller.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.seller.withOpacity(0.2)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Row(children: [
+            Icon(Icons.lock_outlined, color: AppColors.seller, size: 18),
+            SizedBox(width: 8),
+            Text('DigiSampatti Escrow — How It Works',
+                style: TextStyle(fontWeight: FontWeight.bold,
+                    fontSize: 13, color: AppColors.seller)),
+          ]),
+          const SizedBox(height: 12),
+          _escrowRow('Token Amount (non-negotiable min)',
+              _fmt(_token), Colors.orange,
+              'Paid immediately on agreement to reserve property'),
+          _escrowRow('Advance (standard 10%, negotiable)',
+              _fmt(_advance), AppColors.seller,
+              'Held in DS escrow — released only after doc verification'),
+          _escrowRow('Balance on registration',
+              _fmt(_balance), AppColors.primary,
+              'Paid at SRO on actual registration day'),
+          const Divider(height: 12),
+          _escrowRow('DS Escrow Fee (0.5% of advance)',
+              _fmt(_dsFee), AppColors.textMedium,
+              'One-time service fee — split 50/50 between buyer & seller'),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              '🔒 Escrow is powered by NBFC/RazorpayX. Your advance is '
+              'held safely — seller cannot access it until documents are '
+              'verified. If deal falls through due to bad documents, '
+              'advance is returned within 7 business days.',
+              style: TextStyle(fontSize: 11, height: 1.5,
+                  color: Colors.black87),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(children: [
+            Switch(
+              value: _escrow,
+              onChanged: (v) => setState(() => _escrow = v),
+              activeColor: AppColors.seller,
+            ),
+            const SizedBox(width: 4),
+            const Expanded(child: Text('Enable escrow for this transaction',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+          ]),
+        ]),
+      ),
+      const SizedBox(height: 16),
+
+      // ── Your Details ────────────────────────────────────────────────────
       const Text('Your Details',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
       const SizedBox(height: 4),
-      const Text('Seller will only see your contact after you submit.',
+      const Text('Seller sees your contact only after you submit.',
           style: TextStyle(fontSize: 12, color: AppColors.textLight)),
-      const SizedBox(height: 14),
-      _field(_nameCtrl, 'Your Full Name', Icons.person_outline),
       const SizedBox(height: 12),
+      _field(_nameCtrl, 'Your Full Name', Icons.person_outline),
+      const SizedBox(height: 10),
       _field(_emailCtrl, 'Email Address', Icons.email_outlined,
           type: TextInputType.emailAddress),
-      const SizedBox(height: 12),
+      const SizedBox(height: 10),
       _field(_phoneCtrl, 'Phone Number', Icons.phone_outlined,
           type: TextInputType.phone),
-      const SizedBox(height: 16),
-      // Escrow toggle
-      Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.seller.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.seller.withOpacity(0.2)),
-        ),
-        child: Row(children: [
-          const Icon(Icons.lock_outlined, color: AppColors.seller, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Initiate DigiSampatti Escrow',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('Advance held safely until documents verified.\n'
-                    'Powered by NBFC/RazorpayX — 0.5% of deal value.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textLight,
-                        height: 1.4)),
-              ],
-            ),
-          ),
-          Switch(
-            value: _escrow,
-            onChanged: (v) => setState(() => _escrow = v),
-            activeColor: AppColors.seller,
-          ),
-        ]),
-      ),
       const SizedBox(height: 20),
       SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: _submit,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: _escrow ? AppColors.seller : AppColors.primary,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
           ),
-          child: Text(_escrow ? 'Submit & Initiate Escrow' : 'Submit Contact Request',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          child: Text(
+            _escrow
+                ? 'Submit & Initiate Escrow (Token: ${_fmt(_token)})'
+                : 'Submit Contact Request',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         ),
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: 8),
       const Text(
-        '🔒 Your data is encrypted. We never share without your consent.',
+        '🔒 Encrypted. We never share your data without your consent.',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 11, color: AppColors.textLight),
       ),
     ]),
   );
 
+  Widget _escrowRow(String label, String value, Color color, String hint) =>
+    Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Expanded(child: Text(label,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                  color: color))),
+          Text(value, style: TextStyle(fontSize: 13,
+              fontWeight: FontWeight.bold, color: color)),
+        ]),
+        Text(hint, style: const TextStyle(fontSize: 10,
+            color: AppColors.textLight, height: 1.3)),
+      ],
+    ));
+
   Widget _buildSuccess() => Padding(
     padding: const EdgeInsets.all(32),
     child: Column(mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 80, height: 80,
+        Container(width: 80, height: 80,
           decoration: BoxDecoration(
-            color: AppColors.safe.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.check_circle, color: AppColors.safe, size: 48),
-        ),
+            color: AppColors.safe.withOpacity(0.1), shape: BoxShape.circle),
+          child: const Icon(Icons.check_circle, color: AppColors.safe, size: 48)),
         const SizedBox(height: 20),
         const Text('Request Sent!',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text(
-          'Your contact details have been shared with ${widget.listing.sellerName}.\n'
+          'Your details have been shared with ${widget.listing.sellerName}.\n'
           'Expect a call within 24 hours.',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 13, color: AppColors.textMedium,
@@ -785,33 +945,29 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
               color: AppColors.seller.withOpacity(0.08),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Column(children: [
-              Text('Escrow Initiated',
+            child: Column(children: [
+              const Text('Escrow Initiated',
                   style: TextStyle(fontWeight: FontWeight.bold,
                       color: AppColors.seller)),
-              SizedBox(height: 4),
-              Text('Our team will contact you within 2 business days to '
-                  'complete the escrow setup.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+              const SizedBox(height: 4),
+              Text(
+                'Token: ${_fmt(_token)} · Advance: ${_fmt(_advance)}\n'
+                'DS team will contact you within 2 business days.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: AppColors.textLight,
+                    height: 1.4)),
             ]),
           ),
         ],
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
+        SizedBox(width: double.infinity,
           child: ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary, foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Done'),
-          ),
-        ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            child: const Text('Done'))),
       ],
     ),
   );
@@ -819,8 +975,7 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
   void _submit() {
     if (_nameCtrl.text.isEmpty || _phoneCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name and phone')),
-      );
+        const SnackBar(content: Text('Please enter your name and phone')));
       return;
     }
     HapticFeedback.mediumImpact();
@@ -830,8 +985,7 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
   Widget _field(TextEditingController ctrl, String label, IconData icon,
       {TextInputType type = TextInputType.text}) =>
     TextField(
-      controller: ctrl,
-      keyboardType: type,
+      controller: ctrl, keyboardType: type,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, size: 20),

@@ -11,6 +11,7 @@ import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/services/payment_service.dart';
+import 'package:digi_sampatti/core/services/screen_protect_service.dart';
 
 class LegalReportScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? reportData;
@@ -35,6 +36,8 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Protect report from screenshots/screen recording
+    ScreenProtectService.protect();
     _paymentService.initialize();
     _paymentService.onSuccess = _onPaymentSuccess;
     _paymentService.onFailure = _onPaymentFailure;
@@ -75,6 +78,8 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     WidgetsBinding.instance.removeObserver(this);
     _scoreCtrl.dispose();
     _paymentService.dispose();
+    // Re-enable screenshots when leaving the report screen
+    ScreenProtectService.unprotect();
     super.dispose();
   }
 

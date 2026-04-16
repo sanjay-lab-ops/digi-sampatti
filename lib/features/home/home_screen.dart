@@ -1362,9 +1362,9 @@ class _QuickToolsStrip extends StatelessWidget {
             children: [
               _QuickTile(
                 icon: Icons.receipt_long_outlined,
-                label: 'Property Tax\nEstimator',
+                label: 'Property Tax\n& Finance',
                 color: AppColors.teal,
-                onTap: () => context.push('/tools/property-tax'),
+                onTap: () => context.push('/tools'),
               ),
               _QuickTile(
                 icon: Icons.location_city_outlined,
