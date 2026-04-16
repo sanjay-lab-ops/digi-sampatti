@@ -70,8 +70,16 @@ class _DocumentGuideScreenState extends ConsumerState<DocumentGuideScreen> {
   // ── State selector ───────────────────────────────────────────────────────
   Widget _buildStateSelector() {
     const states = [
+      // Fully mapped
       'Karnataka', 'Tamil Nadu', 'Maharashtra', 'Telangana',
-      'Andhra Pradesh', 'Kerala', 'UP', 'Other',
+      'Andhra Pradesh', 'Kerala', 'UP',
+      // Portal known, generic docs
+      'Rajasthan', 'Gujarat', 'MP', 'Bihar', 'HP',
+      'Uttarakhand', 'Punjab', 'Haryana', 'Odisha', 'West Bengal',
+      'Assam', 'Jharkhand', 'Chhattisgarh', 'Goa',
+      // UTs
+      'Delhi', 'J&K', 'Chandigarh', 'Puducherry',
+      'Other',
     ];
     return Container(
       color: Colors.white,
@@ -116,39 +124,91 @@ class _DocumentGuideScreenState extends ConsumerState<DocumentGuideScreen> {
   }
 
   Widget _buildOtherStateNotice() {
-    final stateDocNames = switch (_selectedState) {
-      'Tamil Nadu'       => 'Patta & Chitta (tnreginet.gov.in), EC (tnreginet)',
-      'Maharashtra'      => '7/12 Utara (bhulekh.mahabhumi.gov.in), EC (igrmaharashtra.gov.in)',
-      'Telangana'        => 'Pahani / Pattadar Passbook (dharani.telangana.gov.in)',
-      'Andhra Pradesh'   => 'ROR-1B / Pattadar (meebhoomi.ap.gov.in)',
-      'Kerala'           => 'Thandaper / Pokkuvaravu (erekha.kerala.gov.in)',
-      'UP'               => 'Khatauni / B1 (upbhulekh.gov.in)',
-      _                  => 'Check your state land records portal for RTC/Patta equivalent',
+    // Fully mapped states — have complete state-specific doc lists
+    const fullyMapped = {
+      'Tamil Nadu', 'Maharashtra', 'Telangana', 'Andhra Pradesh', 'Kerala', 'UP'
     };
+    // Partially mapped states — know portal names but docs fall back to generic
+    const partiallyMapped = {
+      'Rajasthan', 'Gujarat', 'MP', 'Bihar', 'HP',
+      'Uttarakhand', 'Punjab', 'Haryana', 'Odisha', 'West Bengal',
+      'Assam', 'Jharkhand', 'Chhattisgarh', 'Goa',
+      'Delhi', 'J&K', 'Chandigarh', 'Puducherry',
+    };
+
+    final isFull    = fullyMapped.contains(_selectedState);
+    final isPartial = partiallyMapped.contains(_selectedState);
+
+    final stateDocNames = switch (_selectedState) {
+      'Tamil Nadu'    => 'Patta & Chitta · EC (tnreginet.gov.in) · Sale Deed · A-Register',
+      'Maharashtra'   => '7/12 Satbara · EC / Index II (igrmaharashtra.gov.in) · 8A · NA Order',
+      'Telangana'     => 'Pahani (dharani.telangana.gov.in) · EC (registration.telangana.gov.in)',
+      'Andhra Pradesh'=> 'ROR-1B Pattadar (meebhoomi.ap.gov.in) · EC (registration.ap.gov.in)',
+      'Kerala'        => 'Thandaper · Pokkuvaravu (erekha.kerala.gov.in) · EC (keralaregistration.gov.in)',
+      'UP'            => 'Khatauni (upbhulekh.gov.in) · EC (igrsup.gov.in)',
+      'Rajasthan'     => 'Jamabandi (apnakhata.rajasthan.gov.in) · EC (epanjiyan.rajasthan.gov.in)',
+      'Gujarat'       => 'AnyRor / 7/12 (anyror.gujarat.gov.in) · EC (garvi.gujarat.gov.in)',
+      'MP'            => 'Khasra / B1 (mpbhulekh.gov.in) · EC (mpigr.gov.in)',
+      'Bihar'         => 'Khatian / ROR (biharbhumi.gov.in) · EC (nibandhan.bihar.gov.in)',
+      'HP'            => 'Jamabandi (himbhoomi.hp.gov.in) · EC (himachal.nic.in/registration)',
+      'Uttarakhand'   => 'Bhulekh / Khasra (bhulekh.uk.gov.in) · EC (igrsuk.gov.in)',
+      'Punjab'        => 'Fard / Jamabandi (jamabandi.punjab.gov.in) · EC (igrs.punjab.gov.in)',
+      'Haryana'       => 'Jamabandi (jamabandi.gov.in) · EC (haryanaregistration.gov.in)',
+      'Odisha'        => 'ROR / Khatiyan (bhulekh.ori.nic.in) · EC (registration.odisha.gov.in)',
+      'West Bengal'   => 'RS/CS Khatian (banglarbhumi.gov.in) · EC (wbregistration.gov.in)',
+      'Assam'         => 'Jamabandi (dharitree.assam.gov.in) · EC (revenueassam.nic.in)',
+      'Jharkhand'     => 'ROR / Khatian (jharbhoomi.jharkhand.gov.in) · EC (jharkhandregistration.gov.in)',
+      'Chhattisgarh'  => 'B1 / P2 (bhuiyan.cg.nic.in) · EC (registration.cg.gov.in)',
+      'Goa'           => 'Form I & XIV (dharbhumi.goa.gov.in) · EC (goa.gov.in/department/registration)',
+      'Delhi'         => 'Property records (dlrc.delhi.gov.in) · EC (doris.delhigovt.nic.in)',
+      'J&K'           => 'Girdawari / Jamabandi (jkbhulekh.gov.in) · EC (jkigrams.gov.in)',
+      'Chandigarh'    => 'Property records (chandigarh.gov.in) · EC (chandigarh.gov.in/registration)',
+      'Puducherry'    => 'Patta (edistrict.py.gov.in) · EC (tnreginet.gov.in for most areas)',
+      _               => 'Check your state\'s land records portal for RTC / Patta / Jamabandi equivalent',
+    };
+
+    final Color bgColor = isFull ? Colors.green.shade50
+        : isPartial ? Colors.amber.shade50
+        : Colors.orange.shade50;
+    final Color borderColor = isFull ? Colors.green.shade300
+        : isPartial ? Colors.amber.shade300
+        : Colors.orange.shade300;
+    final Color textColor = isFull ? Colors.green.shade900
+        : isPartial ? Colors.brown
+        : Colors.deepOrange.shade900;
+    final String statusText = isFull
+        ? 'Fully mapped — state-specific document list shown below'
+        : isPartial
+        ? 'Portal names known — document list is generic Indian template'
+        : 'Not yet fully mapped — showing general Indian property checklist';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: bgColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.amber.shade300),
+        border: Border.all(color: borderColor),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.info_outline, size: 15, color: Colors.amber),
+          Icon(isFull ? Icons.check_circle_outline : Icons.info_outline,
+              size: 15, color: isFull ? Colors.green : Colors.amber),
           const SizedBox(width: 6),
-          Text('$_selectedState — Key Documents',
-              style: const TextStyle(fontWeight: FontWeight.bold,
-                  fontSize: 12, color: Colors.brown)),
+          Expanded(child: Text('$_selectedState — $statusText',
+              style: TextStyle(fontWeight: FontWeight.bold,
+                  fontSize: 11, color: textColor))),
         ]),
         const SizedBox(height: 6),
         Text(stateDocNames,
-            style: const TextStyle(fontSize: 12, color: Colors.brown, height: 1.4)),
+            style: TextStyle(fontSize: 12, color: textColor, height: 1.4)),
         const SizedBox(height: 6),
-        const Text(
-          'Portal names differ by state. The document purpose is the same — '
-          'upload the equivalent document and our AI will read it.',
-          style: TextStyle(fontSize: 11, color: Colors.brown, height: 1.4),
+        Text(
+          isFull
+            ? 'Upload the documents shown — AI reads all formats including Kannada, Tamil, Marathi.'
+            : 'Portal names differ by state but the document purpose is the same. '
+              'Upload the equivalent and our AI will read it.',
+          style: TextStyle(fontSize: 11, color: textColor, height: 1.4),
         ),
       ]),
     );

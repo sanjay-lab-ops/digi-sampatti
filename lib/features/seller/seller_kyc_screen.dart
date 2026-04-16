@@ -237,7 +237,17 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Seller KYC & Trust Score'),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Seller KYC & Trust Score',
+                style: TextStyle(fontSize: 15)),
+            Text('Format check only — live API coming soon',
+                style: TextStyle(fontSize: 9, color: Colors.orange,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
         backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(

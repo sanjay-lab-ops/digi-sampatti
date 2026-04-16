@@ -131,8 +131,25 @@ class _AccountAggregatorScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Financial Profile — FinSelf'),
         backgroundColor: Colors.white,
+        title: Row(children: [
+          Image.asset('assets/images/arth_id_logo.png',
+              height: 28, width: 28,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.fingerprint, size: 28, color: Color(0xFFB8860B))),
+          const SizedBox(width: 8),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('FinSelf Lite',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              Text('Simulation — RBI AA registration pending',
+                  style: TextStyle(fontSize: 9, color: Colors.orange,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ]),
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),

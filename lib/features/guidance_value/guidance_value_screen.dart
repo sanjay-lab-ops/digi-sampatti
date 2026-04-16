@@ -299,6 +299,137 @@ const List<GvEntry> kGvData = [
     gvHistory: {'2019-20':1400,'2020-21':1500,'2021-22':1800,'2022-23':2100,'2023-24':2400,'2024-25':2500},
     commercialSqft:4800, agriculturalAcre:1200000,
     marketMultiplier:2.0, trend:'rising', trendPct:12),
+
+  // ── YADGIR (Yadgiri / Yadagiri) ─────────────────────────────────────────
+  GvEntry(district:'Yadgir', taluk:'Yadgir', area:'Yadgir City',
+    areaKannada:'ಯಾದಗಿರಿ', zone:4,
+    gvHistory: {'2019-20':600,'2020-21':650,'2021-22':750,'2022-23':900,'2023-24':1000,'2024-25':1100},
+    commercialSqft:2200, agriculturalAcre:700000,
+    marketMultiplier:1.4, trend:'rising', trendPct:13),
+
+  GvEntry(district:'Yadgir', taluk:'Shahapur', area:'Shahapur',
+    areaKannada:'ಶಾಹಾಪುರ', zone:5,
+    gvHistory: {'2019-20':400,'2020-21':450,'2021-22':520,'2022-23':650,'2023-24':750,'2024-25':850},
+    commercialSqft:1600, agriculturalAcre:500000,
+    marketMultiplier:1.3, trend:'rising', trendPct:16),
+
+  GvEntry(district:'Yadgir', taluk:'Surpur', area:'Surpur',
+    areaKannada:'ಸುರಪುರ', zone:5,
+    gvHistory: {'2019-20':350,'2020-21':400,'2021-22':480,'2022-23':600,'2023-24':700,'2024-25':780},
+    commercialSqft:1400, agriculturalAcre:450000,
+    marketMultiplier:1.3, trend:'rising', trendPct:17),
+
+  // ── VIJAYAPURA (Bijapur) ─────────────────────────────────────────────────
+  GvEntry(district:'Vijayapura', taluk:'Vijayapura', area:'Vijayapura City',
+    areaKannada:'ವಿಜಯಪುರ', zone:3,
+    gvHistory: {'2019-20':850,'2020-21':950,'2021-22':1100,'2022-23':1400,'2023-24':1600,'2024-25':1800},
+    commercialSqft:3600, agriculturalAcre:950000,
+    marketMultiplier:1.6, trend:'rising', trendPct:16),
+
+  // ── BAGALKOT ─────────────────────────────────────────────────────────────
+  GvEntry(district:'Bagalkot', taluk:'Bagalkot', area:'Bagalkot City',
+    areaKannada:'ಬಾಗಲಕೋಟ', zone:3,
+    gvHistory: {'2019-20':800,'2020-21':900,'2021-22':1050,'2022-23':1300,'2023-24':1500,'2024-25':1700},
+    commercialSqft:3200, agriculturalAcre:850000,
+    marketMultiplier:1.5, trend:'rising', trendPct:16),
+
+  // ── RAICHUR ───────────────────────────────────────────────────────────────
+  GvEntry(district:'Raichur', taluk:'Raichur', area:'Raichur City',
+    areaKannada:'ರಾಯಚೂರು', zone:3,
+    gvHistory: {'2019-20':750,'2020-21':850,'2021-22':1000,'2022-23':1250,'2023-24':1400,'2024-25':1600},
+    commercialSqft:3000, agriculturalAcre:800000,
+    marketMultiplier:1.5, trend:'rising', trendPct:16),
+
+  // ── KOPPAL ────────────────────────────────────────────────────────────────
+  GvEntry(district:'Koppal', taluk:'Koppal', area:'Koppal City',
+    areaKannada:'ಕೊಪ್ಪಳ', zone:4,
+    gvHistory: {'2019-20':600,'2020-21':700,'2021-22':820,'2022-23':1000,'2023-24':1100,'2024-25':1250},
+    commercialSqft:2400, agriculturalAcre:650000,
+    marketMultiplier:1.4, trend:'rising', trendPct:15),
+
+  // ── GADAG ────────────────────────────────────────────────────────────────
+  GvEntry(district:'Gadag', taluk:'Gadag', area:'Gadag-Betageri',
+    areaKannada:'ಗದಗ', zone:3,
+    gvHistory: {'2019-20':900,'2020-21':1000,'2021-22':1150,'2022-23':1400,'2023-24':1600,'2024-25':1800},
+    commercialSqft:3400, agriculturalAcre:900000,
+    marketMultiplier:1.6, trend:'rising', trendPct:14),
+
+  // ── BALLARI (Bellary) ─────────────────────────────────────────────────────
+  GvEntry(district:'Ballari', taluk:'Ballari', area:'Ballari City',
+    areaKannada:'ಬಳ್ಳಾರಿ', zone:2,
+    gvHistory: {'2019-20':1600,'2020-21':1800,'2021-22':2100,'2022-23':2500,'2023-24':2800,'2024-25':3100},
+    commercialSqft:6000, agriculturalAcre:1500000,
+    marketMultiplier:1.9, trend:'rising', trendPct:14),
+
+  // ── CHITRADURGA ───────────────────────────────────────────────────────────
+  GvEntry(district:'Chitradurga', taluk:'Chitradurga', area:'Chitradurga City',
+    areaKannada:'ಚಿತ್ರದುರ್ಗ', zone:3,
+    gvHistory: {'2019-20':800,'2020-21':900,'2021-22':1050,'2022-23':1300,'2023-24':1450,'2024-25':1600},
+    commercialSqft:3200, agriculturalAcre:820000,
+    marketMultiplier:1.5, trend:'rising', trendPct:15),
+
+  // ── DAVANAGERE ────────────────────────────────────────────────────────────
+  GvEntry(district:'Davanagere', taluk:'Davanagere', area:'Davanagere City',
+    areaKannada:'ದಾವಣಗೆರೆ', zone:2,
+    gvHistory: {'2019-20':1400,'2020-21':1550,'2021-22':1800,'2022-23':2100,'2023-24':2400,'2024-25':2600},
+    commercialSqft:5200, agriculturalAcre:1300000,
+    marketMultiplier:1.8, trend:'rising', trendPct:13),
+
+  // ── HAVERI ────────────────────────────────────────────────────────────────
+  GvEntry(district:'Haveri', taluk:'Haveri', area:'Haveri City',
+    areaKannada:'ಹಾವೇರಿ', zone:3,
+    gvHistory: {'2019-20':700,'2020-21':800,'2021-22':950,'2022-23':1150,'2023-24':1300,'2024-25':1450},
+    commercialSqft:2800, agriculturalAcre:750000,
+    marketMultiplier:1.5, trend:'rising', trendPct:15),
+
+  // ── UTTARA KANNADA ────────────────────────────────────────────────────────
+  GvEntry(district:'Uttara Kannada', taluk:'Karwar', area:'Karwar City',
+    areaKannada:'ಕಾರವಾರ', zone:2,
+    gvHistory: {'2019-20':1500,'2020-21':1650,'2021-22':1900,'2022-23':2200,'2023-24':2500,'2024-25':2700},
+    commercialSqft:5000, agriculturalAcre:1200000,
+    marketMultiplier:1.9, trend:'rising', trendPct:12),
+
+  // ── CHIKKAMAGALURU ────────────────────────────────────────────────────────
+  GvEntry(district:'Chikkamagaluru', taluk:'Chikkamagaluru', area:'Chikkamagaluru City',
+    areaKannada:'ಚಿಕ್ಕಮಗಳೂರು', zone:3,
+    gvHistory: {'2019-20':1000,'2020-21':1100,'2021-22':1300,'2022-23':1600,'2023-24':1900,'2024-25':2100},
+    commercialSqft:4200, agriculturalAcre:1100000,
+    marketMultiplier:1.8, trend:'rising', trendPct:15),
+
+  // ── MANDYA ────────────────────────────────────────────────────────────────
+  GvEntry(district:'Mandya', taluk:'Mandya', area:'Mandya City',
+    areaKannada:'ಮಂಡ್ಯ', zone:3,
+    gvHistory: {'2019-20':900,'2020-21':1000,'2021-22':1200,'2022-23':1500,'2023-24':1700,'2024-25':1900},
+    commercialSqft:3800, agriculturalAcre:950000,
+    marketMultiplier:1.6, trend:'rising', trendPct:15),
+
+  // ── CHAMARAJANAGAR ────────────────────────────────────────────────────────
+  GvEntry(district:'Chamarajanagar', taluk:'Chamarajanagar', area:'Chamarajanagar City',
+    areaKannada:'ಚಾಮರಾಜನಗರ', zone:4,
+    gvHistory: {'2019-20':600,'2020-21':700,'2021-22':820,'2022-23':1000,'2023-24':1150,'2024-25':1300},
+    commercialSqft:2600, agriculturalAcre:680000,
+    marketMultiplier:1.4, trend:'rising', trendPct:16),
+
+  // ── CHIKKABALLAPUR ────────────────────────────────────────────────────────
+  GvEntry(district:'Chikkaballapur', taluk:'Chikkaballapur', area:'Chikkaballapur City',
+    areaKannada:'ಚಿಕ್ಕಬಳ್ಳಾಪುರ', zone:3,
+    gvHistory: {'2019-20':800,'2020-21':900,'2021-22':1100,'2022-23':1400,'2023-24':1600,'2024-25':1800},
+    commercialSqft:3600, agriculturalAcre:900000,
+    marketMultiplier:1.6, trend:'rising', trendPct:16),
+
+  // ── KOLAR ─────────────────────────────────────────────────────────────────
+  GvEntry(district:'Kolar', taluk:'Kolar', area:'Kolar City',
+    areaKannada:'ಕೋಲಾರ', zone:3,
+    gvHistory: {'2019-20':900,'2020-21':1000,'2021-22':1200,'2022-23':1500,'2023-24':1700,'2024-25':1900},
+    commercialSqft:3800, agriculturalAcre:950000,
+    marketMultiplier:1.6, trend:'rising', trendPct:15),
+
+  // ── BIDAR ─────────────────────────────────────────────────────────────────
+  GvEntry(district:'Bidar', taluk:'Bidar', area:'Bidar City',
+    areaKannada:'ಬೀದರ್', zone:3,
+    gvHistory: {'2019-20':700,'2020-21':800,'2021-22':950,'2022-23':1200,'2023-24':1350,'2024-25':1500},
+    commercialSqft:3000, agriculturalAcre:780000,
+    marketMultiplier:1.5, trend:'rising', trendPct:16),
 ];
 
 // ─── All India State Portal Directory ────────────────────────────────────────
@@ -458,6 +589,9 @@ class GuidanceValueScreen extends ConsumerStatefulWidget {
   ConsumerState<GuidanceValueScreen> createState() => _GuidanceValueScreenState();
 }
 
+// ─── Browse mode: district → taluk → area drill-down ─────────────────────────
+enum _BrowseTab { search, browse }
+
 class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
@@ -467,6 +601,10 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   // Calculator inputs
   double _areaSqft   = 1200;
   bool   _showWebView = false;
+  // Browse mode
+  _BrowseTab _browseTab    = _BrowseTab.search;
+  String?    _browseDistrict;
+  String?    _browseTaluk;
 
   @override
   void initState() {
@@ -489,23 +627,61 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
     super.dispose();
   }
 
+  /// Normalise common spelling variations for fuzzy matching.
+  /// "yadgiri" → "yadgir", "yadagiri" → "yadgir", "hubli" → "hubballi", etc.
+  static String _normalise(String s) {
+    final t = s.toLowerCase().trim();
+    // Remove common suffixes that differ: "city", "urban", "rural"
+    var n = t.replaceAll(RegExp(r'\s*(city|urban|rural|north|south|east|west)\s*$'), '').trim();
+    // Specific alias map — add more as discovered
+    const aliases = {
+      'yadgiri':    'yadgir',
+      'yadagiri':   'yadgir',
+      'hubli':      'hubballi',
+      'hubbli':     'hubballi',
+      'belgaum':    'belagavi',
+      'bellary':    'ballari',
+      'bijapur':    'vijayapura',
+      'gulbarga':   'kalaburagi',
+      'shimoga':    'shivamogga',
+      'tumkur':     'tumakuru',
+      'hospet':     'hosapete',
+      'udupi':      'udupi',
+      'mlore':      'mangaluru',
+      'mangalore':  'mangaluru',
+      'mysore':     'mysuru',
+      'bangalore':  'bengaluru',
+      'bengalore':  'bengaluru',
+    };
+    return aliases[n] ?? n;
+  }
+
+  bool _matches(GvEntry e, String rawQuery) {
+    final q   = _normalise(rawQuery);
+    final aL  = _normalise(e.area);
+    final tL  = _normalise(e.taluk);
+    final dL  = _normalise(e.district);
+    final kL  = e.areaKannada.toLowerCase();
+    return aL.contains(q) || tL.contains(q) || dL.contains(q) || kL.contains(q)
+        // Also try raw lowercased query against raw fields for partial match
+        || e.area.toLowerCase().contains(rawQuery.toLowerCase())
+        || e.taluk.toLowerCase().contains(rawQuery.toLowerCase())
+        || e.district.toLowerCase().contains(rawQuery.toLowerCase());
+  }
+
   void _autoSearch(String query) {
-    final q = query.toLowerCase().trim();
+    final q = query.trim();
     if (q.isEmpty) { setState(() => _selected = null); return; }
 
-    final results = kAllGvData.where((e) =>
-      e.area.toLowerCase().contains(q) ||
-      e.areaKannada.contains(q)        ||
-      e.taluk.toLowerCase().contains(q)||
-      e.district.toLowerCase().contains(q)
-    ).toList();
+    final results = kAllGvData.where((e) => _matches(e, q)).toList();
 
     if (results.isEmpty) { setState(() => _selected = null); return; }
 
     // Sort: exact start match first
+    final qL = _normalise(q);
     results.sort((a, b) {
-      final aE = a.area.toLowerCase().startsWith(q) ? 0 : 1;
-      final bE = b.area.toLowerCase().startsWith(q) ? 0 : 1;
+      final aE = _normalise(a.area).startsWith(qL) ? 0 : 1;
+      final bE = _normalise(b.area).startsWith(qL) ? 0 : 1;
       return aE.compareTo(bE);
     });
 
@@ -519,17 +695,13 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
   }
 
   List<GvEntry> get _searchResults {
-    final q = _searchCtrl.text.toLowerCase().trim();
+    final q = _searchCtrl.text.trim();
     if (q.isEmpty) return [];
-    return kAllGvData.where((e) =>
-      e.area.toLowerCase().contains(q)     ||
-      e.areaKannada.contains(q)            ||
-      e.taluk.toLowerCase().contains(q)    ||
-      e.district.toLowerCase().contains(q)
-    ).toList()
+    final qL = _normalise(q);
+    return kAllGvData.where((e) => _matches(e, q)).toList()
       ..sort((a, b) {
-        final aExact = a.area.toLowerCase().startsWith(q) ? 0 : 1;
-        final bExact = b.area.toLowerCase().startsWith(q) ? 0 : 1;
+        final aExact = _normalise(a.area).startsWith(qL) ? 0 : 1;
+        final bExact = _normalise(b.area).startsWith(qL) ? 0 : 1;
         return aExact.compareTo(bExact);
       });
   }
@@ -554,36 +726,222 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       ),
       body: Column(
         children: [
-          // ── Mode toggle ────────────────────────────────────────────────────
+          // ── Buyer/Seller/Developer mode toggle ──────────────────────────────
           _buildModeBar(),
-          // ── Search box ─────────────────────────────────────────────────────
-          _buildSearchBar(),
-          // ── Results — animated switch between list and detail ──────────────
+          // ── Search / Browse tab toggle ─────────────────────────────────────
+          _buildBrowseToggle(),
+          // ── Content area ───────────────────────────────────────────────────
           Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 280),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.05),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-                  child: child,
-                ),
-              ),
-              child: KeyedSubtree(
-                key: ValueKey(_selected?.area ?? 'list'),
-                child: _selected != null
-                    ? _buildDetailView(_selected!)
-                    : _buildSearchList(),
-              ),
-            ),
+            child: _browseTab == _BrowseTab.browse
+                ? _buildBrowseView()
+                : Column(children: [
+                    _buildSearchBar(),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.05),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                            child: child,
+                          ),
+                        ),
+                        child: KeyedSubtree(
+                          key: ValueKey(_selected?.area ?? 'list'),
+                          child: _selected != null
+                              ? _buildDetailView(_selected!)
+                              : _buildSearchList(),
+                        ),
+                      ),
+                    ),
+                  ]),
           ),
         ],
       ),
     );
   }
+
+  // ── Browse Toggle ────────────────────────────────────────────────────────────
+  Widget _buildBrowseToggle() => Container(
+    color: Colors.white,
+    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+    child: Row(children: [
+      _browseChip(_BrowseTab.search, Icons.search, 'Search'),
+      const SizedBox(width: 8),
+      _browseChip(_BrowseTab.browse, Icons.account_tree_outlined, 'Browse by District'),
+    ]),
+  );
+
+  Widget _browseChip(_BrowseTab tab, IconData icon, String label) => GestureDetector(
+    onTap: () => setState(() {
+      _browseTab = tab;
+      _selected = null;
+      if (tab == _BrowseTab.search) {
+        _browseDistrict = null;
+        _browseTaluk = null;
+      }
+    }),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: _browseTab == tab ? AppColors.primary : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 14,
+            color: _browseTab == tab ? Colors.white : Colors.grey.shade600),
+        const SizedBox(width: 5),
+        Text(label, style: TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w600,
+          color: _browseTab == tab ? Colors.white : Colors.grey.shade700)),
+      ]),
+    ),
+  );
+
+  // ── Browse View: district → taluk → area ────────────────────────────────────
+  Widget _buildBrowseView() {
+    if (_selected != null) {
+      return SingleChildScrollView(
+        child: Column(children: [
+          // Back to browse
+          Container(
+            color: Colors.white,
+            child: ListTile(
+              leading: const Icon(Icons.arrow_back, size: 18),
+              title: Text(_selected!.area,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('${_selected!.taluk} · ${_selected!.district}',
+                  style: const TextStyle(fontSize: 11)),
+              onTap: () => setState(() => _selected = null),
+            ),
+          ),
+          _buildDetailView(_selected!),
+        ]),
+      );
+    }
+
+    if (_browseTaluk != null && _browseDistrict != null) {
+      // Show areas in this taluk
+      final entries = kAllGvData
+          .where((e) => e.district == _browseDistrict && e.taluk == _browseTaluk)
+          .toList();
+      return Column(children: [
+        _browseHeader('${_browseTaluk} — ${_browseDistrict}',
+            () => setState(() => _browseTaluk = null)),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: entries.length,
+            itemBuilder: (_, i) => _buildResultTile(entries[i]),
+          ),
+        ),
+      ]);
+    }
+
+    if (_browseDistrict != null) {
+      // Show taluks in this district
+      final taluks = kAllGvData
+          .where((e) => e.district == _browseDistrict)
+          .map((e) => e.taluk)
+          .toSet()
+          .toList()..sort();
+      return Column(children: [
+        _browseHeader(_browseDistrict!,
+            () => setState(() => _browseDistrict = null)),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: taluks.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final t = taluks[i];
+              final count = kAllGvData
+                  .where((e) => e.district == _browseDistrict && e.taluk == t)
+                  .length;
+              return ListTile(
+                leading: Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.location_city_outlined,
+                      color: AppColors.primary, size: 18),
+                ),
+                title: Text(t,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                subtitle: Text('$count areas',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                onTap: () => setState(() => _browseTaluk = t),
+              );
+            },
+          ),
+        ),
+      ]);
+    }
+
+    // Show all districts
+    final districts = kAllGvData
+        .map((e) => e.district)
+        .toSet()
+        .toList()..sort();
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: districts.length + 1,
+      separatorBuilder: (_, i) => i == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+      itemBuilder: (_, i) {
+        if (i == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Select District / SRO Area',
+              style: const TextStyle(fontWeight: FontWeight.bold,
+                  fontSize: 14, color: AppColors.textDark),
+            ),
+          );
+        }
+        final d = districts[i - 1];
+        final count = kAllGvData.where((e) => e.district == d).length;
+        final isKarnataka = kGvData.any((e) => e.district == d);
+        return ListTile(
+          leading: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: (isKarnataka ? AppColors.primary : AppColors.arthBlue)
+                  .withOpacity(0.09),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.location_on_outlined,
+                color: isKarnataka ? AppColors.primary : AppColors.arthBlue,
+                size: 20),
+          ),
+          title: Text(d,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          subtitle: Text('$count areas · ${isKarnataka ? 'Karnataka' : 'Other State'}',
+              style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+          trailing: const Icon(Icons.chevron_right, size: 18),
+          onTap: () => setState(() => _browseDistrict = d),
+        );
+      },
+    );
+  }
+
+  Widget _browseHeader(String label, VoidCallback onBack) => Container(
+    color: Colors.white,
+    child: ListTile(
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, size: 20),
+        onPressed: onBack,
+      ),
+      title: Text(label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+    ),
+  );
 
   // ── Mode Bar ────────────────────────────────────────────────────────────────
   Widget _buildModeBar() => Container(

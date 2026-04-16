@@ -26,8 +26,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late List<Animation<double>> _fades;
   late List<Animation<Offset>> _slides;
 
-  // 6 sections: banner, demo, actions, more-tools, why, recent
-  static const _count = 6;
+  // 7 sections: toggle, quick-tools, actions, core-tools, more-tools, _, recent
+  static const _count = 7;
 
   @override
   void initState() {
@@ -124,7 +124,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             // ── Buyer / Seller Mode Toggle  ─────────────────────────────
             _animated(0, _BuyerSellerToggle()),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // ── Quick-access tool strip ───────────────────────────────────
+            _animated(4, const _QuickToolsStrip()),
+            const SizedBox(height: 16),
 
             // ── Mode-aware primary actions ──────────────────────────────
             _animated(1, _ModeActions()),
@@ -1100,6 +1104,46 @@ class _ModeActions extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Secondary CTA — Browse listings
+          GestureDetector(
+            onTap: () => context.push('/marketplace'),
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.4)),
+              ),
+              child: Row(children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.storefront_outlined,
+                      color: Color(0xFF8B5CF6), size: 18),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Browse Verified Listings',
+                          style: TextStyle(fontWeight: FontWeight.bold,
+                              fontSize: 13, color: Color(0xFF8B5CF6))),
+                      Text('Apartments · Plots · Villas by locality',
+                          style: TextStyle(fontSize: 11,
+                              color: AppColors.textLight)),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 12,
+                    color: Color(0xFF8B5CF6)),
+              ]),
+            ),
+          ),
           // Primary CTA — Upload documents
           GestureDetector(
             onTap: () => context.push('/scan/guide'),
@@ -1297,6 +1341,118 @@ class _Tool {
   const _Tool(this.icon, this.title, this.subtitle, this.color, this.route);
 }
 
+// ─── Quick Tools Strip ────────────────────────────────────────────────────────
+// Horizontal scrollable row of quick-access tool chips shown before the upload CTA.
+class _QuickToolsStrip extends StatelessWidget {
+  const _QuickToolsStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Quick Tools',
+            style: TextStyle(fontWeight: FontWeight.bold,
+                fontSize: 13, color: AppColors.textDark)),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 88,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _QuickTile(
+                icon: Icons.receipt_long_outlined,
+                label: 'Property Tax\nEstimator',
+                color: AppColors.teal,
+                onTap: () => context.push('/tools/property-tax'),
+              ),
+              _QuickTile(
+                icon: Icons.location_city_outlined,
+                label: 'SRO Locator\n& Address',
+                color: AppColors.arthBlue,
+                onTap: () => context.push('/transfer/sro'),
+              ),
+              _QuickTile(
+                icon: Icons.attach_money,
+                label: 'Guidance\nValue',
+                color: AppColors.primary,
+                onTap: () => context.push('/guidance-value'),
+              ),
+              _QuickTile(
+                icon: Icons.calculate_outlined,
+                label: 'EMI\nCalculator',
+                color: AppColors.deepOrange,
+                onTap: () => context.push('/tools/emi'),
+              ),
+              _QuickTile(
+                icon: Icons.gavel,
+                label: 'Court Case\nCheck',
+                color: AppColors.critical,
+                onTap: () => context.push('/ecourts'),
+              ),
+              _QuickTile(
+                icon: Icons.fingerprint,
+                label: 'ARTH ID\nLoan Check',
+                color: const Color(0xFF1A237E),
+                onTap: () => context.push('/loan-eligibility'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _QuickTile({required this.icon, required this.label,
+      required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderColor),
+          boxShadow: [
+            BoxShadow(color: color.withOpacity(0.08),
+                blurRadius: 6, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 17),
+            ),
+            const SizedBox(height: 5),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 9.5,
+                    fontWeight: FontWeight.w600, height: 1.3,
+                    color: AppColors.textDark)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── More Tools (secondary, collapsed) ───────────────────────────────────────
 class _MoreToolsSection extends StatefulWidget {
   const _MoreToolsSection();
@@ -1338,6 +1494,10 @@ class _MoreToolsSectionState extends State<_MoreToolsSection> {
         ),
         if (_expanded) ...[
           const Divider(height: 1),
+          _ToolRow(Icons.storefront_outlined, 'Property Listings',
+              'Buy · Sell · Verified marketplace',
+              const Color(0xFF8B5CF6), () => context.push('/marketplace')),
+          const Divider(height: 1, indent: 56),
           _ToolRow(Icons.flight, 'NRI Mode', 'UAE · USA · UK · FEMA',
               AppColors.arthBlue, () => context.push('/nri')),
           const Divider(height: 1, indent: 56),

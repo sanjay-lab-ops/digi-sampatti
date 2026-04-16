@@ -76,12 +76,27 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ARTH ID Logo
-                Image.asset(
-                  'assets/images/arth_id_logo.png',
-                  height: 100,
+                // ARTH ID Logo with white background
+                Container(
                   width: 100,
-                  errorBuilder: (_, __, ___) => const DSLogo(size: 100),
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Image.asset(
+                    'assets/images/arth_id_logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const DSLogo(size: 80),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 const Text(

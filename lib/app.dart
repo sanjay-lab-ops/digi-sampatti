@@ -70,6 +70,7 @@ import 'package:digi_sampatti/features/finself/account_aggregator_screen.dart';
 import 'package:digi_sampatti/features/finself/buyer_financial_profile_screen.dart';
 import 'package:digi_sampatti/features/scan/document_guide_screen.dart';
 import 'package:digi_sampatti/features/payment/report_payment_screen.dart';
+import 'package:digi_sampatti/features/marketplace/property_listing_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -309,6 +310,11 @@ final _router = GoRouter(
       path: '/transfer/sro',
       name: 'sro-locator',
       builder: (context, state) => const SroLocatorScreen(),
+    ),
+    GoRoute(
+      path: '/marketplace',
+      name: 'marketplace',
+      builder: (context, state) => const PropertyListingScreen(),
     ),
     GoRoute(
       path: '/transfer/registration',
