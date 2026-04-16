@@ -90,13 +90,13 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
     } else {
       // No QR code on document — cannot auto-verify, tell user to verify manually
       result = SignatureVerification(
-        status: SignatureStatus.unverified,
+        status: SignatureStatus.unverifiable,
         documentType: 'RTC',
         signerName: null,
         signerDesignation: null,
         signedAt: null,
         verifyUrl: 'https://landrecords.karnataka.gov.in/service53/',
-        note: 'No QR code found on this RTC. Verify manually at Bhoomi portal — scan the QR on the original printed RTC.',
+        failDetail: 'No QR code found on this RTC. Verify manually at Bhoomi portal — scan the QR on the original printed RTC.',
       );
     }
 
@@ -117,13 +117,13 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
       );
     } else {
       result = SignatureVerification(
-        status: SignatureStatus.unverified,
+        status: SignatureStatus.unverifiable,
         documentType: 'EC',
         signerName: null,
         signerDesignation: null,
         signedAt: null,
         verifyUrl: 'https://kaveri.karnataka.gov.in/',
-        note: 'No QR code on this EC. Verify at Kaveri Online portal or ask Sub-Registrar office to stamp it.',
+        failDetail: 'No QR code on this EC. Verify at Kaveri Online portal or ask Sub-Registrar office to stamp it.',
       );
     }
 
@@ -144,13 +144,13 @@ class _DocumentVerifyScreenState extends State<DocumentVerifyScreen> {
       );
     } else {
       result = SignatureVerification(
-        status: SignatureStatus.unverified,
+        status: SignatureStatus.unverifiable,
         documentType: 'Khata',
         signerName: null,
         signerDesignation: null,
         signedAt: null,
         verifyUrl: 'https://bbmpeaasthi.karnataka.gov.in/',
-        note: 'No QR code on this Khata. Verify at BBMP eAasthi portal using the PID number.',
+        failDetail: 'No QR code on this Khata. Verify at BBMP eAasthi portal using the PID number.',
       );
     }
 

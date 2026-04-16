@@ -90,7 +90,10 @@ class _DocumentGuideScreenState extends ConsumerState<DocumentGuideScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: GestureDetector(
-                    onTap: () => setState(() => _selectedState = s),
+                    onTap: () {
+                      setState(() => _selectedState = s);
+                      ref.read(selectedStateProvider.notifier).state = s;
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -1228,8 +1231,8 @@ class _DocInfo {
     required this.icon,
     required this.color,
     required this.required,
-    required this.portal,
-    required this.portalLabel,
+    this.portal,
+    this.portalLabel,
     required this.steps,
   });
 }

@@ -95,6 +95,10 @@ final userModeProvider = StateProvider<UserMode>((ref) => UserMode.buyer);
 // 'bda_layout' — BDA / BMRDA approved layout site
 final propertyTypeProvider = StateProvider<String>((ref) => 'site');
 
+// ─── Selected State ───────────────────────────────────────────────────────────
+// Drives state-specific document lists, office names, portal URLs.
+final selectedStateProvider = StateProvider<String>((ref) => 'Karnataka');
+
 // ─── Current Scan State ────────────────────────────────────────────────────────
 final currentScanProvider = StateProvider<PropertyScan?>((ref) => null);
 final currentLandRecordProvider = StateProvider<LandRecord?>((ref) => null);

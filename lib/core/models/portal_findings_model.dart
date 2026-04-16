@@ -36,6 +36,16 @@ class PortalFindings {
   final bool? fmbOpened;
   final bool? boundariesCorrect;  // Physical plot matches map?
 
+  // ── Document Gap Flags (from checklist status) ────────────────────────────
+  // These represent what could NOT be verified — critical for risk scoring.
+  final bool? dcConversionNotExists;  // Agricultural land, DC conversion absent = ILLEGAL to build
+  final bool? ecNotProvided;           // EC not uploaded — encumbrance status unknown
+  final bool? mutationPending;         // Mutation not approved = ownership chain gap
+  final bool? taxDuesUnknown;          // Tax receipt missing — dues status unknown
+  final bool? khataNotAvailable;       // Khata not provided — municipal status unknown
+  final List<String> physicalVisitDocs; // Docs user says will get physically (pending)
+  final List<String> notExistsDocs;     // Docs that the seller could not produce
+
   const PortalFindings({
     this.bhoomiOpened,
     this.khataFound,
@@ -54,6 +64,13 @@ class PortalFindings {
     this.hasBankCharge,
     this.fmbOpened,
     this.boundariesCorrect,
+    this.dcConversionNotExists,
+    this.ecNotProvided,
+    this.mutationPending,
+    this.taxDuesUnknown,
+    this.khataNotAvailable,
+    this.physicalVisitDocs = const [],
+    this.notExistsDocs = const [],
   });
 
   PortalFindings copyWith({
@@ -74,6 +91,13 @@ class PortalFindings {
     bool? hasBankCharge,
     bool? fmbOpened,
     bool? boundariesCorrect,
+    bool? dcConversionNotExists,
+    bool? ecNotProvided,
+    bool? mutationPending,
+    bool? taxDuesUnknown,
+    bool? khataNotAvailable,
+    List<String>? physicalVisitDocs,
+    List<String>? notExistsDocs,
   }) =>
       PortalFindings(
         bhoomiOpened: bhoomiOpened ?? this.bhoomiOpened,
@@ -93,6 +117,13 @@ class PortalFindings {
         hasBankCharge: hasBankCharge ?? this.hasBankCharge,
         fmbOpened: fmbOpened ?? this.fmbOpened,
         boundariesCorrect: boundariesCorrect ?? this.boundariesCorrect,
+        dcConversionNotExists: dcConversionNotExists ?? this.dcConversionNotExists,
+        ecNotProvided: ecNotProvided ?? this.ecNotProvided,
+        mutationPending: mutationPending ?? this.mutationPending,
+        taxDuesUnknown: taxDuesUnknown ?? this.taxDuesUnknown,
+        khataNotAvailable: khataNotAvailable ?? this.khataNotAvailable,
+        physicalVisitDocs: physicalVisitDocs ?? this.physicalVisitDocs,
+        notExistsDocs: notExistsDocs ?? this.notExistsDocs,
       );
 
   // ── Risk summary for AI prompt ─────────────────────────────────────────────
@@ -126,6 +157,15 @@ class PortalFindings {
         'fmb': {
           'opened': fmbOpened,
           'boundariesCorrect': boundariesCorrect,
+        },
+        'document_gaps': {
+          'dc_conversion_not_exists': dcConversionNotExists,
+          'ec_not_provided': ecNotProvided,
+          'mutation_pending': mutationPending,
+          'tax_dues_unknown': taxDuesUnknown,
+          'khata_not_available': khataNotAvailable,
+          'physical_visit_pending': physicalVisitDocs,
+          'docs_seller_could_not_produce': notExistsDocs,
         },
       };
 

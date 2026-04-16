@@ -2390,8 +2390,16 @@ def rtc_from_image():
 async def _claude_extract_document(image_b64: str, image_type: str,
                                     doc_hint: str, api_key: str) -> dict:
     """Use Claude Vision to extract all fields from a scanned property document."""
-    prompt = f"""You are a Karnataka property document expert. Analyze this scanned document image.
+    prompt = f"""You are an expert in Indian property documents covering all states — Karnataka, Tamil Nadu, Maharashtra, Telangana, Andhra Pradesh, Kerala, UP, and others. Analyze this scanned document image.
 {"Hint: This is likely a " + doc_hint + " document." if doc_hint else ""}
+
+Document types by state:
+- Karnataka: RTC (Pahani), EC (Kaveri), Khata (BBMP/Panchayat), Mutation (Bhoomi), DC Conversion Order
+- Tamil Nadu: Patta & Chitta, EC (tnreginet), A-Register, Sale Deed
+- Maharashtra: 7/12 Satbara, 8A Extract, Index II (EC), NA Order, Property Card
+- Telangana/AP: Pahani (Dharani/Meebhoomi), EC (registration.telangana.gov.in), Pattadar Passbook
+- Kerala: Thandaper, Pokkuvaravu (mutation), EC (keralaregistration.gov.in)
+- UP: Khatauni (UP Bhulekh), EC (igrsup.gov.in), Registry document
 
 Extract ALL visible information and return ONLY valid JSON in this format:
 
