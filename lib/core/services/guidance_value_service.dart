@@ -119,38 +119,8 @@ class GuidanceValueService {
       }
     } catch (_) {}
 
-    // 2. Call backend scraper
-    try {
-      final response = await _dio.post('/guidance-value', data: {
-        'district': district,
-        'taluk': taluk,
-        'village': village,
-        'property_type': propertyType,
-      });
-
-      if (response.statusCode == 200) {
-        final d = response.data as Map<String, dynamic>;
-        final gv = GuidanceValue(
-          district: district,
-          taluk: taluk,
-          village: village,
-          propertyType: propertyType,
-          valuePerSqft: (d['value_per_sqft'] ?? 0).toDouble(),
-          valuePerSqm: (d['value_per_sqm'] ?? 0).toDouble(),
-          zone: d['zone'] ?? 'B',
-          updatedAt: DateTime.now(),
-          source: 'igr_scrape',
-        );
-
-        // Cache in Firestore
-        await _firestore
-            .collection('guidance_values')
-            .doc(cacheKey)
-            .set(gv.toMap());
-
-        return gv;
-      }
-    } catch (_) {}
+    // 2. Backend scraper disabled — use hardcoded IGR fallback values
+    // Guidance value is now shown from Kaveri portal (user opens in-app WebView).
 
     // 3. Return hardcoded fallback values for key areas
     return _getFallbackValue(district, taluk, propertyType);

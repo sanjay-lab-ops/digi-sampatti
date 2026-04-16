@@ -91,12 +91,28 @@ class UserTypeScreen extends StatelessWidget {
                     // Sample report — shown after login via home screen
 
                     const Spacer(),
-                    const Center(
-                      child: Text(
-                        'Startup India: IN-0326-9427JD · Patent Provisional Filed',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
+                    Center(
+                      child: Column(children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.auto_awesome,
+                                size: 12, color: Colors.white54),
+                            const SizedBox(width: 5),
+                            const Text('Powered by Claude AI',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white54,
+                                    letterSpacing: 0.3)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Startup India: IN-0326-9427JD · Patent Provisional Filed',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 9, color: Colors.white38),
+                        ),
+                      ]),
                     ),
                   ],
                 ),

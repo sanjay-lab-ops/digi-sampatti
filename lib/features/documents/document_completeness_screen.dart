@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/core/services/ocr_service.dart';
+import 'package:digi_sampatti/core/services/ocr_to_findings_mapper.dart';
+import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
 
 // ─── Document Completeness Checker ────────────────────────────────────────────
 // Before AI analysis runs, check which documents exist and ask for missing ones.
@@ -171,10 +175,33 @@ class DocumentCompletenessScreen extends ConsumerStatefulWidget {
       _DocumentCompletenessScreenState();
 }
 
+// Smart insight from reading a document
+class _DocInsight {
+  final Color color;
+  final IconData icon;
+  final String message;
+  const _DocInsight({required this.color, required this.icon, required this.message});
+}
+
 class _DocumentCompletenessScreenState
     extends ConsumerState<DocumentCompletenessScreen> {
-  final _picker = ImagePicker();
-  bool _proceeding = false;
+  final _picker    = ImagePicker();
+  final _ocrService = OcrService();
+  bool _proceeding  = false;
+  // Tracks which doc is currently running OCR
+  final Set<String> _ocrRunning = {};
+  // Stores OCR summary per doc id
+  final Map<String, String> _ocrSummary = {};
+  // Stores smart flags per doc id
+  final Map<String, List<_DocInsight>> _docInsights = {};
+  // Tracks which card is currently selected/tapped
+  String? _selectedDocId;
+
+  @override
+  void initState() {
+    super.initState();
+    _ocrService.initialize();
+  }
 
   int get _completedCount =>
       ref.read(requiredDocsProvider).where((d) => d.isComplete).length;
@@ -205,27 +232,270 @@ class _DocumentCompletenessScreenState
   }
 
   Future<void> _uploadDocument(RequiredDoc doc) async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 85,
-    );
-    if (picked == null) return;
+    final choice = await _showSourceDialog();
+    if (choice == null) return;
 
+    String? filePath;
+
+    if (choice == 'pdf') {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      filePath = result?.files.single.path;
+    } else {
+      final source = choice == 'camera' ? ImageSource.camera : ImageSource.gallery;
+      final picked = await _picker.pickImage(source: source, imageQuality: 85);
+      filePath = picked?.path;
+    }
+
+    if (filePath == null || !mounted) return;
+
+    // Mark as uploaded immediately so UI updates
+    _updateDocStatus(doc, DocStatus.uploaded, filePath);
+
+    // Run OCR in background — show "Reading document..." indicator
+    setState(() => _ocrRunning.add(doc.id));
+    try {
+      final ocrResult = await _ocrService.extractFromDocument(filePath);
+      if (!mounted) return;
+
+      // Build a human-readable summary of what was extracted
+      final parts = <String>[];
+      if (ocrResult.surveyNumber != null) parts.add('Survey: ${ocrResult.surveyNumber}');
+      if (ocrResult.ownerName    != null) parts.add('Owner: ${ocrResult.ownerName}');
+      if (ocrResult.district     != null) parts.add('District: ${ocrResult.district}');
+      if (ocrResult.taluk        != null) parts.add('Taluk: ${ocrResult.taluk}');
+      if (ocrResult.documentType != null) parts.add('Type: ${ocrResult.documentType}');
+
+      // Detect critical flags
+      if (ocrResult.hasUsefulData) {
+        // Merge findings into portal findings provider for auto-scan rule engine
+        final findings = OcrToFindingsMapper.fromOcrResult(ocrResult);
+        final existing = ref.read(portalFindingsProvider);
+        ref.read(portalFindingsProvider.notifier).state = existing.copyWith(
+          bhoomiOpened:  (existing.bhoomiOpened  ?? false) || (findings.bhoomiOpened  ?? false),
+          hasCourtCases: (existing.hasCourtCases ?? false) || (findings.hasCourtCases ?? false),
+          hasActiveLoan: (existing.hasActiveLoan ?? false) || (findings.hasActiveLoan ?? false),
+          kaveriOpened:  (existing.kaveriOpened  ?? false) || (findings.kaveriOpened  ?? false),
+        );
+      }
+
+      // Build smart insights from rawText
+      final insights = _buildInsights(ocrResult, doc);
+
+      setState(() {
+        _ocrRunning.remove(doc.id);
+        _ocrSummary[doc.id] = parts.isEmpty
+            ? 'Document read — check insights below'
+            : parts.join(' · ');
+        _docInsights[doc.id] = insights;
+      });
+
+      // If agricultural land detected, auto-add DC conversion to critical list
+      if (ocrResult.agriculturalLand) {
+        final docs = [...ref.read(requiredDocsProvider)];
+        final dcIdx = docs.indexWhere((d) => d.id == 'dc_conversion');
+        if (dcIdx >= 0 && docs[dcIdx].status == DocStatus.skipped) {
+          docs[dcIdx] = RequiredDoc(
+            id: docs[dcIdx].id, title: docs[dcIdx].title,
+            titleKannada: docs[dcIdx].titleKannada,
+            description: docs[dcIdx].description,
+            whyNeeded: docs[dcIdx].whyNeeded,
+            level: docs[dcIdx].level, status: DocStatus.missing,
+            propertyTypes: docs[dcIdx].propertyTypes,
+          );
+          ref.read(requiredDocsProvider.notifier).state = docs;
+        }
+      }
+    } catch (_) {
+      if (mounted) setState(() => _ocrRunning.remove(doc.id));
+    }
+  }
+
+  // ── Smart insight generation from OCR result ────────────────────────────────
+  List<_DocInsight> _buildInsights(OcrResult ocr, RequiredDoc doc) {
+    final insights = <_DocInsight>[];
+
+    // 1. INJUNCTION — highest priority, use structured flag
+    if (ocr.injunctionDetected) {
+      insights.add(const _DocInsight(
+        color: Colors.red,
+        icon: Icons.gavel,
+        message: 'Court injunction or stay order detected — do NOT proceed without a lawyer',
+      ));
+    }
+
+    // 2. Liabilities in RTC
+    if (ocr.liabilities != null && ocr.liabilities!.isNotEmpty) {
+      insights.add(_DocInsight(
+        color: Colors.red.shade700,
+        icon: Icons.warning,
+        message: 'Liabilities noted in document: ${ocr.liabilities}',
+      ));
+    }
+
+    // 3. Remarks (may contain court notices, government acquisition, etc.)
+    if (ocr.remarks != null && ocr.remarks!.isNotEmpty) {
+      insights.add(_DocInsight(
+        color: Colors.orange.shade800,
+        icon: Icons.info_outline,
+        message: 'Remarks: ${ocr.remarks}',
+      ));
+    }
+
+    // 4. Agricultural land → DC conversion needed (structured flag)
+    if (ocr.agriculturalLand) {
+      insights.add(_DocInsight(
+        color: Colors.deepOrange,
+        icon: Icons.agriculture,
+        message: 'Land type: ${ocr.landType ?? "Agricultural"} — '
+            'DC Conversion Order required before construction',
+      ));
+    }
+
+    // 5. EC: mortgage / encumbrance (structured)
+    if (ocr.hasActiveMortgage) {
+      insights.add(const _DocInsight(
+        color: Colors.orange,
+        icon: Icons.account_balance,
+        message: 'Active mortgage or loan found in EC — must be cleared before purchase',
+      ));
+    }
+    if (ocr.encumbranceFree == true) {
+      insights.add(const _DocInsight(
+        color: Colors.green,
+        icon: Icons.verified_outlined,
+        message: 'EC is encumbrance-free — no loans or mortgages on record',
+      ));
+    }
+    if (ocr.ecTransactionCount != null && ocr.ecTransactionCount! > 0) {
+      final types = ocr.ecTransactions
+          .map((t) => t['type']?.toString() ?? '')
+          .where((t) => t.isNotEmpty)
+          .toSet().join(', ');
+      insights.add(_DocInsight(
+        color: Colors.blue.shade700,
+        icon: Icons.list_alt,
+        message: '${ocr.ecTransactionCount} transaction(s) in EC'
+            '${types.isNotEmpty ? ": $types" : ""}',
+      ));
+    }
+
+    // 6. Sale deed — seller name
+    if (ocr.sellerName != null) {
+      insights.add(_DocInsight(
+        color: Colors.blue.shade800,
+        icon: Icons.swap_horiz,
+        message: 'Sale Deed: Seller = ${ocr.sellerName}'
+            '${ocr.buyerName != null ? " → Buyer = ${ocr.buyerName}" : ""}',
+      ));
+    }
+
+    // 7. Owner name — verify against seller
+    if (ocr.ownerName != null && doc.id == 'rtc') {
+      insights.add(_DocInsight(
+        color: Colors.green.shade700,
+        icon: Icons.person_outline,
+        message: 'RTC Owner: ${ocr.ownerName} — confirm this matches seller\'s Aadhaar/PAN',
+      ));
+    }
+
+    // 8. Extent / area
+    if (ocr.extent != null) {
+      insights.add(_DocInsight(
+        color: Colors.teal,
+        icon: Icons.straighten,
+        message: 'Land extent: ${ocr.extent}',
+      ));
+    }
+
+    // 9. "Next document" guidance
+    final nextDoc = _nextDocNeeded(doc.id);
+    if (nextDoc != null) {
+      insights.add(_DocInsight(
+        color: Colors.blue.shade600,
+        icon: Icons.arrow_forward_outlined,
+        message: nextDoc,
+      ));
+    }
+
+    return insights;
+  }
+
+  bool _isAgriculturalLand(String raw) =>
+      raw.contains('agricultural') ||
+      raw.contains('wet land') || raw.contains('wetland') ||
+      raw.contains('dry land') || raw.contains('dryland') ||
+      raw.contains('krishi') || raw.contains('bagayat') ||
+      raw.contains('kharab') || raw.contains('shivar');
+
+  String? _nextDocNeeded(String docId) => switch (docId) {
+    'rtc'        => 'Next: Upload EC to check for loans, mortgages, and past transactions',
+    'ec'         => 'Next: Upload Sale Deed to verify the ownership chain',
+    'sale_deed'  => 'Next: Upload Khata Certificate to confirm municipal registration',
+    'khata'      => 'Next: Upload Property Tax Receipt to confirm no outstanding dues',
+    _            => null,
+  };
+
+  Future<String?> _showSourceDialog() async {
+    return showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 8),
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('Upload Document',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+          const SizedBox(height: 4),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('Photo or PDF — AI reads both.',
+                style: TextStyle(fontSize: 12, color: AppColors.textLight),
+                textAlign: TextAlign.center)),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const CircleAvatar(backgroundColor: AppColors.surfaceGreen,
+                child: Icon(Icons.camera_alt, color: AppColors.primary)),
+            title: const Text('Take Photo', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Camera — best for physical documents'),
+            onTap: () => Navigator.pop(context, 'camera'),
+          ),
+          ListTile(
+            leading: CircleAvatar(backgroundColor: Colors.blue.shade50,
+                child: Icon(Icons.photo_library, color: Colors.blue.shade700)),
+            title: const Text('Pick Image from Gallery', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Screenshot from Bhoomi / Kaveri portal'),
+            onTap: () => Navigator.pop(context, 'gallery'),
+          ),
+          ListTile(
+            leading: CircleAvatar(backgroundColor: Colors.red.shade50,
+                child: Icon(Icons.picture_as_pdf, color: Colors.red.shade700)),
+            title: const Text('Upload PDF', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Downloaded EC, RTC PDF, or digitally signed doc'),
+            onTap: () => Navigator.pop(context, 'pdf'),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+  }
+
+  void _updateDocStatus(RequiredDoc doc, DocStatus status, String? path) {
     final docs = [...ref.read(requiredDocsProvider)];
     final idx  = docs.indexWhere((d) => d.id == doc.id);
     if (idx < 0) return;
     docs[idx] = RequiredDoc(
-      id: doc.id,
-      title: doc.title,
-      titleKannada: doc.titleKannada,
-      description: doc.description,
-      whyNeeded: doc.whyNeeded,
-      level: doc.level,
-      status: DocStatus.uploaded,
-      sourceName: 'Camera Upload',
-      uploadedPath: picked.path,
-      verifiedAt: DateTime.now(),
-      propertyTypes: doc.propertyTypes,
+      id: doc.id, title: doc.title, titleKannada: doc.titleKannada,
+      description: doc.description, whyNeeded: doc.whyNeeded,
+      level: doc.level, status: status,
+      sourceName: 'Camera Upload', uploadedPath: path,
+      verifiedAt: DateTime.now(), propertyTypes: doc.propertyTypes,
     );
     ref.read(requiredDocsProvider.notifier).state = docs;
   }
@@ -248,7 +518,7 @@ class _DocumentCompletenessScreenState
   }
 
   void _proceedToAnalysis() {
-    context.push('/auto-scan');
+    context.push('/payment');
   }
 
   @override
@@ -399,18 +669,34 @@ class _DocumentCompletenessScreenState
     final isComplete = doc.isComplete;
     final isMissing  = doc.status == DocStatus.missing;
     final isSkipped  = doc.status == DocStatus.skipped;
+    final isSelected = _selectedDocId == doc.id;
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        setState(() => _selectedDocId = doc.id);
+        // If missing, open upload immediately on tap
+        if (isMissing || isSkipped) _uploadDocument(doc);
+      },
+      child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isComplete
-              ? (isSkipped ? Colors.orange.shade200 : AppColors.safe.withOpacity(0.4))
-              : levelColor.withOpacity(0.3),
-          width: isMissing && doc.level == DocLevel.critical ? 1.5 : 1,
+          color: isSelected
+              ? const Color(0xFFFFD600)   // yellow highlight on tap
+              : isComplete
+                  ? (isSkipped ? Colors.orange.shade200 : AppColors.safe.withOpacity(0.4))
+                  : levelColor.withOpacity(0.3),
+          width: isSelected ? 2.5
+              : isMissing && doc.level == DocLevel.critical ? 1.5 : 1,
         ),
+        boxShadow: isSelected
+            ? [BoxShadow(
+                color: const Color(0xFFFFD600).withOpacity(0.25),
+                blurRadius: 8, spreadRadius: 1)]
+            : null,
       ),
       child: Column(
         children: [
@@ -516,47 +802,92 @@ class _DocumentCompletenessScreenState
             ),
           ],
 
-          // Uploaded preview
+          // Uploaded preview + OCR result
           if (doc.uploadedPath != null) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Row(children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.file(File(doc.uploadedPath!),
-                      width: 60, height: 60, fit: BoxFit.cover),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Document uploaded',
-                          style: TextStyle(color: AppColors.safe,
-                              fontWeight: FontWeight.w600, fontSize: 12)),
-                      const Text('AI will read this during analysis',
-                          style: TextStyle(fontSize: 11, color: Colors.grey)),
-                    ],
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: doc.uploadedPath!.toLowerCase().endsWith('.pdf')
+                      ? Container(
+                          width: 60, height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(Icons.picture_as_pdf,
+                              color: Colors.red.shade700, size: 32),
+                        )
+                      : Image.file(File(doc.uploadedPath!),
+                          width: 60, height: 60, fit: BoxFit.cover),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    final docs = [...ref.read(requiredDocsProvider)];
-                    final idx = docs.indexWhere((d) => d.id == doc.id);
-                    if (idx < 0) return;
-                    docs[idx].status = DocStatus.missing;
-                    docs[idx].uploadedPath = null;
-                    ref.read(requiredDocsProvider.notifier).state = [...docs];
-                  },
-                  child: const Text('Remove',
-                      style: TextStyle(color: Colors.red, fontSize: 11)),
-                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ocrRunning.contains(doc.id)
+                      ? const Row(children: [
+                          SizedBox(width: 14, height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                          SizedBox(width: 8),
+                          Text('AI reading document...',
+                              style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                        ])
+                      : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('Document uploaded',
+                              style: TextStyle(color: AppColors.safe,
+                                  fontWeight: FontWeight.w600, fontSize: 12)),
+                          Text(
+                            _ocrSummary[doc.id] ?? 'AI will read this during analysis',
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ]),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final docs = [...ref.read(requiredDocsProvider)];
+                      final idx = docs.indexWhere((d) => d.id == doc.id);
+                      if (idx < 0) return;
+                      docs[idx].status = DocStatus.missing;
+                      docs[idx].uploadedPath = null;
+                      setState(() {
+                        _ocrSummary.remove(doc.id);
+                        _docInsights.remove(doc.id);
+                        _selectedDocId = null;
+                      });
+                      ref.read(requiredDocsProvider.notifier).state = [...docs];
+                    },
+                    child: const Text('Remove',
+                        style: TextStyle(color: Colors.red, fontSize: 11)),
+                  ),
+                ]),
+                // Smart insights
+                if (_docInsights[doc.id]?.isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  ..._docInsights[doc.id]!.map((insight) => Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: insight.color.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: insight.color.withOpacity(0.25)),
+                    ),
+                    child: Row(children: [
+                      Icon(insight.icon, size: 14, color: insight.color),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(insight.message,
+                          style: TextStyle(fontSize: 11, color: insight.color,
+                              height: 1.3, fontWeight: FontWeight.w500))),
+                    ]),
+                  )),
+                ],
               ]),
             ),
           ],
         ],
       ),
-    );
+      ), // AnimatedContainer
+    ); // GestureDetector
   }
 
   Widget _statusIcon(RequiredDoc doc) {

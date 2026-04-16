@@ -309,12 +309,13 @@ class _SellerKycScreenState extends ConsumerState<SellerKycScreen> {
         ]),
         SizedBox(height: 8),
         Text(
-          '3 checks run:\n'
-          '1. PAN format validation (Income Tax)\n'
-          '2. Seller name vs RTC owner name (Bhoomi)\n'
-          '3. Seller name vs last EC transaction owner (Kaveri)\n\n'
-          'If names don\'t match → ownership chain broken → fraud risk.\n'
-          'A verified seller gets a Trust Badge — gives buyer confidence.',
+          'What this checks:\n'
+          '1. PAN format validation (10-character pattern check)\n'
+          '2. Name fuzzy-match vs uploaded RTC owner name\n'
+          '3. Name fuzzy-match vs uploaded EC last transaction owner\n\n'
+          'Note: This is document cross-check only — not a live Income Tax '
+          'or Aadhaar API lookup. Verify PAN at incometax.gov.in manually for '
+          'high-value transactions.',
           style: TextStyle(fontSize: 12, height: 1.5, color: Colors.black54),
         ),
       ],

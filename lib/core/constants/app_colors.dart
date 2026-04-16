@@ -107,6 +107,16 @@ class AppColors {
   static const Color emerald   = Color(0xFF00a878); // Success / verified — emerald
   static const Color navy      = Color(0xFF004D40); // BBMP / tax — dark teal
 
+  // ─── Portal Brand Colors ──────────────────────────────────────────────────
+  static const Color kaveri     = Color(0xFF7B1FA2); // Kaveri EC — purple
+  static const Color bdaColor   = Color(0xFF1A3A6B); // BDA — dark blue
+  static const Color reraColor  = Color(0xFF006064); // RERA — teal
+  static const Color bbmpColor  = Color(0xFF37474F); // BBMP — blue-grey
+  static const Color cersaiColor = Color(0xFFBF360C); // CERSAI — deep orange
+
+  // ─── Surface Colors ────────────────────────────────────────────────────────
+  static const Color surfaceGrey = Color(0xFFF5F5F5); // Light grey card background
+
   // ─── Shimmer Colors ────────────────────────────────────────────────────────
   static const Color shimmerBase      = Color(0xFFE0E0E0);
   static const Color shimmerHighlight = Color(0xFFF5F5F5);

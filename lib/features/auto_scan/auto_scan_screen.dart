@@ -9,7 +9,7 @@ import 'package:digi_sampatti/core/models/portal_findings_model.dart';
 import 'package:digi_sampatti/core/models/property_scan_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
-import 'package:digi_sampatti/features/bhoomi/bhoomi_device_scraper_screen.dart';
+import 'package:digi_sampatti/features/scan/document_guide_screen.dart';
 import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 // ─── Auto Scan Screen ─────────────────────────────────────────────────────────
@@ -273,53 +273,14 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     // in manual_search_screen already handles approximate location.
   }
 
+  // Upload-first model: instead of scraping Bhoomi, guide the user to download
+  // their RTC from Bhoomi portal themselves and upload it here for OCR.
   Future<void> _fetchBhoomiOnDevice() async {
-    setState(() => _bhoomiFetchingOnDevice = true);
-    final result = await Navigator.push<Map<String, dynamic>?>(
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => BhoomiDeviceScraperScreen(
-          district:     _scanDistrict,
-          taluk:        _scanTaluk,
-          hobli:        _scanHobli,
-          village:      _scanVillage,
-          surveyNumber: _scanSurveyNo,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => const DocumentGuideScreen()),
     );
-    if (!mounted) return;
-    if (result != null) {
-      final src = result['source']?.toString() ?? '';
-      if (!src.contains('no_data') && !src.contains('error')) {
-        // ── Save property GPS from RTC result ─────────────────────────────────
-        // Bhoomi RTC contains an OLC (Plus Code) printed on the document.
-        // Backend decodes it → returns latitude/longitude = exact property location.
-        _savePropertyLocationFromRtc(result);
-
-        // Update Bhoomi portal card with on-device result
-        _updatePortal('Bhoomi RTC', result, (d) {
-          final owner = d['owner_name'] ?? '';
-          final extent = d['extent'] ?? '';
-          return owner.isNotEmpty ? 'Owner: $owner${extent.isNotEmpty ? ' · $extent' : ''}' : 'Record fetched';
-        });
-        // Merge into fullResult
-        if (_fullResult != null) {
-          setState(() {
-            _fullResult = {..._fullResult!, 'rtc': result};
-            _bhoomiFailed = false;
-          });
-        }
-      } else {
-        setState(() => _bhoomiFetchingOnDevice = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No RTC data found for this survey number on Bhoomi.')),
-          );
-        }
-      }
-    } else {
-      setState(() => _bhoomiFetchingOnDevice = false);
-    }
+    if (mounted) setState(() => _bhoomiFetchingOnDevice = false);
   }
 
   void _updatePortal(String name, dynamic data, String Function(Map) summarize) {
@@ -884,44 +845,26 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
     );
   }
 
-  // ─── On-device button for cloud-blocked portals ───────────────────────────
+  // ─── On-device button: opens portal guide or WebView ─────────────────────
+  // Upload-first model: for Bhoomi we guide user to download their own RTC,
+  // then upload it. For other portals we open the portal in-app WebView.
   Widget _onDeviceButton(BuildContext context, {
     required GovPortal portal,
     required String label,
     required Color color,
   }) {
     final scan = ref.read(currentScanProvider);
-    // Bhoomi: use automated device scraper (fills form, returns parsed data)
-    if (portal == GovPortal.bhoomi && scan != null &&
-        scan.district != null && scan.taluk != null && scan.surveyNumber != null) {
+    // Bhoomi: show document guide → user downloads RTC → uploads → OCR reads it
+    if (portal == GovPortal.bhoomi) {
       return Container(
         width: double.infinity,
         margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         child: ElevatedButton.icon(
-          onPressed: () async {
-            final result = await Navigator.push<Map<String, dynamic>?>(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BhoomiDeviceScraperScreen(
-                  district:     scan.district!,
-                  taluk:        scan.taluk!,
-                  hobli:        scan.hobli ?? '',
-                  village:      scan.village ?? '',
-                  surveyNumber: scan.surveyNumber!,
-                ),
-              ),
-            );
-            if (result != null && mounted) {
-              setState(() {
-                final p = _portals.firstWhere((p) => p.name == 'Bhoomi RTC');
-                p.status = _PortalStatus.done;
-                p.summary = _rtcSummary(result);
-                p.hasIssue = false;
-              });
-            }
-          },
-          icon: const Icon(Icons.auto_fix_high, size: 16),
-          label: Text(label, style: const TextStyle(fontSize: 12)),
+          onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const DocumentGuideScreen())),
+          icon: const Icon(Icons.upload_file, size: 16),
+          label: const Text('Get RTC from Bhoomi & Upload',
+              style: TextStyle(fontSize: 12)),
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             foregroundColor: Colors.white,
@@ -931,7 +874,7 @@ class _AutoScanScreenState extends ConsumerState<AutoScanScreen>
         ),
       );
     }
-    // Other portals: open WebView manually
+    // Other portals: open WebView
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),

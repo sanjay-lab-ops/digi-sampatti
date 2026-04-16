@@ -12,6 +12,7 @@ import 'package:digi_sampatti/core/services/gps_service.dart';
 import 'package:digi_sampatti/core/services/ocr_service.dart';
 import 'package:digi_sampatti/core/services/ocr_to_findings_mapper.dart';
 import 'package:digi_sampatti/features/portal_checklist/portal_checklist_screen.dart';
+import 'package:digi_sampatti/features/documents/document_completeness_screen.dart';
 
 class CameraScanScreen extends ConsumerStatefulWidget {
   const CameraScanScreen({super.key});
@@ -127,6 +128,9 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
           );
         }
       }
+
+      // Mark RTC as uploaded in the document completeness checklist
+      _markRtcUploaded(photoPath);
 
       if (mounted) {
         // If OCR returned no data (key missing/expired), warn the user
@@ -413,6 +417,34 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
     );
   }
 
+  // Mark the RTC document as uploaded in the completeness checklist provider.
+  // Called after camera/gallery capture so the user doesn't have to re-upload it
+  // on the document completeness screen.
+  void _markRtcUploaded(String photoPath) {
+    try {
+      final docs = [...ref.read(requiredDocsProvider)];
+      final idx  = docs.indexWhere((d) => d.id == 'rtc');
+      if (idx < 0) return;
+      final old = docs[idx];
+      docs[idx] = RequiredDoc(
+        id:            old.id,
+        title:         old.title,
+        titleKannada:  old.titleKannada,
+        description:   old.description,
+        whyNeeded:     old.whyNeeded,
+        level:         old.level,
+        status:        DocStatus.uploaded,
+        sourceName:    'Camera Upload',
+        uploadedPath:  photoPath,
+        verifiedAt:    DateTime.now(),
+        propertyTypes: old.propertyTypes,
+      );
+      ref.read(requiredDocsProvider.notifier).state = docs;
+    } catch (_) {
+      // Provider not initialised yet — no-op
+    }
+  }
+
   @override
   void dispose() {
     _cameraService.dispose();
@@ -536,6 +568,7 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen> {
                 ref.read(propertyCheckNotifierProvider.notifier).setScan(scan);
 
                 if (mounted) {
+                  _markRtcUploaded(path);
                   context.push('/scan/manual', extra: {
                     'ocrSurveyNumber': sv2,
                     'ocrOwnerName':    own2,

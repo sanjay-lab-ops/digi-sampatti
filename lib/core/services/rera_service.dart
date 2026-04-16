@@ -21,41 +21,16 @@ class ReraService {
     ));
   }
 
+  // Upload-first model: RERA data comes from user-uploaded RERA certificate.
+  // Claude Vision OCR extracts reg number, project name, promoter, status.
+  // These search methods are retained for future in-app portal search feature.
   Future<List<ReraRecord>> searchByProjectName(String projectName, {String district = ''}) async {
-    try {
-      final response = await _dio.post(ApiConstants.backendReraEndpoint, data: {
-        'project_name': projectName,
-        'district': district,
-      });
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final projects = data['projects'];
-        if (projects is List) {
-          return projects.map((p) => _parseReraRecord(p as Map<String, dynamic>)).toList();
-        }
-        // Single result
-        if (data['project_name'] != null || data['reg_no'] != null) {
-          return [_parseReraRecord(data)];
-        }
-      }
-    } catch (_) {}
+    // No backend scrape — user uploads RERA certificate via document guide
     return [];
   }
 
   Future<List<ReraRecord>> searchByPromoterName(String promoterName, {String district = ''}) async {
-    try {
-      final response = await _dio.post(ApiConstants.backendReraEndpoint, data: {
-        'promoter': promoterName,
-        'district': district,
-      });
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final projects = data['projects'];
-        if (projects is List) {
-          return projects.map((p) => _parseReraRecord(p as Map<String, dynamic>)).toList();
-        }
-      }
-    } catch (_) {}
+    // No backend scrape — user uploads RERA certificate via document guide
     return [];
   }
 
@@ -100,6 +75,8 @@ class EncumbranceService {
     ));
   }
 
+  // Upload-first model: EC data comes from user-uploaded EC document.
+  // Claude Vision OCR reads EC → OcrToFindingsMapper extracts encumbrance entries.
   Future<List<EncumbranceEntry>> fetchEncumbranceCertificate({
     required String district,
     required String sroOffice,
@@ -107,31 +84,13 @@ class EncumbranceService {
     required int fromYear,
     required int toYear,
   }) async {
-    try {
-      final response = await _dio.post(ApiConstants.backendEcEndpoint, data: {
-        'district': district,
-        'taluk': sroOffice,
-        'survey_number': surveyNumber,
-        'from_year': fromYear,
-        'to_year': toYear,
-      });
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final entries = data['entries'];
-        if (entries is List) {
-          return entries.map((e) => _parseEntry(e as Map<String, dynamic>)).toList();
-        }
-      }
-    } catch (_) {}
+    // No backend scrape — user uploads EC from Kaveri portal via document guide
     return [];
   }
 
   Future<bool> hasActiveMortgage({required String district, required String surveyNumber}) async {
-    final entries = await fetchEncumbranceCertificate(
-      district: district, sroOffice: district, surveyNumber: surveyNumber,
-      fromYear: DateTime.now().year - 30, toYear: DateTime.now().year,
-    );
-    return entries.any((e) => e.isActive && e.type.toLowerCase().contains('mortgage'));
+    // Determined from uploaded EC document, not from backend scrape
+    return false;
   }
 
   EncumbranceEntry _parseEntry(Map<String, dynamic> e) {

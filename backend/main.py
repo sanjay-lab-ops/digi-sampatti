@@ -2448,6 +2448,59 @@ Extract ALL visible information and return ONLY valid JSON in this format:
     "survey_number": "or null"
   }},
 
+  "khata_fields": {{
+    "khata_type": "A-Khata" | "B-Khata" | null,
+    "khata_number": "or null",
+    "owner_name": "or null",
+    "property_address": "or null",
+    "ward_number": "or null",
+    "site_area": "in sq.ft or null",
+    "municipal_body": "BBMP / BDA / Panchayat / CMC / TMC or null",
+    "dues_outstanding": true | false | null
+  }},
+
+  "mutation_fields": {{
+    "mutation_number": "MR H13/2018 format or null",
+    "mutation_date": "or null",
+    "previous_owner": "or null",
+    "new_owner": "or null",
+    "reason": "Sale / Inheritance / Gift / Court Order or null",
+    "mutation_status": "Approved" | "Pending" | "Objection Filed" | null,
+    "objection": "any objection notes or null"
+  }},
+
+  "tax_fields": {{
+    "property_id": "PID number or null",
+    "owner_name": "or null",
+    "assessment_year": "or null",
+    "amount_paid": "₹ amount or null",
+    "payment_date": "or null",
+    "dues_pending": true | false | null,
+    "dues_amount": "₹ or null"
+  }},
+
+  "rera_fields": {{
+    "rera_number": "registration number or null",
+    "project_name": "or null",
+    "promoter_name": "developer/builder or null",
+    "registration_date": "or null",
+    "expiry_date": "or null",
+    "completion_percentage": "0-100 or null",
+    "project_status": "Under Construction" | "Completed" | "Lapsed" | null,
+    "escrow_funded": true | false | null
+  }},
+
+  "dc_conversion_fields": {{
+    "order_number": "or null",
+    "order_date": "or null",
+    "dc_name": "Deputy Commissioner name or null",
+    "survey_number": "or null",
+    "area_converted": "in acres or null",
+    "converted_to": "Residential" | "Commercial" | "Industrial" | null,
+    "conditions": "any conditions imposed or null",
+    "valid_until": "expiry date if any or null"
+  }},
+
   "raw_text_snippet": "first 500 chars of all readable text"
 }}
 
@@ -2455,7 +2508,10 @@ Rules:
 - For Kannada text: transliterate names to English (e.g. ಮಾರೆಗೌಡ → Maregowda)
 - Extract EXACTLY what is written — do not guess
 - If field is not visible or not applicable, use null
-- confidence: 0.9=clear printed, 0.6=partially visible, 0.3=blurry/handwritten"""
+- confidence: 0.9=clear printed, 0.6=partially visible, 0.3=blurry/handwritten
+- For mutation_status: "Pending" if mutation is not yet approved, "Objection Filed" if any objection is recorded
+- For dues_outstanding/dues_pending: true only if arrears are clearly shown
+- For rera expiry: flag if expiry_date is past today's date"""
 
     try:
         async with httpx.AsyncClient(timeout=45) as c:
@@ -2522,6 +2578,12 @@ Rules:
                         "ec": data.get("ec_fields"),
                         # Sale Deed fields
                         "sale_deed": data.get("sale_deed_fields"),
+                        # Other document types
+                        "khata":       data.get("khata_fields"),
+                        "mutation":    data.get("mutation_fields"),
+                        "tax":         data.get("tax_fields"),
+                        "rera":        data.get("rera_fields"),
+                        "dc_conversion": data.get("dc_conversion_fields"),
                         # Raw for debugging
                         "raw_text": data.get("raw_text_snippet"),
                         "full_extraction": data,

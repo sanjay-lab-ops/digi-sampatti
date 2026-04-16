@@ -29,7 +29,11 @@ class BhoomiService {
     ));
   }
 
-  // ─── Fetch RTC via Railway backend scraper ──────────────────────────────────
+  // ─── Fetch RTC — upload-first model ─────────────────────────────────────────
+  // App no longer scrapes portals. User uploads their own RTC document.
+  // Claude Vision OCR reads it → OcrToFindingsMapper → rule engine.
+  // This method is retained only for cases where parsed OCR data is already
+  // available and needs to be wrapped in a LandRecord model.
   Future<LandRecord?> fetchRtc({
     required String district,
     required String taluk,
@@ -37,48 +41,17 @@ class BhoomiService {
     required String village,
     required String surveyNumber,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.backendRtcEndpoint,
-        data: {
-          'district': district,
-          'taluk': taluk,
-          'hobli': hobli,
-          'village': village,
-          'survey_number': surveyNumber,
-        },
-      );
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        if (data['source'] != 'bhoomi_no_data') {
-          return _parseBackendRtc(data,
-              district: district, taluk: taluk,
-              hobli: hobli, village: village, surveyNumber: surveyNumber);
-        }
-      }
-    } catch (_) {}
-    return _getDemoRecord(
-      district: district, taluk: taluk, hobli: hobli,
-      village: village, surveyNumber: surveyNumber,
-    );
+    // No backend call — return null so callers show "upload document" prompt
+    return null;
   }
 
-  // ─── Fetch Mutations via Railway backend ───────────────────────────────────
+  // ─── Fetch Mutations — upload-first model ────────────────────────────────────
   Future<List<MutationEntry>> fetchMutations({
     required String district,
     required String taluk,
     required String surveyNumber,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.backendRtcEndpoint,
-        data: {'district': district, 'taluk': taluk, 'survey_number': surveyNumber},
-      );
-      if (response.statusCode == 200 && response.data != null) {
-        final mutations = (response.data as Map)['mutations'];
-        if (mutations is List) return _parseMutations(mutations);
-      }
-    } catch (_) {}
+    // No backend call — mutations are extracted from uploaded RTC document by OCR
     return [];
   }
 

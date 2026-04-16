@@ -68,6 +68,8 @@ import 'package:digi_sampatti/features/hidden_issues/hidden_issues_screen.dart';
 import 'package:digi_sampatti/features/finself/finself_entry_screen.dart';
 import 'package:digi_sampatti/features/finself/account_aggregator_screen.dart';
 import 'package:digi_sampatti/features/finself/buyer_financial_profile_screen.dart';
+import 'package:digi_sampatti/features/scan/document_guide_screen.dart';
+import 'package:digi_sampatti/features/payment/report_payment_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -99,6 +101,11 @@ final _router = GoRouter(
       builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
+      path: '/scan/guide',
+      name: 'doc-guide',
+      builder: (context, state) => const DocumentGuideScreen(),
+    ),
+    GoRoute(
       path: '/scan/camera',
       name: 'camera-scan',
       builder: (context, state) => const CameraScanScreen(),
@@ -125,6 +132,11 @@ final _router = GoRouter(
       path: '/checklist',
       name: 'portal-checklist',
       builder: (context, state) => const PortalChecklistScreen(),
+    ),
+    GoRoute(
+      path: '/payment',
+      name: 'payment',
+      builder: (context, state) => const ReportPaymentScreen(),
     ),
     GoRoute(
       path: '/auto-scan',
@@ -259,10 +271,8 @@ final _router = GoRouter(
       name: 'loan-eligibility',
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
-        // Shows FinSelf branded splash first, then transitions to AA consent
-        return FinselfEntryScreen(
-          propertyValue: extra?['propertyValue'] as double?,
-        );
+        // Go directly to AA screen — skip the delayed splash
+        return const AccountAggregatorScreen();
       },
     ),
     GoRoute(
@@ -327,7 +337,7 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/tools/loan-eligibility',
-      name: 'loan-eligibility',
+      name: 'tools-loan-eligibility',
       builder: (context, state) => const LoanEligibilityScreen(),
     ),
     GoRoute(

@@ -107,6 +107,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Past Reports',
+            onPressed: () => context.push('/history'),
+          ),
+          IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
           ),
@@ -642,7 +647,7 @@ class _HowItWorksCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => context.push('/scan/camera'),
+              onPressed: () => context.push('/scan/guide'),
               icon: const Icon(Icons.upload_file, size: 18),
               label: const Text('Upload Document & Check Property',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
@@ -1097,7 +1102,7 @@ class _ModeActions extends ConsumerWidget {
         children: [
           // Primary CTA — Upload documents
           GestureDetector(
-            onTap: () => context.push('/scan/camera'),
+            onTap: () => context.push('/scan/guide'),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
@@ -1139,25 +1144,6 @@ class _ModeActions extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          // Secondary — manual search
-          Row(children: [
-            Expanded(child: _ActionCard(
-              icon: Icons.search,
-              title: 'Enter Survey No.',
-              subtitle: 'Know the survey number',
-              color: AppColors.arthBlue,
-              onTap: () => context.push('/scan/manual'),
-            )),
-            const SizedBox(width: 10),
-            Expanded(child: _ActionCard(
-              icon: Icons.history,
-              title: 'Past Reports',
-              subtitle: 'Your checked properties',
-              color: const Color(0xFF6366F1),
-              onTap: () => context.push('/history'),
-            )),
-          ]),
         ],
       );
     }
@@ -1244,7 +1230,7 @@ class _CoreTools extends ConsumerWidget {
     final buyerTools = [
       _Tool(Icons.fingerprint, 'ARTH ID — Loan Check', 'Know your buying power first',
           AppColors.arthBlue, '/loan-eligibility'),
-      _Tool(Icons.how_to_reg_outlined, 'Verify Seller', 'KYC + Trust Score',
+      _Tool(Icons.how_to_reg_outlined, 'Verify Seller', 'PAN format check · Name match',
           AppColors.seller, '/seller-kyc'),
       _Tool(Icons.location_searching, 'Book Inspection', 'On-ground GPS visit',
           AppColors.slate, '/field-inspection'),

@@ -35,12 +35,39 @@ class OcrResult {
   final double confidence;      // 0.0 – 1.0
   final String? rawText;        // Full extracted text for fallback
 
+  // RTC-specific
+  final String? landType;       // "Dry: 0.30" / "Wet: 0.20" / "Agricultural"
+  final String? liabilities;    // any loans/encumbrances listed in RTC
+  final String? extent;         // total extent e.g. "0.30 Acres"
+  final String? village;
+  final String? remarks;        // any remarks field — may mention court orders
+
+  // EC-specific
+  final bool? encumbranceFree;  // true = no encumbrance, false = has loans/mortgages
+  final int? ecTransactionCount;
+  final List<Map<String, dynamic>> ecTransactions; // [{date, type, parties, amount}]
+
+  // Sale Deed specific
+  final String? sellerName;
+  final String? buyerName;
+  final String? considerationAmount;
+  final String? deedNumber;
+  final String? registrationDate;
+
+  // Khata specific
+  final String? khataType;      // "A-Khata" / "B-Khata"
+
+  // Risk flags extracted by backend
+  final bool injunctionDetected;
+  final bool agriculturalLand;
+  final bool hasActiveMortgage;
+
   // Building detection fields
-  final ScanType scanType;               // document / building / unknown
-  final String? buildingName;            // "Prestige Lakeside Habitat"
-  final List<String> visibleBlocks;      // ["A", "B", "C"] or ["Block 1", "Tower 2"]
-  final List<String> visibleFlats;       // ["A101", "A102", ...] if flat numbers visible
-  final String? buildingAddress;         // street address of building
+  final ScanType scanType;
+  final String? buildingName;
+  final List<String> visibleBlocks;
+  final List<String> visibleFlats;
+  final String? buildingAddress;
 
   const OcrResult({
     this.surveyNumber,
@@ -52,6 +79,23 @@ class OcrResult {
     this.documentType,
     this.confidence = 0.0,
     this.rawText,
+    this.landType,
+    this.liabilities,
+    this.extent,
+    this.village,
+    this.remarks,
+    this.encumbranceFree,
+    this.ecTransactionCount,
+    this.ecTransactions = const [],
+    this.sellerName,
+    this.buyerName,
+    this.considerationAmount,
+    this.deedNumber,
+    this.registrationDate,
+    this.khataType,
+    this.injunctionDetected = false,
+    this.agriculturalLand = false,
+    this.hasActiveMortgage = false,
     this.scanType = ScanType.unknown,
     this.buildingName,
     this.visibleBlocks = const [],
@@ -66,9 +110,8 @@ class OcrResult {
 
   @override
   String toString() =>
-      'OcrResult(type=$scanType, survey=$surveyNumber, owner=$ownerName, '
-      'taluk=$taluk, district=$district, doc=$documentType, conf=$confidence, '
-      'building=$buildingName, blocks=$visibleBlocks)';
+      'OcrResult(type=$documentType, survey=$surveyNumber, owner=$ownerName, '
+      'land=$landType, encFree=$encumbranceFree, inj=$injunctionDetected, conf=$confidence)';
 }
 
 class OcrService {
@@ -158,18 +201,76 @@ class OcrService {
       );
     }
 
-    // Document extraction
+    // Document extraction — map all rich backend fields
+    final ecData = data['ec'] as Map<String, dynamic>?;
+    final saleData = data['sale_deed'] as Map<String, dynamic>?;
+    final rawText = data['raw_text']?.toString() ?? '';
+    final liabilities = data['liabilities']?.toString();
+    final remarks = data['remarks']?.toString() ?? '';
+    final landType = data['land_type']?.toString();
+
+    // Detect injunction from remarks + rawText + liabilities
+    final combined = '${rawText.toLowerCase()} ${remarks.toLowerCase()} '
+        '${(liabilities ?? '').toLowerCase()}';
+    final injDetected = combined.contains('injunction') ||
+        combined.contains('prohibitory') ||
+        combined.contains('court stay') ||
+        combined.contains('attachment order') ||
+        combined.contains('nirbandha');
+
+    // Detect agricultural land
+    final agriDetected = combined.contains('agricultural') ||
+        combined.contains('wet land') || combined.contains('dry land') ||
+        combined.contains('krishi') || combined.contains('bagayat') ||
+        (landType != null && (landType.toLowerCase().contains('dry') ||
+            landType.toLowerCase().contains('wet')));
+
+    // EC mortgage detection
+    final ecTransactions = <Map<String, dynamic>>[];
+    if (ecData != null) {
+      final txList = ecData['transactions'];
+      if (txList is List) {
+        for (final tx in txList) {
+          if (tx is Map<String, dynamic>) ecTransactions.add(tx);
+        }
+      }
+    }
+    final hasMortgage = ecData != null &&
+        (ecData['encumbrance_free'] == false ||
+         ecTransactions.any((t) =>
+             (t['type']?.toString() ?? '').toLowerCase().contains('mortgage')));
+
     return OcrResult(
       scanType: ScanType.document,
       surveyNumber:    data['survey_number']?.toString() ?? data['surveyNumber']?.toString(),
       ownerName:       data['owner_name']?.toString()    ?? data['ownerName']?.toString(),
       taluk:           data['taluk']?.toString(),
       district:        data['district']?.toString(),
+      village:         data['village']?.toString(),
       khataNumber:     data['khata_number']?.toString()  ?? data['khataNumber']?.toString(),
       propertyAddress: data['address']?.toString()       ?? data['propertyAddress']?.toString(),
       documentType:    data['document_type']?.toString() ?? data['documentType']?.toString() ?? 'RTC',
-      rawText:         data['raw_text']?.toString(),
+      rawText:         rawText.isEmpty ? null : rawText,
       confidence:      (data['confidence'] as num?)?.toDouble() ?? 0.85,
+      // RTC enriched
+      landType:        landType,
+      liabilities:     liabilities,
+      extent:          data['extent']?.toString(),
+      remarks:         remarks.isEmpty ? null : remarks,
+      // EC
+      encumbranceFree: ecData?['encumbrance_free'] as bool?,
+      ecTransactionCount: ecData?['transaction_count'] as int?,
+      ecTransactions:  ecTransactions,
+      // Sale Deed
+      sellerName:          saleData?['seller_name']?.toString(),
+      buyerName:           saleData?['buyer_name']?.toString(),
+      considerationAmount: saleData?['consideration_amount']?.toString(),
+      deedNumber:          saleData?['deed_number']?.toString(),
+      registrationDate:    saleData?['registration_date']?.toString(),
+      // Risk flags
+      injunctionDetected: injDetected,
+      agriculturalLand:   agriDetected,
+      hasActiveMortgage:  hasMortgage,
     );
   }
 

@@ -76,8 +76,13 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // App Icon
-                const DSLogo(size: 100),
+                // ARTH ID Logo
+                Image.asset(
+                  'assets/images/arth_id_logo.png',
+                  height: 100,
+                  width: 100,
+                  errorBuilder: (_, __, ___) => const DSLogo(size: 100),
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   AppStrings.appName,
@@ -104,7 +109,33 @@ class _SplashScreenState extends State<SplashScreen>
                     fontSize: 12,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 24),
+                // Powered by Claude badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.25)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/claude_icon.png',
+                          width: 16, height: 16,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.auto_awesome,
+                                  size: 14, color: Colors.white70)),
+                      const SizedBox(width: 6),
+                      const Text('Powered by Claude AI',
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              letterSpacing: 0.3)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
                 const CircularProgressIndicator(
                   color: Colors.white,
                   strokeWidth: 2,
