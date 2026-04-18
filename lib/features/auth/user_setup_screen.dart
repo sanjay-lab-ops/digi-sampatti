@@ -65,7 +65,7 @@ class _UserSetupScreenState extends State<UserSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              const Text('Welcome to DigiSampatti!',
+              const Text('Welcome to Arth ID!',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
               const SizedBox(height: 4),
               const Text('Tell us who you are — helps us show the right tools',
@@ -196,7 +196,7 @@ class _UserSetupScreenState extends State<UserSetupScreen> {
                   child: _isSaving
                       ? const SizedBox(height: 20, width: 20,
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Continue to DigiSampatti',
+                      : const Text('Continue to Arth ID',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
               ),
@@ -236,7 +236,7 @@ class _VerificationStepsCard extends StatelessWidget {
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black54)),
         SizedBox(height: 6),
         _Step('1', 'You submit RERA Agent ID here'),
-        _Step('2', 'DigiSampatti team checks against RERA Karnataka portal'),
+        _Step('2', 'Arth ID checks against RERA Karnataka portal'),
         _Step('3', 'Verified badge appears on your profile within 24–48 hrs'),
         _Step('4', 'Clients can see your RERA ID, listings, and reviews'),
         SizedBox(height: 4),

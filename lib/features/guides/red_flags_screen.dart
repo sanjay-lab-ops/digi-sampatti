@@ -6,7 +6,7 @@ class RedFlagsScreen extends StatelessWidget {
 
   static const _flags = [
     _Flag('Price Far Below Market Rate', 'If a property is 20–30% cheaper than similar properties nearby — something is wrong. Usually: disputed title, no DC conversion, revenue site, or court case pending.',
-      Icons.money_off, AppColors.danger, 'Run DigiSampatti check immediately'),
+      Icons.money_off, AppColors.danger, 'Run Arth ID check immediately'),
     _Flag('Seller in a Hurry to Close', '"Sign today — I have 3 other buyers." This pressure tactic is used when seller knows of a legal problem. A genuine seller will give you time to verify.',
       Icons.timer, AppColors.danger, 'Take your time — always verify'),
     _Flag('No Original Documents', 'Seller can only show photocopies. Original title deed, original EC, original RTC — all should be available. Originals withheld often means property is mortgaged.',

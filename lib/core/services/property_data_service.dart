@@ -165,7 +165,7 @@ class PropertyDataService {
       'updatedAt': FieldValue.serverTimestamp(),
       'timeline': [
         {
-          'label': 'Application submitted via DigiSampatti',
+          'label': 'Application submitted via Arth ID',
           'timestamp': DateTime.now().toIso8601String(),
           'isDone': true,
         }

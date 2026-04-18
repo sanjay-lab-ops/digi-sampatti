@@ -320,7 +320,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           _verifyBanner(
             'Bhoomi Portal',
             'https://landrecords.karnataka.gov.in',
-            'Open Bhoomi → select District/Taluk/Hobli/Village → enter same survey number → compare owner name, land type, area with what DigiSampatti found above.',
+            'Open Bhoomi → select District/Taluk/Hobli/Village → enter same survey number → compare owner name, land type, area with what Arth ID found above.',
           ),
           const SizedBox(height: 16),
 
@@ -331,7 +331,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           _verifyBanner(
             'Kaveri EC Portal',
             'https://kaverionline.karnataka.gov.in',
-            'Open Kaveri Online → EC Search → enter same survey number & period → compare transaction count and parties with DigiSampatti.',
+            'Open Kaveri Online → EC Search → enter same survey number & period → compare transaction count and parties with Arth ID.',
           ),
           const SizedBox(height: 16),
 
@@ -342,7 +342,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           _verifyBanner(
             'eCourts India',
             'https://services.ecourts.gov.in/ecourtindia_v6/',
-            'Open eCourts → Party Name search → enter owner name, select Karnataka district → verify DigiSampatti shows same number of cases.',
+            'Open eCourts → Party Name search → enter owner name, select Karnataka district → verify Arth ID shows same number of cases.',
           ),
           const SizedBox(height: 16),
 
@@ -364,7 +364,7 @@ class _PropertyRecordsScreenState extends ConsumerState<PropertyRecordsScreen>
           _verifyBanner(
             'IGR Karnataka',
             'https://igr.karnataka.gov.in/english',
-            'Open IGR → Guidance Value → select taluk/village → compare ₹/sqft with what DigiSampatti shows above.',
+            'Open IGR → Guidance Value → select taluk/village → compare ₹/sqft with what Arth ID shows above.',
           ),
           const SizedBox(height: 16),
 

@@ -7,6 +7,8 @@ import 'package:digi_sampatti/features/onboarding/onboarding_screen.dart';
 import 'package:digi_sampatti/features/auth/auth_screen.dart';
 import 'package:digi_sampatti/features/auth/user_setup_screen.dart';
 import 'package:digi_sampatti/features/home/home_screen.dart';
+import 'package:digi_sampatti/features/home/buyer_home_screen.dart';
+import 'package:digi_sampatti/features/home/seller_home_screen.dart';
 import 'package:digi_sampatti/features/scan/camera_scan_screen.dart';
 import 'package:digi_sampatti/features/scan/manual_search_screen.dart';
 import 'package:digi_sampatti/features/records/land_records_screen.dart';
@@ -71,6 +73,10 @@ import 'package:digi_sampatti/features/finself/buyer_financial_profile_screen.da
 import 'package:digi_sampatti/features/scan/document_guide_screen.dart';
 import 'package:digi_sampatti/features/payment/report_payment_screen.dart';
 import 'package:digi_sampatti/features/marketplace/property_listing_screen.dart';
+import 'package:digi_sampatti/features/marketplace/property_search_screen.dart';
+import 'package:digi_sampatti/features/seller/seller_listing_screen.dart';
+import 'package:digi_sampatti/features/escrow/digital_escrow_screen.dart';
+import 'package:digi_sampatti/features/verification/agent_workflow_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -233,6 +239,16 @@ final _router = GoRouter(
       builder: (context, state) => const NriStampDutyScreen(),
     ),
     GoRoute(
+      path: '/buyer-home',
+      name: 'buyer-home',
+      builder: (context, state) => const BuyerHomeScreen(),
+    ),
+    GoRoute(
+      path: '/seller-home',
+      name: 'seller-home',
+      builder: (context, state) => const SellerHomeScreen(),
+    ),
+    GoRoute(
       path: '/seller-kyc',
       name: 'seller-kyc',
       builder: (context, state) => const SellerKycScreen(),
@@ -268,13 +284,14 @@ final _router = GoRouter(
       builder: (context, state) => const HiddenIssuesScreen(),
     ),
     GoRoute(
+      path: '/arth-id',
+      name: 'arth-id',
+      builder: (context, state) => const FinselfEntryScreen(),
+    ),
+    GoRoute(
       path: '/loan-eligibility',
       name: 'loan-eligibility',
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>?;
-        // Go directly to AA screen — skip the delayed splash
-        return const AccountAggregatorScreen();
-      },
+      builder: (context, state) => const LoanEligibilityScreen(),
     ),
     GoRoute(
       path: '/history',
@@ -315,6 +332,32 @@ final _router = GoRouter(
       path: '/marketplace',
       name: 'marketplace',
       builder: (context, state) => const PropertyListingScreen(),
+    ),
+    GoRoute(
+      path: '/property-search',
+      name: 'property-search',
+      builder: (context, state) => const PropertySearchScreen(),
+    ),
+    GoRoute(
+      path: '/seller-listing',
+      name: 'seller-listing',
+      builder: (context, state) => const SellerListingScreen(),
+    ),
+    GoRoute(
+      path: '/agent-workflow',
+      name: 'agent-workflow',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return AgentWorkflowScreen(docData: extra);
+      },
+    ),
+    GoRoute(
+      path: '/escrow',
+      name: 'digital-escrow',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return DigitalEscrowScreen(dealData: extra);
+      },
     ),
     GoRoute(
       path: '/transfer/registration',
@@ -481,8 +524,8 @@ final _router = GoRouter(
 );
 
 // ─── App Root ─────────────────────────────────────────────────────────────────
-class DigiSampattiApp extends ConsumerWidget {
-  const DigiSampattiApp({super.key});
+class ArthIdApp extends ConsumerWidget {
+  const ArthIdApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

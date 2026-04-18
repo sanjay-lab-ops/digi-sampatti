@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
 // ─── Authenticity Layer ────────────────────────────────────────────────────────
-// Every risk finding in DigiSampatti must show:
+// Every risk finding in Arth ID must show:
 //   1. Source — which document/portal this finding came from
 //   2. Raw evidence — the actual text/data that triggered the flag
 //   3. Confidence — how certain is this finding
@@ -322,7 +322,7 @@ class AnalysisAuthenticitySummary extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
-              'Limitation: DigiSampatti analysis is based on documents provided '
+              'Limitation: Arth ID analysis is based on documents provided '
               'and government portals accessible at time of check. '
               'It does not replace a registered property lawyer\'s opinion. '
               'Always verify with a lawyer before registration.',

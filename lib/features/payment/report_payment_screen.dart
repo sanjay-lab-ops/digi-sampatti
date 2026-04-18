@@ -23,7 +23,7 @@ class _ReportPaymentScreenState extends ConsumerState<ReportPaymentScreen> {
   bool _loading = false;
   String? _error;
 
-  static const int _price = 149;
+  static const int _price = 499;
 
   @override
   void initState() {
@@ -235,19 +235,6 @@ class _ReportPaymentScreenState extends ConsumerState<ReportPaymentScreen> {
               badgeColor: Colors.transparent,
               onTap: _loading ? null : _payWhatsApp,
             ),
-            const SizedBox(height: 10),
-
-            // Skip for testing
-            _PayOption(
-              icon: Icons.science_outlined,
-              iconColor: Colors.grey,
-              title: 'Test Mode — Skip Payment',
-              subtitle: 'For development only',
-              badge: 'DEV',
-              badgeColor: Colors.grey,
-              onTap: () => context.pushReplacement('/auto-scan'),
-            ),
-
             if (_error != null) ...[
               const SizedBox(height: 16),
               Container(

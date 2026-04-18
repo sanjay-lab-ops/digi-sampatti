@@ -137,7 +137,7 @@ class ReportGeneratorService {
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Text(
-          'DigiSampatti',
+          'Arth ID',
           style: pw.TextStyle(font: boldFont, fontSize: 12, color: PdfColors.green900),
         ),
         pw.Text(
@@ -158,7 +158,7 @@ class ReportGeneratorService {
           style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey),
         ),
         pw.Text(
-          'DigiSampatti — Know Your Property. Own Your Decision.',
+          'Arth ID — Know Your Property. Own Your Decision.',
           style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey),
         ),
       ],

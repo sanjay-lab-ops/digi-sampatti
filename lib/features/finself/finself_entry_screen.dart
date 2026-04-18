@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/features/finself/account_aggregator_screen.dart';
 
@@ -64,8 +65,13 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/home');
+      },
+      child: Scaffold(
+        body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: AppColors.arthGradient,
@@ -101,7 +107,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
                   ),
                 const SizedBox(height: 20),
                 const Text(
-                  'ARTH ID',
+                  'FinSelf Lite',
                   style: TextStyle(
                     color: AppColors.arthGold,
                     fontSize: 30,
@@ -111,7 +117,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'India\'s Financial Identity',
+                  'Your Financial Identity Score',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.65),
                     fontSize: 13,
@@ -142,6 +148,7 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
         ),
       ),
     ),
-  );
+  ),
+);
   }
 }

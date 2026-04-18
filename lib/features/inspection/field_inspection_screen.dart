@@ -7,7 +7,7 @@ import 'package:digi_sampatti/core/providers/property_provider.dart';
 
 // ─── Field Inspection Booking Screen ─────────────────────────────────────────
 // Books an on-ground physical inspection of the property.
-// Revenue: ₹2,000–5,000 per inspection (DigiSampatti earns margin).
+// Revenue: ₹2,000–5,000 per inspection (Arth ID earns margin).
 //
 // Inspection covers:
 //   • GPS-stamped site photos
@@ -101,7 +101,7 @@ class _FieldInspectionScreenState
         '${_notesCtrl.text.isNotEmpty ? "Notes: ${_notesCtrl.text}" : ""}';
 
     // Share via share sheet (user can send via WhatsApp)
-    await Share.share(msg, subject: 'DigiSampatti Inspection Request $bookingRef');
+    await Share.share(msg, subject: 'Arth ID Inspection Request $bookingRef');
   }
 
   @override

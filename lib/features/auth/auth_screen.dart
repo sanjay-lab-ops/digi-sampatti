@@ -7,6 +7,7 @@ import 'package:digi_sampatti/core/constants/app_strings.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/core/services/user_service.dart';
 import 'package:digi_sampatti/core/widgets/ds_logo.dart';
+import 'package:digi_sampatti/core/widgets/language_picker.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -122,43 +123,39 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Language toggle top-right
-                Align(
+                // Language picker — all 22 Indian languages
+                const Align(
                   alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () => ref.read(languageProvider.notifier)
-                        .setLanguage(lang == 'kn' ? 'en' : 'kn'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        lang == 'kn' ? 'EN' : 'ಕನ್ನಡ',
-                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
-                      ),
+                  child: LanguagePickerButton(),
+                ),
+                const SizedBox(height: 16),
+                // Logo + title row
+                Row(children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
+                    padding: const EdgeInsets.all(6),
+                    child: Image.asset('assets/images/arth_id_logo.png', fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const DSLogo(size: 36)),
                   ),
-                ),
-                const SizedBox(height: 24),
-                // Logo
-                const Center(child: DSLogo(size: 72)),
-                const SizedBox(height: 24),
-                const Center(
-                  child: Text('DigiSampatti',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                ),
-                Center(
-                  child: Text(l.platformTagline,
-                    style: const TextStyle(color: AppColors.textMedium, fontSize: 14)),
-                ),
+                  const SizedBox(width: 12),
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('DigiSampatti',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    Text(l.platformTagline,
+                        style: const TextStyle(color: AppColors.textMedium, fontSize: 12)),
+                  ]),
+                ]),
                 const SizedBox(height: 20),
 
                 // Feature chips
                 _FeatureChips(),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // Phone Input
                 if (!_otpSent) ...[
@@ -265,8 +262,7 @@ class _FeatureChips extends StatelessWidget {
                 Text('AI Legal Score', style: TextStyle(fontWeight: FontWeight.bold)),
               ]),
               content: const Text(
-                'Our AI analyses RTC ownership, EC transaction history, RERA registration, '
-                'eCourt cases, and CERSAI mortgage data to give a 0–100 property safety score.\n\n'
+                'Upload your property documents — our AI reads RTC, EC, RERA, eCourt, and CERSAI records and gives a 0–100 safety score in seconds.\n\n'
                 '🟢 80–100 : Safe to buy\n'
                 '🟡 50–79  : Verify before buying\n'
                 '🔴 0–49   : High risk — consult advocate',
@@ -302,7 +298,7 @@ class _FeatureChips extends StatelessWidget {
                     children: [
                       Text('AI Legal Score',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                      Text('0–100 property safety score from government portals',
+                      Text('Upload docs — AI reads & gives 0–100 property safety score',
                         style: TextStyle(color: Colors.white70, fontSize: 11)),
                     ],
                   ),
@@ -317,8 +313,8 @@ class _FeatureChips extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: const [
-            _Chip(icon: Icons.account_balance_outlined, label: '7 Govt Portals'),
-            _Chip(icon: Icons.shield_outlined,           label: '8 Fraud Types'),
+            _Chip(icon: Icons.upload_file_outlined, label: 'Upload Any Doc'),
+            _Chip(icon: Icons.shield_outlined,           label: '30+ Fraud Checks'),
             _Chip(icon: Icons.timer_outlined,            label: '90 Seconds'),
             _Chip(icon: Icons.location_off_outlined,     label: 'Zero Office Visits'),
             _Chip(icon: Icons.gavel_outlined,            label: 'DPDP Act 2023'),

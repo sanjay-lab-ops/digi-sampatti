@@ -418,7 +418,7 @@ class _PostPurchaseScreenState extends ConsumerState<PostPurchaseScreen> {
       content: Text(
         'Survey ${p.surveyNumber} — ${p.address}\n\n'
         'When ready to sell:\n'
-        '1. Run a fresh DigiSampatti check on your own property\n'
+        '1. Run a fresh Arth ID check on your own property\n'
         '2. Get all mutation, tax, EC documents up to date\n'
         '3. Get a current Guidance Value estimate\n'
         '4. Get a lawyer to draft sale agreement',

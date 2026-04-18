@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ─── DigiSampatti Brand ────────────────────────────────────────────────────
+  // ─── Arth ID Brand ────────────────────────────────────────────────────
   static const Color primary      = Color(0xFF1B5E20); // Deep forest green
   static const Color primaryLight = Color(0xFF4CAF50); // Medium green
   static const Color primaryDark  = Color(0xFF0A3D0A); // Dark green
@@ -16,7 +16,7 @@ class AppColors {
   static const Color arthBlue      = Color(0xFF0D47A1); // ARTH ID blue
   static const Color arthSurface   = Color(0xFF0d1b3e); // Dark card bg for ARTH ID
 
-  // ─── DigiSampatti Gradients ────────────────────────────────────────────────
+  // ─── Arth ID Gradients ────────────────────────────────────────────────
   static const List<Color> primaryGradient = [
     Color(0xFF1B5E20), Color(0xFF2E7D32),
   ];

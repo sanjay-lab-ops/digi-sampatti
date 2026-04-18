@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Consistent DigiSampatti logo used across all screens.
-/// Same image, same shape — only size changes.
 class DSLogo extends StatelessWidget {
   final double size;
   final double? borderRadius;
@@ -14,19 +12,19 @@ class DSLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F7F0), // subtle light green tint
+        color: Colors.white,
         borderRadius: BorderRadius.circular(borderRadius ?? size * 0.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 6,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: EdgeInsets.all(size * 0.1),
+      padding: EdgeInsets.all(size * 0.08),
       child: Image.asset(
-        'assets/images/logo.png',
+        'assets/images/arth_id_logo.png',
         fit: BoxFit.contain,
       ),
     );

@@ -18,7 +18,7 @@ class PaymentService {
 
   // Razorpay — switch to live key (rzp_live_...) once KYC clears
   static const String _razorpayKeyId = 'rzp_test_STzj4B5S21m18M';
-  static const int reportPrice = 149;
+  static const int reportPrice = 499;
 
   late Razorpay _razorpay;
 
@@ -48,7 +48,7 @@ class PaymentService {
       _openRazorpay(
         amount: amount,
         phone: userPhone,
-        description: 'DigiSampatti Report #$reportId',
+        description: 'Arth ID Report #$reportId',
         notes: {'report_id': reportId},
       );
       return null; // result comes via onSuccess/onFailure callbacks
@@ -59,7 +59,7 @@ class PaymentService {
         buyerName: userName,
         buyerPhone: userPhone,
         buyerEmail: userEmail,
-        purpose: 'DigiSampatti Property Report #$reportId',
+        purpose: 'Arth ID Property Report #$reportId',
       );
       return req?.id; // save this to call checkPaymentStatus() after user returns
     }
@@ -84,7 +84,7 @@ class PaymentService {
     _razorpay.open({
       'key': _razorpayKeyId,
       'amount': amount * 100,
-      'name': 'DigiSampatti',
+      'name': 'Arth ID',
       'description': description,
       'prefill': {'contact': phone},
       'theme': {'color': '#1B5E20'},
@@ -108,8 +108,8 @@ class PaymentService {
     required String reportId,
   }) async {
     final uri = Uri.parse(
-      'upi://pay?pa=$_upiId&pn=DigiSampatti&am=$amountInRupees'
-      '&cu=INR&tn=DigiSampatti+Report+%23$reportId&tr=$reportId',
+      'upi://pay?pa=$_upiId&pn=Arth ID&am=$amountInRupees'
+      '&cu=INR&tn=Arth ID+Report+%23$reportId&tr=$reportId',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -125,7 +125,7 @@ class PaymentService {
   }) async {
     const phone = '917090654322'; // replace with your WhatsApp business number
     final msg = Uri.encodeComponent(
-      'Hi DigiSampatti, I want to pay ₹$amountInRupees for Report #$reportId. '
+      'Hi Arth ID, I want to pay ₹$amountInRupees for Report #$reportId. '
       'Please share payment details.',
     );
     final uri = Uri.parse('https://wa.me/$phone?text=$msg');

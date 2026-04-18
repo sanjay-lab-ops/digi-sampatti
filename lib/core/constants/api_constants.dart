@@ -6,42 +6,14 @@ class ApiConstants {
   static const String claudeModel = 'claude-sonnet-4-6';
   static const int claudeMaxTokens = 4096;
 
-  // ─── DigiSampatti Railway Backend ─────────────────────────────────────────
-  // Playwright scraper backend deployed on Railway
-  // Handles: RTC, EC, RERA, eCourts, BBMP, CERSAI, IGR, FMB, GPS→Survey
+  // ─── Arth ID Backend ──────────────────────────────────────────────────────
   static const String backendBaseUrl = 'https://digi-sampatti-production.up.railway.app';
-  static const String backendRtcEndpoint = '/rtc';
-  static const String backendEcEndpoint = '/ec';
-  static const String backendReraEndpoint = '/rera';
-  static const String backendEcourtsEndpoint = '/ecourts';
-  static const String backendBbmpEndpoint = '/bbmp';
-  static const String backendCersaiEndpoint = '/cersai';
-  static const String backendGuidanceEndpoint = '/guidance-value';
-  static const String backendFmbEndpoint = '/fmb';
-  static const String backendSurveyFromGpsEndpoint = '/survey-from-gps';
 
-  // ─── Karnataka Bhoomi Portal (direct — fallback only) ─────────────────────
+  // ─── Karnataka Government Portals (WebView only) ──────────────────────────
   static const String bhoomiBaseUrl = 'https://bhoomi.karnataka.gov.in';
-  static const String bhoomiRtcEndpoint = '/bhoomi/RTCPrint.do';
-  static const String bhoomiMutationEndpoint = '/bhoomi/MutationPrint.do';
-  static const String bhoomiPartyEndpoint = '/bhoomi/PartyCertificate.do';
-  static const String bhoomiOwnerEndpoint = '/bhoomi/OwnershipReport.do';
-  static const String bhoomiSketchEndpoint = '/bhoomi/SketchCertificate.do';
-
-  // ─── RERA Karnataka ────────────────────────────────────────────────────────
   static const String reraBaseUrl = 'https://rera.karnataka.gov.in';
-  static const String reraProjectSearch = '/viewAllProjects';
-  static const String reraPromotorSearch = '/viewAllPromoters';
-  static const String reraComplaintSearch = '/viewAllComplaints';
-
-  // ─── BBMP (Bruhat Bengaluru Mahanagara Palike) ─────────────────────────────
   static const String bbmpBaseUrl = 'https://bbmp.gov.in';
-  static const String bbmpKhataEndpoint = '/khata/search';
-
-  // ─── IGRS (Stamps & Registration) ─────────────────────────────────────────
-  // For Encumbrance Certificate (EC)
   static const String igrsBaseUrl = 'https://igr.karnataka.gov.in';
-  static const String igrsEcEndpoint = '/ec/search';
 
   // ─── Google Maps ───────────────────────────────────────────────────────────
   static const String googleMapsBaseUrl = 'https://maps.googleapis.com/maps/api';

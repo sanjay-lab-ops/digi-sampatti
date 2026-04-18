@@ -436,7 +436,7 @@ class _PhysicalVerificationScreenState
 
   void _copyToClipboard(_VerificationItem item) {
     final text = '''
-DigiSampatti — Physical Verification
+Arth ID — Physical Verification
 ${item.title}
 
 Office: ${item.office}

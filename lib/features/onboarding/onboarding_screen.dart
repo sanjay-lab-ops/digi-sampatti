@@ -31,9 +31,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _Slide(
       icon: Icons.checklist,
-      title: 'We Check 8 Things',
-      subtitle: 'Bhoomi RTC · EC · RERA · BDA/BBMP\nRaja Kaluve · Lake bed · Court cases · AI Score',
-      highlight: 'Everything a lawyer checks — in 30 seconds',
+      title: 'We Read & Analyse',
+      subtitle: 'Upload RTC · EC · RERA · Khata\nCourt orders · Sketches · Sale deeds',
+      highlight: 'AI reads your documents and gives instant results',
       color: AppColors.esign,
     ),
     _Slide(

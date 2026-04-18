@@ -471,8 +471,8 @@ class _GovServicesScreenState extends ConsumerState<GovServicesScreen>
           const SizedBox(height: 4),
           Center(
             child: Text(
-              isKn ? '© DigiSampatti ಸ್ವತಂತ್ರ ಮಾರ್ಗದರ್ಶಿ. ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗಳಿಗೆ ಮಾತ್ರ ಲಿಂಕ್.'
-                  : '© DigiSampatti is an independent guide. Links go only to official .gov.in portals.',
+              isKn ? '© Arth ID ಸ್ವತಂತ್ರ ಮಾರ್ಗದರ್ಶಿ. ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗಳಿಗೆ ಮಾತ್ರ ಲಿಂಕ್.'
+                  : '© Arth ID is an independent guide. Links go only to official .gov.in portals.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 10, color: AppColors.textLight),
             ),

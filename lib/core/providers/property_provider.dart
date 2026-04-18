@@ -232,7 +232,13 @@ class PropertyCheckNotifier extends AsyncNotifier<LegalReport?> {
     PortalFindings? portalFindings,
   }) async {
     final scan = ref.read(currentScanProvider);
-    if (scan == null) return null;
+    if (scan == null) {
+      state = AsyncError(
+        'No property data found. Please scan or enter property details first.',
+        StackTrace.current,
+      );
+      return null;
+    }
 
     ref.read(isLoadingAiAnalysisProvider.notifier).state = true;
     state = const AsyncLoading();

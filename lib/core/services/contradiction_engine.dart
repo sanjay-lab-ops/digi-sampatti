@@ -5,7 +5,7 @@ import 'package:digi_sampatti/core/services/cersai_service.dart';
 import 'package:digi_sampatti/core/services/benami_service.dart';
 
 // ─── Cross-Portal Contradiction Engine ────────────────────────────────────────
-// This is DigiSampatti's core differentiator.
+// This is Arth ID's core differentiator.
 //
 // Problem: Each portal shows partial truth.
 //   - Bhoomi says: Owner = Ramu, Area = 1 acre
@@ -15,7 +15,7 @@ import 'package:digi_sampatti/core/services/benami_service.dart';
 //
 // A citizen checking portals one by one CANNOT see this.
 // A lawyer checking manually may miss it.
-// DigiSampatti reads all 7 portals simultaneously and compares.
+// Arth ID reads all 7 portals simultaneously and compares.
 //
 // Contradiction Types (with severity):
 //   CRITICAL  → Do NOT buy — high probability of fraud or legal dispute

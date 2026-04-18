@@ -10,7 +10,7 @@ import 'package:dio/dio.dart';
 //   - Whether the property appears in IT Department's enforcement actions
 //   - Whether the seller/owner has any IT Department notices / attachment orders
 //
-// Risk scenarios DigiSampatti detects:
+// Risk scenarios Arth ID detects:
 //   1. Seller name in IT Department Benami attachment list
 //   2. Property address matches a publicly known Benami case
 //   3. Owner's PAN has IT Department prosecution

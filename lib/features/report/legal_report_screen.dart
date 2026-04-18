@@ -183,7 +183,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
     if (_pdfPath != null) {
       await Share.shareXFiles(
         [XFile(_pdfPath!)],
-        text: 'DigiSampatti Report — Property Verification',
+        text: 'Arth ID Report — Property Verification',
       );
     }
   }
@@ -379,7 +379,7 @@ class _LegalReportScreenState extends ConsumerState<LegalReportScreen>
   Future<void> _shareWhatsApp(LegalReport report) async {
     final score = report.riskAssessment.score;
     final text = '''
-*DigiSampatti — Property Verification Report*
+*Arth ID — Property Verification Report*
 
 Survey No: ${report.scan.surveyNumber ?? 'N/A'}
 District: ${report.scan.district ?? 'N/A'}
@@ -389,7 +389,7 @@ Bank Loan: ${report.riskAssessment.isBankLoanEligible ? "ELIGIBLE ✓" : "NOT EL
 
 ${report.riskAssessment.summary}
 
-_Verified by DigiSampatti — Property Verification Platform_
+_Verified by Arth ID — Property Verification Platform_
 ''';
     await Share.share(text);
   }

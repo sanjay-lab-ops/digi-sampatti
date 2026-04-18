@@ -236,7 +236,7 @@ class _HeaderBox extends StatelessWidget {
           Text(
             'Every government service has a legally mandated deadline. If an officer misses it, '
             'demands extra fees, or rejects without valid reason — you have the right to complain '
-            'and escalate. No office visits needed. DigiSampatti files the complaint on official '
+            'and escalate. No office visits needed. Arth ID files the complaint on official '
             'government portals on your behalf.',
             style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.6),
           ),
@@ -389,7 +389,7 @@ class _EscalationLadder extends StatelessWidget {
           const Text('Escalation Ladder — Government Rules',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
           const SizedBox(height: 4),
-          const Text('DigiSampatti files at the recommended level first. If unresolved, escalates automatically.',
+          const Text('Arth ID files at the recommended level first. If unresolved, escalates automatically.',
               style: TextStyle(fontSize: 9, color: Colors.grey)),
           const SizedBox(height: 12),
           ..._levels.map((l) => _LadderStep(
@@ -584,7 +584,7 @@ class _YourRightsBox extends StatelessWidget {
         return [
           'Government circulars specify the exact documents required for each service.',
           'An officer cannot demand documents not listed in the official circular.',
-          'You can quote the specific circular number — DigiSampatti will provide the reference.',
+          'You can quote the specific circular number — Arth ID will provide the reference.',
         ];
       case GrievanceType.noAction:
         return [
@@ -636,7 +636,7 @@ class _SubmittedScreen extends StatelessWidget {
                   children: [
                     _NextStep('Grievance filed on Karnataka SAKALA portal'),
                     _NextStep('Officer has 7 days to respond (Level 1)'),
-                    _NextStep('If no response → DigiSampatti auto-escalates to Tahsildar'),
+                    _NextStep('If no response → Arth ID auto-escalates to Tahsildar'),
                     _NextStep('If still no response → DC → Commissioner → RTI'),
                     _NextStep('You will get push notification at every step'),
                     _NextStep('No office visit needed at any stage'),

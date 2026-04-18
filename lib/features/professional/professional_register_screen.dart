@@ -230,7 +230,7 @@ class _ProfessionalRegisterScreenState
       children: [
         Text('Your Identity', style: _sectionStyle()),
         const SizedBox(height: 6),
-        const Text('This information is verified by DigiSampatti before your profile goes live.',
+        const Text('This information is verified by Arth ID before your profile goes live.',
             style: TextStyle(color: AppColors.textLight, fontSize: 12)),
         const SizedBox(height: 20),
         _field('Full Name *', _nameCtrl, 'As on your ID / license',
@@ -244,7 +244,7 @@ class _ProfessionalRegisterScreenState
         // License image upload
         _buildImageUpload(
           label: 'Upload License / Certificate Photo *',
-          subtitle: 'JPG or PNG — only visible to DigiSampatti admin for verification',
+          subtitle: 'JPG or PNG — only visible to Arth ID admin for verification',
           icon: Icons.upload_file,
           file: _licenseImage,
           onTap: _pickLicenseImage,
@@ -410,7 +410,7 @@ class _ProfessionalRegisterScreenState
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Your license and ID are encrypted and only visible to DigiSampatti admin during verification. '
+                  'Your license and ID are encrypted and only visible to Arth ID admin during verification. '
                   'Buyers only see your name, photo, district, and rating.',
                   style: TextStyle(fontSize: 11, color: Color(0xFF3D2B8A), height: 1.5),
                 ),
@@ -442,7 +442,7 @@ class _ProfessionalRegisterScreenState
         const SizedBox(height: 12),
         const Center(
           child: Text(
-            'By submitting you agree to DigiSampatti partner terms.\n'
+            'By submitting you agree to Arth ID partner terms.\n'
             'We will verify your credentials and call you within 24 hours.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.5),

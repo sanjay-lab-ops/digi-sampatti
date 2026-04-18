@@ -43,7 +43,7 @@ class BrokerScreen extends StatelessWidget {
             _buildActionCard(
               context,
               icon: Icons.share,
-              title: 'Refer DigiSampatti',
+              title: 'Refer Arth ID',
               subtitle: 'Earn ₹50 for every client who buys a report',
               color: AppColors.safe,
               onTap: () => _showReferralDialog(context),
@@ -176,13 +176,13 @@ class BrokerScreen extends StatelessWidget {
       ('Instant digital report', 'Share PDF with client in seconds', Icons.picture_as_pdf),
       ('AI risk score', 'Clear Safe / Caution / Danger rating', Icons.psychology),
       ('Khata A/B check', 'Loan eligibility shown instantly', Icons.account_balance),
-      ('Commission income', '₹50 per referral to DigiSampatti', Icons.currency_rupee),
+      ('Commission income', '₹50 per referral to Arth ID', Icons.currency_rupee),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Why DigiSampatti for Brokers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('Why Arth ID for Brokers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         ...benefits.map((b) => Padding(
           padding: const EdgeInsets.only(bottom: 10),

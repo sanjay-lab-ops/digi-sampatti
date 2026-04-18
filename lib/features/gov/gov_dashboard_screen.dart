@@ -155,7 +155,7 @@ class _OverviewTab extends StatelessWidget {
               _SyncRow('KSRSAC Spatial', 'Pending API access', false),
               const SizedBox(height: 8),
               const Text(
-                'DigiSampatti syncs with government databases every 30 minutes. '
+                'Arth ID syncs with government databases every 30 minutes. '
                 'Citizens are notified within 2 hours of any data change.',
                 style: TextStyle(fontSize: 11, color: Colors.grey),
               ),
@@ -444,7 +444,7 @@ class _SignTabState extends State<_SignTab> {
           ),
           child: const Text(
             'Your digital signature is stored immutably — cannot be revoked or '
-            'modified by anyone, including DigiSampatti. DigiSampatti accesses all '
+            'modified by anyone, including Arth ID. Arth ID accesses all '
             'government databases directly as a public citizen right, with no MOU required.',
             style: TextStyle(fontSize: 12),
           ),

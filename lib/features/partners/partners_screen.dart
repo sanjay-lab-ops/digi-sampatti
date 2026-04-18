@@ -418,7 +418,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            'All partners are verified by DigiSampatti — license checked, district confirmed.',
+            'All partners are verified by Arth ID — license checked, district confirmed.',
             style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
           ),
         ],
@@ -481,9 +481,9 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'DigiSampatti verifies professional licenses before listing. '
+              'Arth ID verifies professional licenses before listing. '
               'All fees are paid directly to the professional. '
-              'DigiSampatti earns a referral commission per successful connection. '
+              'Arth ID earns a referral commission per successful connection. '
               'User reviews are collected after service completion.',
               style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.5),
             ),

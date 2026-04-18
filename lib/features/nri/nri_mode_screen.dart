@@ -247,7 +247,7 @@ class _OverviewTab extends ConsumerWidget {
               _RuleRow('📋', 'POA must be notarized in your country'),
               _RuleRow('📋', 'Apostille stamp required for POA'),
               _RuleRow('📋', 'POA holder can sign sale deed on your behalf'),
-              _RuleRow('⚠️', 'DigiSampatti can verify property BEFORE POA is given'),
+              _RuleRow('⚠️', 'Arth ID can verify property BEFORE POA is given'),
             ],
           ),
         ),
@@ -267,7 +267,7 @@ class _OverviewTab extends ConsumerWidget {
               Row(children: [
                 const Icon(Icons.star, color: Colors.amber, size: 18),
                 const SizedBox(width: 8),
-                const Text('Why NRIs Choose DigiSampatti',
+                const Text('Why NRIs Choose Arth ID',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               ]),
               const SizedBox(height: 10),
@@ -298,7 +298,7 @@ class _FemaTab extends StatelessWidget {
           title: '1. Before Buying',
           color: AppColors.primary,
           items: const [
-            'Verify property title with DigiSampatti — before paying advance',
+            'Verify property title with Arth ID — before paying advance',
             'Check property is residential or commercial (not agricultural)',
             'Confirm seller\'s identity — NRIs are frequent fraud targets',
             'Get EC (Encumbrance Certificate) — check for existing loans',
@@ -402,7 +402,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               const SizedBox(height: 8),
               const Text(
                 'Our ground team will visit the property within 2-3 working days '
-                'and send the full DigiSampatti report to your WhatsApp.',
+                'and send the full Arth ID report to your WhatsApp.',
                 style: TextStyle(color: Colors.grey, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
@@ -440,7 +440,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               Text(
                 'Cannot visit India? Our verified agent will physically '
                 'visit the property, take GPS-stamped photos, scan documents '
-                'and send you a complete DigiSampatti report.',
+                'and send you a complete Arth ID report.',
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               SizedBox(height: 8),
@@ -502,7 +502,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               Expanded(
                 child: Text(
                   'Fee: ₹499 (~\$6 USD / AED 22) per verification\n'
-                  'Includes: Physical visit + GPS photos + full DigiSampatti report',
+                  'Includes: Physical visit + GPS photos + full Arth ID report',
                   style: TextStyle(fontSize: 12),
                 ),
               ),
@@ -520,9 +520,9 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               );
               return;
             }
-            // Send real WhatsApp message to DigiSampatti verification team
+            // Send real WhatsApp message to Arth ID verification team
             final msg = Uri.encodeComponent(
-              '🏡 *DigiSampatti — NRI Verification Request*\n\n'
+              '🏡 *Arth ID — NRI Verification Request*\n\n'
               'Survey No: ${_surveyCtrl.text.trim()}\n'
               'Village: ${_villageCtrl.text.trim()}\n'
               'District: ${_districtCtrl.text.trim()}\n'
@@ -531,7 +531,7 @@ class _RequestVerifyTabState extends State<_RequestVerifyTab> {
               '${_notesCtrl.text.isNotEmpty ? "\nNotes: ${_notesCtrl.text.trim()}" : ""}\n\n'
               '_Please arrange ground verification and send report to this WhatsApp._',
             );
-            // Opens WhatsApp to DigiSampatti business number
+            // Opens WhatsApp to Arth ID business number
             final waUrl = Uri.parse('https://wa.me/919900000000?text=$msg');
             if (await canLaunchUrl(waUrl)) {
               await launchUrl(waUrl, mode: LaunchMode.externalApplication);
@@ -619,7 +619,7 @@ class _PricingTab extends StatelessWidget {
             'Physical agent visit to property',
             'GPS-stamped photographs',
             'Document scan on ground',
-            'Full DigiSampatti report',
+            'Full Arth ID report',
             'WhatsApp delivery in 2–3 days',
           ],
           color: AppColors.arthBlue,
@@ -834,7 +834,7 @@ class _HowItWorksCard extends StatelessWidget {
             ('2', 'Pay ₹499 online — card / NRE account'),
             ('3', 'Our verified agent visits the property'),
             ('4', 'GPS photos + document scan done on ground'),
-            ('5', 'Full DigiSampatti report sent to your WhatsApp'),
+            ('5', 'Full Arth ID report sent to your WhatsApp'),
           ].map((s) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(children: [

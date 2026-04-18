@@ -39,7 +39,7 @@ class InstamojoService {
     required String buyerName,
     required String buyerPhone,
     required String buyerEmail,
-    required String purpose,     // e.g. "DigiSampatti Report - Survey 67"
+    required String purpose,     // e.g. "Arth ID Report - Survey 67"
     String? redirectUrl,         // your webhook / thank-you URL
   }) async {
     try {

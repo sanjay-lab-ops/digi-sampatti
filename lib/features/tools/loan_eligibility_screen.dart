@@ -51,12 +51,69 @@ class _LoanEligibilityScreenState extends State<LoanEligibilityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Home Loan Eligibility')),
+      appBar: AppBar(
+        title: Row(children: [
+          Container(
+            width: 30, height: 30,
+            decoration: BoxDecoration(
+              color: AppColors.arthBlue,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Center(
+              child: Text('A', style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w900,
+                fontSize: 16, letterSpacing: -0.5,
+              )),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('FinSelf Lite', style: TextStyle(
+                fontWeight: FontWeight.w900, fontSize: 15,
+                color: AppColors.arthBlue, letterSpacing: 1.2,
+              )),
+              Text('Home Loan Eligibility',
+                style: TextStyle(fontSize: 10, color: AppColors.textLight)),
+            ],
+          ),
+        ]),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ARTH ID hero banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1A237E), Color(0xFF283593)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('FinSelf Lite', style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w900,
+                    fontSize: 22, letterSpacing: 2,
+                  )),
+                  SizedBox(height: 2),
+                  Text('Know Your Buying Power', style: TextStyle(
+                    color: Colors.white70, fontSize: 12,
+                  )),
+                ]),
+                Spacer(),
+                Icon(Icons.fingerprint, color: Colors.white54, size: 48),
+              ]),
+            ),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: AppColors.surfaceGreen, borderRadius: BorderRadius.circular(12)),

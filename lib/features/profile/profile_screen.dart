@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
+import 'package:digi_sampatti/core/widgets/language_picker.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -77,7 +78,7 @@ class ProfileScreen extends ConsumerWidget {
                 )),
                 const SizedBox(width: 10),
                 Expanded(child: _StatBox(
-                  value: 'v1.0',
+                  value: 'v1.0.6',
                   label: l.appVersion,
                   color: AppColors.primary,
                 )),
@@ -110,7 +111,7 @@ class ProfileScreen extends ConsumerWidget {
                 () => _showAbout(context)),
             ]),
             const SizedBox(height: 12),
-            // Language toggle
+            // Language picker — all 22 Indian languages
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -135,20 +136,17 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Text(l.language,
                           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        const Text('English / ಕನ್ನಡ',
-                          style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                        Text(
+                          kSupportedLanguages.firstWhere(
+                            (e) => e['code'] == lang,
+                            orElse: () => kSupportedLanguages.first,
+                          )['native']!,
+                          style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+                        ),
                       ],
                     ),
                   ),
-                  Switch(
-                    value: lang == 'kn',
-                    activeColor: AppColors.primary,
-                    onChanged: (v) => ref.read(languageProvider.notifier)
-                        .setLanguage(v ? 'kn' : 'en'),
-                  ),
-                  Text(lang == 'kn' ? 'ಕನ್ನಡ' : 'EN',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold,
-                      color: AppColors.primary)),
+                  const LanguagePickerButton(),
                 ],
               ),
             ),
@@ -162,7 +160,7 @@ class ProfileScreen extends ConsumerWidget {
                 () => _deleteAccount(context)),
             ]),
             const SizedBox(height: 24),
-            const Text('DigiSampatti v1.0',
+            const Text('Arth ID v1.0',
               style: TextStyle(fontSize: 11, color: AppColors.textLight)),
             const Text('Property Verification Platform',
               style: TextStyle(fontSize: 11, color: AppColors.textLight)),
@@ -246,10 +244,10 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             const Text('DigiSampatti', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('v1.0', style: TextStyle(color: AppColors.textLight)),
+            const Text('v1.0.6', style: TextStyle(color: AppColors.textLight)),
             const SizedBox(height: 12),
             const Text(
-              'DigiSampatti verifies properties so you can buy with confidence.\nCheck land records, get AI analysis, download report.',
+              'Arth ID verifies properties so you can buy with confidence.\nCheck land records, get AI analysis, download report.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.5)),
             const SizedBox(height: 12),

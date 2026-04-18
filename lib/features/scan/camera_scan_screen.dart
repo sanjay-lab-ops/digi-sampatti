@@ -745,7 +745,7 @@ class _PhotoPreviewSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // DigiSampatti brand
+                        // Arth ID brand
                         Row(children: [
                           const Icon(Icons.verified_user, color: AppColors.primaryLight, size: 14),
                           const SizedBox(width: 4),

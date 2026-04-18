@@ -141,7 +141,7 @@ class PropertyTransferScreen extends StatelessWidget {
 
   Widget _buildTimelineCard() {
     const steps = [
-      ('1', 'Verify Property', 'DigiSampatti report — confirm legal status', true),
+      ('1', 'Verify Property', 'Arth ID report — confirm legal status', true),
       ('2', 'Draft Sale Deed', 'Hire advocate to draft sale deed', true),
       ('3', 'Pay Stamp Duty', 'Pay at bank or franking center', true),
       ('4', 'Register at SRO', 'Both buyer + seller visit Sub-Registrar', true),

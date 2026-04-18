@@ -666,7 +666,7 @@ class _TotalCostCardState extends State<_TotalCostCard> {
             _agentFee, (v) => setState(() => _agentFee = v)),
         _toggleRow('Shifting/Moving', _fmt(_shiftingEst),
             _shifting, (v) => setState(() => _shifting = v)),
-        _costRow('DigiSampatti Report', '₹499', null, false),
+        _costRow('Arth ID Report', '₹499', null, false),
         const Divider(height: 12),
         _costRow('TOTAL COST OF BUYING', _fmt(_total),
             AppColors.deepOrange, true),

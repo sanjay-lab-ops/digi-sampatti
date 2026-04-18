@@ -19,7 +19,7 @@ class PropertyListing {
   final int    priceInLakhs;
   final double areaSqft;
   final int    bedrooms;
-  final bool   isVerified;   // has DigiSampatti report
+  final bool   isVerified;   // has Arth ID report
   final String sellerName;
   final String sellerPhone;
   final String sellerEmail;
@@ -48,7 +48,7 @@ class PropertyListing {
 }
 
 // ─── Mock listings (real data from database in production) ───────────────────
-const List<PropertyListing> _mockListings = [
+const List<PropertyListing> kMockListings = [
   PropertyListing(
     id: 'L001',
     title: '3BHK in Whitefield — Gated Community',
@@ -207,7 +207,7 @@ class _PropertyListingScreenState extends ConsumerState<PropertyListingScreen> {
     final query   = ref.read(_searchQueryProvider).toLowerCase();
     final verOnly = ref.read(_verifiedOnlyProvider);
 
-    return _mockListings.where((l) {
+    return kMockListings.where((l) {
       if (city != 'All' && l.city != city) return false;
       if (type != 'All' && l.propertyType != type) return false;
       if (verOnly && !l.isVerified) return false;
@@ -620,12 +620,12 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
 
   // Escrow calc
   // Standard in India: token = max(₹1L, 1% of deal), advance = 10% of deal
-  // DigiSampatti fee: 0.5% of escrow held (advance amount)
+  // Arth ID fee: 0.25% of escrow held (advance amount)
   int get _priceLakhs  => widget.listing.priceInLakhs;
   int get _priceRs     => _priceLakhs * 100000;
   int get _token       => (_priceRs * 0.01).round().clamp(100000, 500000);
   int get _advance     => (_priceRs * 0.10).round();  // 10% standard, negotiable
-  int get _dsFee       => (_advance * 0.005).round(); // 0.5% of advance
+  int get _dsFee       => (_advance * 0.0025).round(); // 0.25% of advance
   int get _balance     => _priceRs - _advance;        // balance at registration
 
   String _fmt(int v) {
@@ -788,7 +788,7 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
                 '1. Get the Survey No. / Flat No. from seller\n'
                 '2. Search Bhoomi or Kaveri EC yourself to verify\n'
                 '3. Confirm owner name matches seller\'s Aadhaar/PAN\n'
-                '4. Cross-check with DigiSampatti document scan',
+                '4. Cross-check with Arth ID document scan',
                 style: TextStyle(fontSize: 11, height: 1.5,
                     color: AppColors.textMedium),
               ),
@@ -810,7 +810,7 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
           const Row(children: [
             Icon(Icons.lock_outlined, color: AppColors.seller, size: 18),
             SizedBox(width: 8),
-            Text('DigiSampatti Escrow — How It Works',
+            Text('Arth ID Escrow — How It Works',
                 style: TextStyle(fontWeight: FontWeight.bold,
                     fontSize: 13, color: AppColors.seller)),
           ]),
@@ -825,7 +825,7 @@ class _ContactSellerSheetState extends State<_ContactSellerSheet> {
               _fmt(_balance), AppColors.primary,
               'Paid at SRO on actual registration day'),
           const Divider(height: 12),
-          _escrowRow('DS Escrow Fee (0.5% of advance)',
+          _escrowRow('DS Escrow Fee (0.25% of advance)',
               _fmt(_dsFee), AppColors.textMedium,
               'One-time service fee — split 50/50 between buyer & seller'),
           const SizedBox(height: 8),
@@ -1106,7 +1106,7 @@ class _ListPropertySheetState extends State<_ListPropertySheet> {
           border: Border.all(color: Colors.amber.withOpacity(0.3)),
         ),
         child: const Text(
-          '💡 Tip: Properties with a DigiSampatti verification report get 3× '
+          '💡 Tip: Properties with a Arth ID verification report get 3× '
           'more buyer inquiries. Upload your documents first to get verified.',
           style: TextStyle(fontSize: 12, height: 1.5),
         ),

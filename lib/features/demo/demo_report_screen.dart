@@ -218,7 +218,7 @@ class _ReportTab extends StatelessWidget {
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('DigiSampatti Recommendation',
+              Text('Arth ID Recommendation',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -304,7 +304,7 @@ class _DocumentsTab extends StatelessWidget {
           child: const Text(
             'All RTC, EC and mutation documents are verified directly '
             'from Karnataka government portals — Bhoomi, Kaveri Online, '
-            'eCourts, RERA — inside the DigiSampatti app.',
+            'eCourts, RERA — inside the Arth ID app.',
             style: TextStyle(fontSize: 12),
           ),
         ),
@@ -425,7 +425,7 @@ class _SignQrTab extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _SignatureCard(
-          role: 'DigiSampatti Platform',
+          role: 'Arth ID Platform',
           name: 'Sanjay R, Founder',
           taluk: 'Startup India: IN-0326-9427JD',
           signed: true,
@@ -439,7 +439,7 @@ class _SignQrTab extends StatelessWidget {
             border: Border.all(color: Colors.amber.shade200),
           ),
           child: const Text(
-            'DigiSampatti directly accesses all government databases (Bhoomi, Kaveri, eCourts, BBMP, CERSAI, BDA/BMRDA, FMB) as a public citizen right — '
+            'Arth ID directly accesses all government databases (Bhoomi, Kaveri, eCourts, BBMP, CERSAI, BDA/BMRDA, FMB) as a public citizen right — '
             'no MOU or government approval needed. VA and Tahsildar can co-sign reports '
             'using Aadhaar e-Sign directly from their phone.',
             style: TextStyle(fontSize: 12),

@@ -397,7 +397,7 @@ class _PortalDownBox extends StatelessWidget {
           _PortalDownRow('Previously verified documents are shown from secure cache'),
           _PortalDownRow('Tap "Retry" on any failed document — portal may recover in minutes'),
           _PortalDownRow('Tap "Open in Browser" on any card to verify manually on the portal'),
-          _PortalDownRow('DigiSampatti has already checked other portals (Bhoomi, Kaveri, eCourts, BBMP, CERSAI) — only this seal check is pending'),
+          _PortalDownRow('Arth ID has already checked other portals (Bhoomi, Kaveri, eCourts, BBMP, CERSAI) — only this seal check is pending'),
           const SizedBox(height: 10),
           GestureDetector(
             onTap: onRetryAll,
@@ -526,7 +526,7 @@ class _WhatWeVerifyBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('🔐 What DigiSampatti Verifies',
+          const Text('🔐 What Arth ID Verifies',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
           const SizedBox(height: 8),
           _InfoRow('QR code on each document scanned against government portal'),

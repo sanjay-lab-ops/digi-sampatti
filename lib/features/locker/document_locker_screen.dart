@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/core/services/document_key_service.dart';
 
 // ─── Document Locker ──────────────────────────────────────────────────────────
 // Encrypted document storage with time-limited access keys.
@@ -26,12 +26,6 @@ import 'package:digi_sampatti/core/providers/property_provider.dart';
 //       Currently uses SharedPreferences (local) as MVP.
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Generates a cryptographically random 8-char access key
-String _generateAccessKey() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final rng = Random.secure();
-  return List.generate(8, (_) => chars[rng.nextInt(chars.length)]).join();
-}
 
 class LockerAccessToken {
   final String key;            // 8-char key owner shares
@@ -99,8 +93,10 @@ class DocumentLockerScreen extends ConsumerStatefulWidget {
 class _DocumentLockerScreenState
     extends ConsumerState<DocumentLockerScreen> {
   List<LockerDocument> _docs = [];
+  Map<String, List<DocumentKey>> _keysByProperty = {};
   bool _loading = true;
   String _filter = 'all';
+  final _keyService = DocumentKeyService();
 
   static const _catLabels = {
     'all': 'All Documents',
@@ -145,10 +141,20 @@ class _DocumentLockerScreenState
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList('locker_docs') ?? [];
+    final docs = raw.map((s) =>
+        LockerDocument.fromJson(jsonDecode(s))).toList()
+      ..sort((a, b) => b.savedAt.compareTo(a.savedAt));
+
+    // Load keys grouped by propertyId
+    final allKeys = await _keyService.loadAll();
+    final keyMap = <String, List<DocumentKey>>{};
+    for (final k in allKeys) {
+      keyMap.putIfAbsent(k.propertyId, () => []).add(k);
+    }
+
     setState(() {
-      _docs = raw.map((s) =>
-          LockerDocument.fromJson(jsonDecode(s))).toList()
-        ..sort((a, b) => b.savedAt.compareTo(a.savedAt));
+      _docs = docs;
+      _keysByProperty = keyMap;
       _loading = false;
     });
   }
@@ -227,6 +233,11 @@ class _DocumentLockerScreenState
         title: const Text('Document Locker'),
         backgroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.vpn_key_outlined),
+            tooltip: 'Enter access key (buyer)',
+            onPressed: _showEnterKeyDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _addDocument,
@@ -315,30 +326,73 @@ class _DocumentLockerScreenState
     ),
   );
 
-  Widget _buildPropertyGroup(String propertyId, List<LockerDocument> docs) =>
-    Column(
+  Widget _buildPropertyGroup(String propertyId, List<LockerDocument> docs) {
+    final keys = _keysByProperty[propertyId] ?? [];
+    final activeKeys = keys.where((k) => k.isActive).toList();
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Property header row + Share Key button
         Padding(
           padding: const EdgeInsets.only(bottom: 8, top: 8),
           child: Row(children: [
             const Icon(Icons.home_outlined,
                 size: 14, color: AppColors.textLight),
             const SizedBox(width: 6),
-            Text(propertyId.isNotEmpty ? 'Survey $propertyId' : 'Unknown Property',
+            Expanded(
+              child: Text(
+                propertyId.isNotEmpty ? 'Survey $propertyId' : 'Unknown Property',
                 style: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.bold,
                     color: AppColors.textMedium)),
-            const SizedBox(width: 8),
+            ),
             Text('${docs.length} doc${docs.length == 1 ? "" : "s"}',
                 style: const TextStyle(
                     fontSize: 11, color: AppColors.textLight)),
+            const SizedBox(width: 10),
+            // 🔑 Share Key button
+            GestureDetector(
+              onTap: () => _showGenerateKeySheet(propertyId, docs),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.vpn_key_outlined,
+                      size: 13, color: AppColors.primary),
+                  SizedBox(width: 4),
+                  Text('Share Key',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600)),
+                ]),
+              ),
+            ),
           ]),
         ),
+
+        // Active keys panel
+        if (activeKeys.isNotEmpty) ...[
+          _ActiveKeysPanel(
+            keys: activeKeys,
+            onRevoke: (key) async {
+              await _keyService.revokeKey(key);
+              await _load();
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+
         ...docs.map((doc) => _buildDocCard(doc)),
         const SizedBox(height: 8),
       ],
     );
+  }
 
   Widget _buildDocCard(LockerDocument doc) {
     final color  = _catColors[doc.category] ?? AppColors.primary;
@@ -404,6 +458,257 @@ class _DocumentLockerScreenState
     );
   }
 
+  // ── Generate & share a time-limited key ─────────────────────────────────
+  Future<void> _showGenerateKeySheet(
+      String propertyId, List<LockerDocument> docs) async {
+    final result = await showModalBottomSheet<_KeyRequest>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _GenerateKeySheet(propertyId: propertyId),
+    );
+    if (result == null || !mounted) return;
+
+    final docMaps = docs.map((d) => {
+      'id': d.id, 'title': d.title, 'savedAt': d.savedAt.toIso8601String(),
+    }).toList();
+
+    final token = await _keyService.issueKey(
+      propertyId:  propertyId,
+      grantedTo:   result.grantedTo,
+      purpose:     result.purpose,
+      validHours:  result.validHours,
+      docs:        docMaps,
+    );
+
+    await _load();
+    if (!mounted) return;
+    _showKeyIssuedDialog(token);
+  }
+
+  void _showKeyIssuedDialog(DocumentKey token) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(children: [
+          Icon(Icons.vpn_key_outlined, color: AppColors.primary),
+          SizedBox(width: 8),
+          Text('Access Key Generated',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Key display
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              child: Column(children: [
+                Text(
+                  _formatKey(token.key),
+                  style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 6,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(height: 6),
+                Text('Valid for ${token.statusLabel}',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textLight)),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            _KeyInfoRow('For',     token.grantedTo),
+            _KeyInfoRow('Purpose', token.purpose),
+            _KeyInfoRow('Expires', _dateTimeStr(token.expiresAt)),
+            _KeyInfoRow('Doc hash', '${token.docHash.substring(0, 12)}…'),
+            const SizedBox(height: 4),
+            const Text(
+              'The doc hash proves documents were not changed after this key was issued.',
+              style: TextStyle(fontSize: 10, color: AppColors.textLight, height: 1.4),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.copy, size: 16),
+            label: const Text('Copy Key'),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: token.key));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Key copied to clipboard')));
+            },
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary),
+            icon: const Icon(Icons.share, size: 16),
+            label: const Text('Share'),
+            onPressed: () {
+              Navigator.pop(context);
+              Share.share(
+                'Arth ID Document Access Key\n'
+                'Key: ${_formatKey(token.key)}\n'
+                'Valid until: ${_dateTimeStr(token.expiresAt)}\n'
+                'Purpose: ${token.purpose}\n\n'
+                'Enter this key in the Arth ID app → Document Locker → Enter Key.',
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Buyer enters a key ────────────────────────────────────────────────────
+  Future<void> _showEnterKeyDialog() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Enter Document Key',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Enter the 8-character key shared by the seller to view their documents.',
+              style: TextStyle(fontSize: 12, color: AppColors.textLight, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ctrl,
+              textCapitalization: TextCapitalization.characters,
+              maxLength: 8,
+              style: const TextStyle(
+                  letterSpacing: 4, fontSize: 20,
+                  fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: 'XXXX XXXX',
+                hintStyle: const TextStyle(color: AppColors.textLight),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                counterText: '',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textLight)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(context, ctrl.text),
+            child: const Text('Validate Key'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null || result.trim().isEmpty || !mounted) return;
+
+    final docMaps = _docs.map((d) => {
+      'id': d.id, 'title': d.title, 'savedAt': d.savedAt.toIso8601String(),
+    }).toList();
+
+    final validation = await _keyService.validateKey(result, docMaps);
+
+    if (!mounted) return;
+
+    if (!validation.isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(validation.error ?? 'Invalid key'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    _showKeyAccessGranted(validation);
+  }
+
+  void _showKeyAccessGranted(DocumentKeyValidation v) {
+    final token = v.token!;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          Icon(
+            v.hashMatch ? Icons.check_circle_outline : Icons.warning_amber_outlined,
+            color: v.hashMatch ? AppColors.safe : AppColors.warning,
+          ),
+          const SizedBox(width: 8),
+          Text(v.hashMatch ? 'Access Granted' : 'Access Granted — Warning',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!v.hashMatch) ...[
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                ),
+                child: const Text(
+                  '⚠ Documents were modified after this key was issued. '
+                  'Ask the seller to explain changes or issue a new key.',
+                  style: TextStyle(fontSize: 11, color: AppColors.warning, height: 1.4),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            _KeyInfoRow('Property', token.propertyId),
+            _KeyInfoRow('Granted by', token.grantedTo),
+            _KeyInfoRow('Purpose', token.purpose),
+            _KeyInfoRow('Expires', token.statusLabel),
+            _KeyInfoRow('Hash verified', v.hashMatch ? '✓ Intact' : '✗ Modified'),
+            const SizedBox(height: 8),
+            const Text(
+              'You now have read access to this property\'s documents for the key duration.',
+              style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('View Documents'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatKey(String key) =>
+      '${key.substring(0, 4)} ${key.substring(4)}';
+
+  static String _dateTimeStr(DateTime d) =>
+      '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
   Widget _buildEmpty() => Center(
     child: Padding(
       padding: const EdgeInsets.all(40),
@@ -452,6 +757,224 @@ class _DocumentLockerScreenState
 
   String _dateStr(DateTime d) =>
       '${d.day}/${d.month}/${d.year}';
+}
+
+// ─── Active Keys Panel ────────────────────────────────────────────────────────
+class _ActiveKeysPanel extends StatelessWidget {
+  final List<DocumentKey> keys;
+  final Future<void> Function(String key) onRevoke;
+
+  const _ActiveKeysPanel({required this.keys, required this.onRevoke});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.vpn_key_outlined,
+                size: 13, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text('${keys.length} active key${keys.length == 1 ? "" : "s"}',
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary)),
+          ]),
+          const SizedBox(height: 8),
+          ...keys.map((k) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(children: [
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${k.key.substring(0, 4)} ${k.key.substring(4)}  ·  ${k.grantedTo}',
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600,
+                        letterSpacing: 1),
+                  ),
+                  Text('${k.purpose}  ·  ${k.statusLabel}',
+                      style: const TextStyle(
+                          fontSize: 10, color: AppColors.textLight)),
+                ],
+              )),
+              TextButton(
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(50, 28),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                onPressed: () => onRevoke(k.key),
+                child: const Text('Revoke', style: TextStyle(fontSize: 11)),
+              ),
+            ]),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Generate Key Bottom Sheet ────────────────────────────────────────────────
+class _KeyRequest {
+  final String grantedTo;
+  final String purpose;
+  final int    validHours;
+  const _KeyRequest({required this.grantedTo, required this.purpose, required this.validHours});
+}
+
+class _GenerateKeySheet extends StatefulWidget {
+  final String propertyId;
+  const _GenerateKeySheet({required this.propertyId});
+
+  @override
+  State<_GenerateKeySheet> createState() => _GenerateKeySheetState();
+}
+
+class _GenerateKeySheetState extends State<_GenerateKeySheet> {
+  final _nameCtrl    = TextEditingController();
+  final _purposeCtrl = TextEditingController();
+  int _validHours    = 48;
+
+  static const _validOptions = [
+    (24,  '24 hours'),
+    (48,  '48 hours'),
+    (168, '7 days'),
+    (720, '30 days'),
+  ];
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose(); _purposeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 20, right: 20, top: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.vpn_key_outlined, color: AppColors.primary),
+            const SizedBox(width: 8),
+            const Text('Generate Access Key',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ]),
+          const SizedBox(height: 4),
+          Text('Survey: ${widget.propertyId.isNotEmpty ? widget.propertyId : 'Unknown'}',
+              style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _nameCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              labelText: 'Share with (name)',
+              hintText: 'e.g. Advocate Rajesh, SBI Bank, Buyer Priya',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _purposeCtrl,
+            decoration: InputDecoration(
+              labelText: 'Purpose',
+              hintText: 'e.g. Legal review, Loan sanction, Buyer inspection',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text('Key valid for',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                  color: AppColors.textDark)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: _validOptions.map((o) {
+              final selected = _validHours == o.$1;
+              return ChoiceChip(
+                label: Text(o.$2,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: selected ? Colors.white : AppColors.textDark)),
+                selected: selected,
+                selectedColor: AppColors.primary,
+                onSelected: (_) => setState(() => _validHours = o.$1),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Key auto-expires after this time — no manual revoke needed.',
+            style: TextStyle(fontSize: 10, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 16),
+          Row(children: [
+            Expanded(child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary),
+              icon: const Icon(Icons.vpn_key_outlined, size: 16),
+              label: const Text('Generate Key'),
+              onPressed: () {
+                if (_nameCtrl.text.isEmpty) return;
+                Navigator.pop(context, _KeyRequest(
+                  grantedTo:  _nameCtrl.text.trim(),
+                  purpose:    _purposeCtrl.text.trim().isNotEmpty
+                      ? _purposeCtrl.text.trim()
+                      : 'Document review',
+                  validHours: _validHours,
+                ));
+              },
+            )),
+          ]),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Key info row ─────────────────────────────────────────────────────────────
+class _KeyInfoRow extends StatelessWidget {
+  final String label, value;
+  const _KeyInfoRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(children: [
+      SizedBox(
+        width: 80,
+        child: Text(label,
+            style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+      ),
+      Expanded(child: Text(value,
+          style: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600,
+              color: AppColors.textDark))),
+    ]),
+  );
 }
 
 // ─── Add Document Bottom Sheet ────────────────────────────────────────────────

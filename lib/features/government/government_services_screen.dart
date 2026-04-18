@@ -357,11 +357,11 @@ class _SlaNote extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('DigiSampatti Tracks Government SLA',
+                Text('Arth ID Tracks Government SLA',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.orange)),
                 SizedBox(height: 3),
                 Text(
-                  'Every application has a government-mandated deadline. If the officer doesn\'t act within the SLA, DigiSampatti helps you file a grievance — automatically escalating to DC or Commissioner.',
+                  'Every application has a government-mandated deadline. If the officer doesn\'t act within the SLA, Arth ID helps you file a grievance — automatically escalating to DC or Commissioner.',
                   style: TextStyle(fontSize: 9, color: Colors.orange, height: 1.5),
                 ),
               ],
@@ -609,7 +609,7 @@ class _GrievanceBanner extends StatelessWidget {
                   Text('File a Grievance / Complaint',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
                   Text(
-                    'Officer delayed? Wrong rejection? Bribe demanded? File a complaint — DigiSampatti escalates to DC/Commissioner automatically if unresolved.',
+                    'Officer delayed? Wrong rejection? Bribe demanded? File a complaint — Arth ID escalates to DC/Commissioner automatically if unresolved.',
                     style: TextStyle(fontSize: 9, color: Colors.grey, height: 1.4),
                   ),
                 ],

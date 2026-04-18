@@ -125,7 +125,7 @@ class _ProfessionalDetailScreenState
             '${p.fullName} — ${p.type.label}\n'
             'Serving: ${p.districtsServed.join(", ")}\n'
             'Rating: ${p.rating}/5 · ${p.yearsExperience} years experience\n\n'
-            'Found via DigiSampatti',
+            'Found via Arth ID',
           ),
         ),
       ],
@@ -201,7 +201,7 @@ class _ProfessionalDetailScreenState
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Verified by DigiSampatti · License ${p.licenseNumber}',
+              'Verified by Arth ID · License ${p.licenseNumber}',
               style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600),
             ),
           ),

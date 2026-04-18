@@ -956,7 +956,7 @@ class _DocumentCompletenessScreenState
         ]),
         SizedBox(height: 6),
         Text(
-          'DigiSampatti\'s analysis is only as accurate as the documents provided. '
+          'Arth ID\'s analysis is only as accurate as the documents provided. '
           'Each document adds evidence to the risk score — the more documents, '
           'the more confident the verdict. Missing a critical document means '
           'a major risk category cannot be checked.\n\n'

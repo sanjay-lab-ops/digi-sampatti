@@ -6,7 +6,7 @@ import 'package:digi_sampatti/core/services/property_data_service.dart';
 import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 
 // ─── Application Tracker Screen ───────────────────────────────────────────────
-// Tracks every government application submitted through DigiSampatti.
+// Tracks every government application submitted through Arth ID.
 // No office visits. No bribes. Government fee only. Allotted time enforced.
 // If officer doesn't act within SLA → automatic grievance escalation path.
 //
@@ -98,7 +98,7 @@ final _demoApplications = [
     officerName: 'Sri Mahesh R, Tahsildar',
     canGrieve: false,
     timeline: [
-      AppStatusStep(label: 'Application Submitted via DigiSampatti',
+      AppStatusStep(label: 'Application Submitted via Arth ID',
           date: DateTime.now().subtract(const Duration(days: 18)), isDone: true),
       AppStatusStep(label: 'Acknowledged by Tahsildar Office',
           date: DateTime.now().subtract(const Duration(days: 16)), isDone: true,
@@ -122,7 +122,7 @@ final _demoApplications = [
     status: AppStatus.slaBreached,
     canGrieve: true,
     timeline: [
-      AppStatusStep(label: 'Application Submitted via DigiSampatti',
+      AppStatusStep(label: 'Application Submitted via Arth ID',
           date: DateTime.now().subtract(const Duration(days: 2)), isDone: true),
       AppStatusStep(label: 'SLA BREACHED — 3 days passed, no response',
           date: DateTime.now(), isDone: false, isActive: true,
@@ -829,7 +829,7 @@ class _AddByReferenceButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
-                    'Submit on the official portal first. Enter the reference number you received there. DigiSampatti will track SLA days and alert you if the deadline passes.',
+                    'Submit on the official portal first. Enter the reference number you received there. Arth ID will track SLA days and alert you if the deadline passes.',
                     style: TextStyle(fontSize: 10, color: Colors.black87, height: 1.4),
                   ),
                 ),

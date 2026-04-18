@@ -4,7 +4,7 @@ import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/models/land_record_model.dart';
 
 // ─── Bhoomi Service ────────────────────────────────────────────────────────────
-// Routes all RTC/mutation requests through the DigiSampatti Railway backend
+// Routes all RTC/mutation requests through the Arth ID Railway backend
 // (Playwright scraper at digi-sampatti-production.up.railway.app/rtc).
 // Falls back to demo data when backend is unreachable.
 

@@ -4,7 +4,7 @@ class AppStrings {
   // ─── App ───────────────────────────────────────────────────────────────────
   static const String appName = 'DigiSampatti';
   static const String appTagline = 'Know Your Property. Own Your Decision.';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.6';
   static const String stateKarnataka = 'Karnataka';
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ class AppStrings {
   static const String govtDataDisclaimer =
       'Land records sourced from publicly available Karnataka government portals '
       '(bhoomi.karnataka.gov.in, rera.karnataka.gov.in). '
-      'DigiSampatti is an independent information service. '
+      'Arth ID is an independent information service. '
       'Not affiliated with the Government of Karnataka.';
 
   // ─── Partners & Commission ──────────────────────────────────────────────────
@@ -98,8 +98,8 @@ class AppStrings {
   static const String partnerSurveyorDesc = 'Physical boundary & measurement verification';
   static const String partnerSurveyorCta = 'Book Visit — ₹1,500 onwards';
   static const String partnerDisclaimer =
-      'All partners are independently verified by DigiSampatti. '
-      'DigiSampatti earns a referral fee from partners, '
+      'All partners are independently verified by Arth ID. '
+      'Arth ID earns a referral fee from partners, '
       'not from you. Your service cost is fixed and transparent.';
 
   // ─── Payment ───────────────────────────────────────────────────────────────

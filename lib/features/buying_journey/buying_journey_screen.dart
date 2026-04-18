@@ -110,7 +110,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
             'ಅಪಾರ್ಟ್‌ಮೆಂಟ್ ಆಗಿದ್ದರೆ — RERA ನೋಂದಣಿ ಇದೆಯೇ? (ನೋಂದಣಿ ಇಲ್ಲದ ಬಿಲ್ಡರ್ ಕಾನೂನುಬಾಹಿರ)',
             'ಭೂಮಿ ಬಳಕೆ — ಕೃಷಿ ಭೂಮಿ ಅಲ್ಲ ತಾನೇ? ಕೃಷಿ ಭೂಮಿ ಖರೀದಿಗೆ ವಿಶೇಷ ಅನುಮತಿ ಬೇಕು',
             'ಬೆಲೆ ಸರಿ ಇದೆಯೇ? ಸರ್ಕಾರಿ ನಿಗದಿ ಬೆಲೆಗಿಂತ ತುಂಬಾ ಹೆಚ್ಚು ಕೇಳುತ್ತಿದ್ದಾರೆಯೇ?',
-            'DigiSampatti ರಿಪೋರ್ಟ್ ಮಾಡಿ — ಮೇಲಿನ ಎಲ್ಲ ಒಂದೇ ಕ್ಲಿಕ್‌ನಲ್ಲಿ ತಿಳಿಯಿರಿ',
+            'Arth ID ರಿಪೋರ್ಟ್ ಮಾಡಿ — ಮೇಲಿನ ಎಲ್ಲ ಒಂದೇ ಕ್ಲಿಕ್‌ನಲ್ಲಿ ತಿಳಿಯಿರಿ',
           ]
         : [
             'RTC (land ownership record) — is the seller\'s name on the government record?',
@@ -119,7 +119,7 @@ class _BuyingJourneyScreenState extends ConsumerState<BuyingJourneyScreen>
             'If apartment — is the project RERA registered? (Unregistered builder = illegal)',
             'Land type — is it agricultural land? Buying farm land has special restrictions',
             'Is the price fair? Is it way above government guidance value?',
-            'Run DigiSampatti report — checks all of the above in one go',
+            'Run Arth ID report — checks all of the above in one go',
           ];
 
     final done = _preAdvance.values.where((v) => v).length;

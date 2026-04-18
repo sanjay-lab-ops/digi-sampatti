@@ -13,11 +13,11 @@ class _FaqScreenState extends State<FaqScreen> {
   String _search = '';
 
   static const _faqs = [
-    _Faq('What is DigiSampatti?',
-      'DigiSampatti is a Karnataka property verification app. It checks land records from Bhoomi portal, runs AI risk analysis, and gives you a legal report before you buy any property.',
+    _Faq('What is Arth ID?',
+      'Arth ID is a Karnataka property verification app. It checks land records from Bhoomi portal, runs AI risk analysis, and gives you a legal report before you buy any property.',
       'General'),
     _Faq('Where does the data come from?',
-      'DigiSampatti opens the official Karnataka government portals — Bhoomi, Kaveri, RERA, eCourts, CERSAI — directly inside the app. You see the real government data. The AI risk analysis and legal report are generated from that official data.',
+      'Arth ID opens the official Karnataka government portals — Bhoomi, Kaveri, RERA, eCourts, CERSAI — directly inside the app. You see the real government data. The AI risk analysis and legal report are generated from that official data.',
       'General'),
     _Faq('What is RTC and why does it matter?',
       'RTC (Record of Rights, Tenancy and Crops) is the main land ownership document from Karnataka\'s Bhoomi portal. It shows owner name, land type, area, and khata number. Always verify RTC before buying any land.',
@@ -71,7 +71,7 @@ class _FaqScreenState extends State<FaqScreen> {
       'Yes, NRIs (Non-Resident Indians) can buy residential and commercial property in India. Cannot buy agricultural land. Need registered Power of Attorney if not present for registration. Special TDS rules apply on resale.',
       'Legal'),
     _Faq('What happens if I buy a property with legal issues?',
-      'If title is disputed, court can cancel your ownership even after paying full amount. If revenue site, BBMP can demolish. If fake EC, bank\'s claim remains. Always verify with DigiSampatti before paying any advance.',
+      'If title is disputed, court can cancel your ownership even after paying full amount. If revenue site, BBMP can demolish. If fake EC, bank\'s claim remains. Always verify with Arth ID before paying any advance.',
       'Red Flags'),
   ];
 

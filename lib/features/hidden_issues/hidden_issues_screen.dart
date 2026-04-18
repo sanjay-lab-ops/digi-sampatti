@@ -411,7 +411,7 @@ class _HiddenIssuesScreenState extends ConsumerState<HiddenIssuesScreen> {
         ]),
         const SizedBox(height: 8),
         const Text(
-          'DigiSampatti checks official portals — but some critical risks exist '
+          'Arth ID checks official portals — but some critical risks exist '
           'only in private documents, oral agreements, physical possession, and '
           'government records not linked to the land registry.\n\n'
           'These require asking the seller directly and doing physical checks.',
