@@ -29,7 +29,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late List<Animation<Offset>> _slides;
 
   // 7 sections: greeting, two-blocks, know-your-property, actions, quick-tools, escrow-banner, recent
-  static const _count = 6;
+  static const _count = 4;
 
   @override
   void initState() {
@@ -126,50 +126,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 1. Greeting card ─────────────────────────────────────────
+            // ── 1. Hero greeting with Buyer/Seller role cards ─────────────
             _animated(0, const _GreetingCard()),
             const SizedBox(height: 16),
 
-            // ── 2. Buyer / Seller mode cards ──────────────────────────────
-            _animated(1, _ModeSelectionCards()),
+            // ── 2. Property Tools grid ────────────────────────────────────
+            _animated(1, const _PropertyToolsSection()),
             const SizedBox(height: 16),
 
-            // ── 3. Tools Row ──────────────────────────────────────────────
-            _animated(2, const _ToolsRow()),
+            // ── 3. Quick-Access (FinSelf, Expert, My Reports, NRI, Broker) ─
+            _animated(2, const _QuickToolsGrid()),
             const SizedBox(height: 16),
 
-            // ── 4. Safe Transaction banner ────────────────────────────────
-            _animated(3, const _SafeTransactionBanner()),
-            const SizedBox(height: 16),
-
-            // ── 5. Quick-Access Tools ─────────────────────────────────────
-            _animated(4, const _QuickToolsGrid()),
-            const SizedBox(height: 24),
-
-            // ── 6. Recent Reports ─────────────────────────────────────────
-            _animated(5, Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(l.recentReports,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                    if (recentReports.isNotEmpty)
+            // ── 4. Recent Reports (only if reports exist) ─────────────────
+            if (recentReports.isNotEmpty)
+              _animated(3, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(l.recentReports,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                       TextButton(
                         onPressed: () => context.push('/history'),
                         child: Text(l.viewAll),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (recentReports.isEmpty)
-                  _EmptyReportsCard(noReportsText: l.noReports)
-                else
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   ...recentReports.take(3).map((r) => _RecentReportCard(report: r)),
-              ],
-            )),
-            const SizedBox(height: 8),
+                ],
+              )),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -1917,155 +1906,178 @@ class _MoreToolsSectionState extends State<_MoreToolsSection> {
 class _GreetingCard extends ConsumerWidget {
   const _GreetingCard();
 
-  Widget _buildAvatar(dynamic user, bool isBuyer) {
-    final photoUrl = user?.photoURL as String?;
-    final displayName = (user?.displayName as String?) ?? '';
-    final initials = displayName.trim().isNotEmpty
-        ? displayName.trim().split(' ').map((w) => w[0]).take(2).join().toUpperCase()
-        : null;
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return CircleAvatar(radius: 30, backgroundImage: NetworkImage(photoUrl));
-    }
-    return CircleAvatar(
-      radius: 30,
-      backgroundColor: isBuyer
-          ? Colors.white.withValues(alpha: 0.25)
-          : Colors.white.withValues(alpha: 0.2),
-      child: initials != null
-          ? Text(initials,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
-          : Icon(
-              isBuyer ? Icons.home_outlined : Icons.sell_outlined,
-              color: Colors.white,
-              size: 28,
-            ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isBuyer = ref.watch(userModeProvider) == UserMode.buyer;
-    final user    = FirebaseAuth.instance.currentUser;
-    final name    = user?.displayName?.split(' ').first ?? 'there';
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName?.split(' ').first ?? 'there';
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isBuyer
-              ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
-              : [const Color(0xFF0D47A1), const Color(0xFF1565C0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFF0D1B2A),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: (isBuyer ? const Color(0xFF1B5E20) : const Color(0xFF0D47A1))
-                .withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 14, offset: const Offset(0, 5))],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Buyer / Seller toggle ──────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _ModeToggleChip(
-                label: '🏠  Buying',
-                active: isBuyer,
-                onTap: () => ref.read(userModeProvider.notifier).state = UserMode.buyer,
+      child: Stack(children: [
+        // Background pattern dots
+        Positioned(right: -20, top: -20,
+          child: Container(width: 120, height: 120,
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), shape: BoxShape.circle))),
+        Positioned(right: 40, bottom: -30,
+          child: Container(width: 80, height: 80,
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), shape: BoxShape.circle))),
+
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Header row
+            Row(children: [
+              Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.verified_user_outlined, color: Colors.white70, size: 18),
               ),
               const SizedBox(width: 10),
-              _ModeToggleChip(
-                label: '🔑  Selling',
-                active: !isBuyer,
-                onTap: () => ref.read(userModeProvider.notifier).state = UserMode.seller,
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          // ── Personalised greeting ─────────────────────────────────────
-          Row(
-            children: [
-              // Avatar — photo if available, else coloured initials circle
-              _buildAvatar(user, isBuyer),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isBuyer ? 'Hi $name! Ready to buy?' : 'Hi $name! Ready to list?',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.2),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isBuyer
-                          ? 'Check any property before you invest.\nEvery property has a story — know it.'
-                          : 'List your property and reach verified buyers.\nGet paid safely with digital escrow.',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 12, height: 1.4),
-                    ),
-                  ],
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Hello, $name 👋', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                const Text('DigiSampatti', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              ])),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.safe.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.safe.withOpacity(0.4)),
                 ),
+                child: const Text('AI Verified', style: TextStyle(color: AppColors.safe, fontSize: 10, fontWeight: FontWeight.bold)),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // ── Quick stats ───────────────────────────────────────────────
-          Row(
-            children: [
-              _GreetingStat(isBuyer ? '30+' : '₹99', isBuyer ? 'Fraud checks' : 'Start listing'),
-              const SizedBox(width: 16),
-              _GreetingStat('3 min', 'AI report'),
-              const SizedBox(width: 16),
-              _GreetingStat('All India', 'Coverage'),
-            ],
-          ),
-        ],
-      ),
+            ]),
+
+            const SizedBox(height: 18),
+            const Text('What brings you here today?',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+            const SizedBox(height: 4),
+            const Text('Choose your role to get a personalised experience',
+              style: TextStyle(color: Colors.white54, fontSize: 12)),
+
+            const SizedBox(height: 16),
+
+            // Two big role cards
+            Row(children: [
+              Expanded(child: _RoleCard(
+                icon: Icons.home_rounded,
+                emoji: '🏠',
+                title: "I'm a Buyer",
+                points: const ['Search properties', 'Verify documents', 'AI safety score'],
+                accent: const Color(0xFF42A5F5),
+                bg: const Color(0xFF0D3B6E),
+                onTap: () => context.push('/buyer-home'),
+              )),
+              const SizedBox(width: 12),
+              Expanded(child: _RoleCard(
+                icon: Icons.sell_rounded,
+                emoji: '🔑',
+                title: "I'm a Seller",
+                points: const ['List property', 'Get verified', 'Reach buyers'],
+                accent: const Color(0xFF66BB6A),
+                bg: const Color(0xFF0D3B1E),
+                onTap: () => context.push('/seller-home'),
+              )),
+            ]),
+
+            const SizedBox(height: 14),
+
+            // Stats row
+            Row(children: [
+              _StatPill('30+', 'Fraud Checks'),
+              const SizedBox(width: 8),
+              _StatPill('3 min', 'AI Report'),
+              const SizedBox(width: 8),
+              _StatPill('100%', 'Secure'),
+            ]),
+          ]),
+        ),
+      ]),
     );
   }
 }
 
-class _ModeToggleChip extends StatelessWidget {
-  final String label;
-  final bool active;
+class _RoleCard extends StatelessWidget {
+  final IconData icon;
+  final String emoji, title;
+  final List<String> points;
+  final Color accent, bg;
   final VoidCallback onTap;
-  const _ModeToggleChip({required this.label, required this.active, required this.onTap});
+  const _RoleCard({required this.icon, required this.emoji, required this.title,
+    required this.points, required this.accent, required this.bg, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: accent.withOpacity(0.3), width: 1.5),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: active ? const Color(0xFF1B5E20) : Colors.white70,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: accent.withOpacity(0.15), shape: BoxShape.circle),
+              child: Icon(Icons.arrow_forward_rounded, color: accent, size: 14),
+            ),
+          ]),
+          const SizedBox(height: 8),
+          Text(title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          ...points.map((p) => Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Row(children: [
+              Icon(Icons.check_circle_rounded, color: accent, size: 12),
+              const SizedBox(width: 5),
+              Text(p, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+            ]),
+          )),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: accent.withOpacity(0.3)),
+            ),
+            child: Center(child: Text('Start →', style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold))),
           ),
-        ),
+        ]),
       ),
     );
+  }
+}
+
+class _StatPill extends StatelessWidget {
+  final String value, label;
+  const _StatPill(this.value, this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(children: [
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 9)),
+      ]),
+    ));
   }
 }
 
@@ -2367,24 +2379,39 @@ class _DocItem {
   const _DocItem(this.name, this.desc, this.icon, this.isCritical);
 }
 
-// ─── Tools Row (SRO, Property Tax, Finance) ───────────────────────────────────
-class _ToolsRow extends StatelessWidget {
-  const _ToolsRow();
+// ─── Property Tools Section ────────────────────────────────────────────────────
+class _PropertyToolsSection extends StatelessWidget {
+  const _PropertyToolsSection();
 
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      // Row 1 — Property
       const Text('Property Tools',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-      const SizedBox(height: 10),
+      const SizedBox(height: 8),
       Row(children: [
-        Expanded(child: _ToolBox(Icons.location_city_outlined, 'SRO\nLocator', AppColors.primary, '/sro-locator')),
+        Expanded(child: _ToolBox(Icons.location_city_outlined, 'SRO\nLocator',    AppColors.primary,  '/sro-locator')),
         const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.receipt_outlined, 'Property\nTax', AppColors.warning, '/property-tax')),
+        Expanded(child: _ToolBox(Icons.calculate_outlined,     'Stamp\nDuty',     AppColors.info,     '/stamp-duty')),
         const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.calculate_outlined, 'Stamp\nDuty', AppColors.info, '/stamp-duty')),
+        Expanded(child: _ToolBox(Icons.bar_chart_outlined,     'Guidance\nValue', AppColors.warning,  '/guidance-value')),
         const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.account_balance_outlined, 'Finance\nTools', AppColors.safe, '/financial-tools')),
+        Expanded(child: _ToolBox(Icons.receipt_outlined,       'Property\nTax',   const Color(0xFFD97706), '/property-tax')),
+      ]),
+      const SizedBox(height: 12),
+      // Row 2 — Finance & Guides
+      const Text('Finance & Guides',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+      const SizedBox(height: 8),
+      Row(children: [
+        Expanded(child: _ToolBox(Icons.account_balance_outlined, 'Finance\nTools',  AppColors.safe,          '/financial-tools')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.calculate_outlined,       'EMI\nCalc',       const Color(0xFF0891B2), '/emi-calculator')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.menu_book_outlined,       'Buyer\nGuide',    const Color(0xFF7C3AED), '/buyer-guides')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.gavel_outlined,           'Legal\nGlossary', const Color(0xFF6366F1), '/legal-glossary')),
       ]),
     ]);
   }
@@ -2407,6 +2434,7 @@ class _ToolBox extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.2)),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
@@ -2414,9 +2442,9 @@ class _ToolBox extends StatelessWidget {
             decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(label, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.textDark)),
         ]),
       ),
     );
@@ -2562,8 +2590,9 @@ class _QuickToolsGrid extends StatelessWidget {
   const _QuickToolsGrid();
 
   static const _tools = [
-    _QuickTool(Icons.people_outline,    'Expert\nHelp',     Color(0xFFD97706), '/partners'),
     _QuickTool(Icons.fingerprint,       'FinSelf\nLite',    Color(0xFF1565C0), '/arth-id'),
+    _QuickTool(Icons.history,           'My\nReports',      Color(0xFF0891B2), '/history'),
+    _QuickTool(Icons.people_outline,    'Expert\nHelp',     Color(0xFFD97706), '/partners'),
     _QuickTool(Icons.flight,            'NRI\nMode',        Color(0xFF6366F1), '/nri'),
     _QuickTool(Icons.people,            'Broker\nZone',     Color(0xFF7C3AED), '/broker'),
     _QuickTool(Icons.home_outlined,     'Post\nPurchase',   Color(0xFF0891B2), '/post-purchase'),
