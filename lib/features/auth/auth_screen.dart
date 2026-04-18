@@ -139,7 +139,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     padding: const EdgeInsets.all(6),
-                    child: Image.asset('assets/images/arth_id_logo.png', fit: BoxFit.contain,
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain,
                         errorBuilder: (_, __, ___) => const DSLogo(size: 36)),
                   ),
                   const SizedBox(width: 12),

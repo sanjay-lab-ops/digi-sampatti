@@ -24,7 +24,7 @@ class DSLogo extends StatelessWidget {
       ),
       padding: EdgeInsets.all(size * 0.08),
       child: Image.asset(
-        'assets/images/arth_id_logo.png',
+        'assets/images/logo.png',
         fit: BoxFit.contain,
       ),
     );

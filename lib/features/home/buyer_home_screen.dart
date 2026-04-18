@@ -11,7 +11,10 @@ class BuyerHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final reports = ref.watch(recentReportsProvider);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) { if (!didPop) context.go('/home'); },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('I\'m a Buyer'),
@@ -150,7 +153,7 @@ class BuyerHomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

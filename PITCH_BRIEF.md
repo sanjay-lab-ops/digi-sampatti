@@ -1,166 +1,234 @@
 # DigiSampatti — Official Pitch Brief
-**Property Intelligence Platform · Made in India · All-India Coverage**
+**India's First End-to-End Property Intelligence & Transaction Platform**
+*Built for Buyers · Sellers · Lawyers · Banks · NRIs*
 
 ---
 
-## The Problem We Solve
+## The Problem
 
-India has **₹300 lakh crore** locked in real estate. Yet every year:
-- **70,000+ property fraud cases** are registered (NCRB 2023)
-- Buyers pay crores on properties with hidden mortgages, court cases, agricultural land restrictions
-- A document check that should take hours takes **3–6 months** of running between offices
-- **NRIs lose ₹8,000+ Cr** annually to property fraud from abroad
-- Even legal professionals miss encumbrances because portals are state-specific
+India has **₹300 lakh crore** locked in real estate. Every year:
 
-**Current process:** Buyer → Lawyer → Sub-Registrar Office → Revenue Dept → EC search → Court check → RERA check — each step requires a physical visit, costs ₹10,000–₹50,000, and takes weeks.
+- **70,000+ property fraud cases** (NCRB 2023) — buyers lose crores to hidden mortgages, forged deeds, court injunctions
+- A document check that takes 3 minutes in DigiSampatti takes **3–6 months** the traditional way
+- **NRIs lose ₹8,000 Cr/year** to fraud from abroad — no way to verify remotely
+- First-time buyers have zero guidance — they don't know what RTC, EC, Khata, CERSAI even mean
+- Sellers with clean documents can't prove it — buyers distrust every listing
+
+**Nobody protects the buyer. Nobody helps the seller prove honesty. Nobody holds money safely between them.**
 
 ---
 
 ## What DigiSampatti Does
 
-**One app. Upload any property document. Get a verified legal report in minutes.**
+**One app that guides both buyer and seller through the entire property transaction — from first search to final registration.**
 
-### Core Pipeline
+### The 7-Stage Journey (Every Transaction)
+
 ```
-Buyer uploads RTC / Sale Deed / EC / Agreement
-          ↓
-Claude AI reads document (OCR + extraction)
-          ↓
-Checks 8 government portals simultaneously:
-  • Bhoomi (RTC / land records)
-  • Kaveri (Encumbrance Certificate)
-  • eCourts (court cases & injunctions)
-  • BBMP e-Aasthi (Khata verification)
-  • CERSAI (mortgage registry)
-  • RERA (builder & project check)
-  • IGR (Guidance Value)
-  • BDA / BMRDA (layout approval)
-          ↓
-30+ rule engine: agricultural land, injunction,
-  DC conversion, Raja Kaluve buffer, lake bed FTL,
-  mutation status, encumbrance-free status
-          ↓
-AI Legal Verdict: DO BUY / CAUTION / DO NOT BUY
-Risk Score 0–100 · Law citations · Next steps
+STAGE 1 — CHECK      Upload documents → AI reads → 30+ fraud checks → Risk Score 0–100
+STAGE 2 — INSPECT    Book field agent → GPS visit → 48hr on-ground report
+STAGE 3 — LEGAL      e-Courts check → lawyer connect → legal opinion
+STAGE 4 — FINANCE    ARTH ID loan check → EMI calculator → stamp duty → total cost
+STAGE 5 — PROTECT    Title insurance → document locker → time-limited key sharing
+STAGE 6 — TRANSACT   e-Sign agreement → digital escrow (advance held safely)
+STAGE 7 — OWN        Mutation tracker → tax alerts → post-sale fraud monitoring
 ```
 
-**Time: 3–7 minutes. Cost: ₹499/report.**
+**Every stage is a screen in the app. The user is never confused about what to do next.**
+
+---
+
+## Core Product — Property Risk Report
+
+```
+Buyer photographs any document (RTC / EC / Sale Deed / Agreement)
+                    ↓
+     Claude AI reads it (OCR + field extraction)
+                    ↓
+     Checks 8 government portals simultaneously:
+       Bhoomi · Kaveri · eCourts · BBMP e-Aasthi
+       CERSAI · RERA · IGR · BDA/BMRDA
+                    ↓
+     30+ rule engine checks:
+       Agricultural land restriction · DC conversion status
+       Raja Kaluve / lake bed buffer · Injunction / attachment
+       Encumbrance (30 years) · Khata type (A/B) · Mutation pending
+       RERA registration · Builder credibility · Court cases
+                    ↓
+     AI Legal Verdict:  ✅ DO BUY  /  ⚠ CAUTION  /  ❌ DO NOT BUY
+     Risk Score 0–100 · Law citations · Recommended next steps
+```
+
+**Time: 3–7 minutes. Cost: ₹499.**
+
+---
+
+## Buyer Flow (New)
+
+**Zomato-style property discovery — no confusing dropdowns.**
+
+1. **Home screen** — Personalized greeting, Property Tax Estimator, Know Your Documents guide, 5 quick tools
+2. **Browse** — Search by locality + keyword (3BHK, BMRDA, near school) → filter by property type
+3. **Two-tier access:**
+   - **₹99 Basic** — Owner name, location, document score, doc summary (no phone)
+   - **₹499 Full** — All 7 portals, AI report, seller contact, PDF, document lock access
+4. **Moderated contact** — WhatsApp / video call (phone only after ₹499) — no direct loopholes
+5. **Escrow → Sign → Own** — guided through remaining stages
+
+---
+
+## Seller Flow (New)
+
+**Step-by-step listing in 5 screens — no confusion.**
+
+1. **Location** — State → District → Taluk → Village
+2. **Property details** — Type (6 options), area, price, description
+3. **Document upload** — CIBIL-style Document Score (0–100) based on weighted checklist
+   - RTC (20 pts) + EC (20 pts) + Khata (15 pts) + Sale Deed (15 pts) + 6 more docs
+   - Guidelines shown for every document (what it is, where to get it, what to check)
+4. **GPS + Photos** — Stand at property, capture coordinates + up to 10 photos
+5. **Pricing** — ₹99 Basic (30-day listing) or ₹499 Full Service (90-day + Verified Badge + AI report + leads)
+
+**The Document Score works like CIBIL for properties — higher score = more buyer trust = faster sale.**
+
+---
+
+## Document Key System (Unique Feature)
+
+**Time-limited, tamper-proof document sharing — like a hotel key card for your property files.**
+
+- Seller generates an **8-character access key** (e.g. `ABCD EFGH`) from Document Locker
+- Sets: who it's for (bank/lawyer/buyer), purpose, validity (24h / 48h / 7d / 30d)
+- Key auto-expires — no manual revoke needed
+- **Chain-of-custody hash**: SHA-256 of all documents at key issue time
+  - When buyer opens key → we re-hash current docs and compare
+  - If different → warning: "Documents were modified after this key was issued"
+  - In production: hash anchored on blockchain (Ethereum/Polygon) for immutable proof
+- Seller can also instantly revoke any key
+
+**Use cases:** Share with SBI for loan sanction, Advocate for legal opinion, buyer for due diligence — each gets a separate key with different expiry.
+
+---
+
+## Digital Escrow (MVP — RBI-Compliant Architecture)
+
+**Advance money held safely. Released only when both parties confirm.**
+
+```
+FSM States:
+INIT → FUNDED → DOC_VERIFIED → BUYER_APPROVED → RELEASED
+                                              ↘ DISPUTE → REFUND
+```
+
+| State | Action |
+|---|---|
+| INIT | Buyer gets ICICI virtual account details. Transfers advance via IMPS/NEFT |
+| FUNDED | Seller uploads all documents to locker. Buyer runs AI check |
+| DOC_VERIFIED | Buyer reviews report, inspection findings, all uploaded docs |
+| BUYER_APPROVED | Both parties sign agreement via Aadhaar e-Sign |
+| RELEASED | Advance released to seller. Balance at SRO registration |
+| DISPUTE | Funds frozen. DigiSampatti mediates within 5 business days |
+| REFUND | Advance returned to buyer after dispute resolution |
+
+**Penalty engine:** Seller defaults (forged docs, no-show) → 100–200% of advance forfeited. Buyer defaults (withdrawal after inspection) → 25–50% forfeited. All agreed at signing per Indian Contract Act.
 
 ---
 
 ## Features Built (Live in App)
 
-| Feature | Description |
+| Feature | Status |
 |---|---|
-| Document OCR | Reads RTC, EC, sale deed, agreements in any language |
-| Risk Score | 0–100 AI score with DO BUY / CAUTION / DO NOT BUY |
-| All India Coverage | Karnataka, Tamil Nadu, Maharashtra, AP, Telangana, Kerala, UP, Delhi, Gujarat, and 18 more states + UTs |
-| Guidance Value | Lookup for all 30 Karnataka districts + 15 other states. Browse by District → Taluk → Area |
-| Property Marketplace | Amazon-style listings by locality — buyer browses, contacts seller, initiates escrow |
-| Digital Escrow | Advance held safely (NBFC/RazorpayX) — released only after docs verified. 0.5% fee |
-| Seller KYC | PAN format check, name match, trust score |
-| ARTH ID | Home loan eligibility — know buying power before choosing property |
-| Financial Tools | Property tax (all states), EMI, stamp duty (14 states), total cost, loan eligibility — all inline |
-| SRO Locator | Find Sub-Registrar Office with GPS |
-| Field Inspection | Book on-ground GPS visit — agent visits, photographs, 48hr report |
-| e-Sign | Aadhaar-based digital signing of agreement |
-| Document Locker | Encrypted cloud storage for all property papers |
-| Post-Purchase Tracker | Mutation alerts, tax reminders, annual check, fraud alerts |
-| NRI Module | FEMA compliance, TDS 22.88%, repatriation, DTAA, PoA for 15 countries |
-| Court Case Check | eCourts integration — search by owner name + district |
-| Lawyer Connect | Empanelled lawyers per district, Lok Adalat guidance |
-| Title Insurance | HDFC Ergo referral — 8–12% commission to DigiSampatti |
-| Screenshot Protection | FLAG_SECURE on all report screens — data cannot be copied or screenshotted |
-| Broker Zone | Dedicated professional portal for agents |
+| Document OCR + AI Analysis | ✅ Live |
+| Risk Score 0–100 (DO BUY / CAUTION / DO NOT BUY) | ✅ Live |
+| 8 government portal checks | ✅ Live |
+| Buyer home — personalized, 7-stage guided | ✅ Live |
+| Zomato-style property search + keyword filter | ✅ Live |
+| ₹99 basic / ₹499 full service buyer tiers | ✅ Live |
+| Seller 5-step listing flow | ✅ Live |
+| Document Score (CIBIL-like, 0–100) | ✅ Live |
+| Document Locker with key system | ✅ Live |
+| Time-limited key sharing + tamper detection | ✅ Live |
+| Digital Escrow (FSM — 6 states) | ✅ Live |
+| Penalty engine (buyer + seller defaults) | ✅ Live |
+| e-Sign (Aadhaar-based) | ✅ Live |
+| Field Inspection booking | ✅ Live |
+| ARTH ID — loan eligibility | ✅ Live |
+| Financial tools (EMI, stamp duty, tax, total cost) | ✅ Live |
+| Guidance Value (all India) | ✅ Live |
+| NRI Module (FEMA, TDS, repatriation) | ✅ Live |
+| eCourts — court case check by owner name | ✅ Live |
+| SRO Locator | ✅ Live |
+| Post-purchase tracker (mutation, tax, fraud alerts) | ✅ Live |
+| Broker Zone | ✅ Live |
+| Report history + PDF generation | ✅ Live |
 
 ---
 
 ## Business Model
 
-| Revenue Stream | Price | Notes |
+| Revenue Stream | Price | Target Volume (Month 12) |
 |---|---|---|
-| Per Report | ₹499 / report | Individual buyers, one-time check |
-| Monthly Unlimited | ₹1,999 / month | Frequent buyers, investors |
-| Agent Subscription | ₹4,999 / month | Brokers — 50 reports/month |
-| Field Inspection | ₹2,499 / visit | GPS photos, 48hr report |
-| Escrow Fee | 0.5% of advance | Split 50/50 buyer & seller |
-| Title Insurance | 8–12% commission | HDFC Ergo referral |
-| Lawyer Referral | ₹2,000 / connect | Bar Council empanelled lawyers |
-| Developer API | ₹50,000 / month | Banks, NBFCs, builders |
+| Buyer property report | ₹499 / report | 8,000/month = ₹39.9L |
+| Buyer basic view | ₹99 / view | 20,000/month = ₹19.8L |
+| Seller basic listing | ₹99 / listing | 5,000/month = ₹4.95L |
+| Seller full service | ₹499 / listing | 2,000/month = ₹9.98L |
+| Field inspection | ₹2,499 / visit | 500/month = ₹12.5L |
+| Escrow fee | 0.25% of advance | 200 deals/month = ~₹15L |
+| Lawyer referral | ₹2,000 / connect | 300/month = ₹6L |
+| Title insurance | 8–12% commission | 100/month = ₹8L |
+| Bank/NBFC API | ₹50,000/month | 5 banks = ₹2.5L |
 
-**Target:** 10,000 reports/month by Month 12 = ₹49.9 L/month GMV
-
----
-
-## Escrow Structure (for ₹2 Cr Property Example)
-
-| Component | Amount | Notes |
-|---|---|---|
-| Token (non-negotiable minimum) | ₹2,00,000 | 1% of deal, min ₹1L. Paid immediately. Reserves property. |
-| Advance (standard 10%, negotiable) | ₹20,00,000 | Held in DS escrow. Released only after document verification. |
-| Balance at registration | ₹1,78,00,000 | Paid at SRO on deed registration day. |
-| DigiSampatti Escrow Fee | ₹1,00,000 | 0.5% of advance — split equally buyer & seller |
-| **Total buyer pays upfront** | **₹22,00,000** | Token + Advance + Fee |
-
-**If deal falls through due to bad documents:** Advance returned in 7 business days.
-**If buyer backs out without reason:** Token is forfeited to seller.
+**Month 12 GMV target: ₹1.18 Cr/month**
 
 ---
 
-## What DigiSampatti Does NOT Do
+## Competitive Moat
 
-- Does **not scrape** government portals illegally
-- Does **not store** raw Aadhaar / PAN numbers
-- Is **automating** portal access, not bypassing it
-- Anticaptcha / portal automation is used only for legitimate user-initiated lookups
-- All document analysis is run through Claude AI with explicit user consent
-
----
-
-## Why Now — Regulatory Tailwind
-
-- **RERA 2016**: Mandatory builder registration — data now available
-- **Digitisation drive**: Bhoomi, Kaveri, CERSAI all have public APIs
-- **UPI + RazorpayX**: Digital escrow is now technically feasible
-- **NeSL + CERSAI**: Central mortgage registry — all mortgages traceable
-- **Digital India Mission**: Govt wants private sector to build on top of land records
+| What others do | What DigiSampatti does |
+|---|---|
+| 99acres / MagicBricks — list properties, no verification | Verify AND list — buyer knows the property is clean before paying |
+| Traditional lawyer — ₹20,000–₹50,000, 4–6 weeks | AI report in 7 minutes for ₹499 |
+| No escrow product exists for individual property buyers | FSM escrow with penalty engine and dispute resolution |
+| Sellers have no way to prove document quality | Document Score + Verified Badge — like CIBIL for properties |
+| NRIs have no remote verification tool | Full NRI module — FEMA, TDS, remote PoA, 15 countries |
 
 ---
 
-## Team & Technology
+## Why Now
 
-- Flutter Android app (iOS version ready Q3 2025)
-- Python/Flask backend — Claude Sonnet 4.6 AI (Anthropic)
-- Firebase Auth, Firestore (scalable to 1M users)
-- AES-256 encryption for all stored documents
-- SOC 2 Type II compliance roadmap (Q4 2025)
+- RERA 2016 — all builder data is now public
+- Bhoomi, Kaveri, CERSAI — digital land records accessible
+- UPI + bank virtual accounts — digital escrow finally feasible
+- Claude AI (Anthropic) — first AI good enough to read Indian legal documents reliably
+- ₹300 lakh crore market with zero trusted verification layer
 
 ---
 
-## Ask from Officials / Partners
+## Tech Stack
 
-**For Sub-Registrar Offices / Revenue Dept:**
-- API access to guidance value updates (we display, not scrape)
-- WhatsApp alert integration for mutation completion
+- **App:** Flutter (Android live, iOS Q3 2025)
+- **AI:** Claude Sonnet 4.6 (Anthropic) — document OCR + legal analysis
+- **Backend:** Python/Flask + Firebase Firestore
+- **Escrow:** ICICI Bank virtual accounts (RBI-compliant)
+- **Payments:** Razorpay / Instamojo / UPI direct
+- **Document Keys:** SHA-256 hash chain (Ethereum anchor in production)
+- **Security:** AES-256, FLAG_SECURE on report screens, DPDP Act 2023 compliant
 
-**For Banks / NBFCs:**
-- Property pre-verification API before loan disbursement
-- Integration fee: ₹50,000/month per bank
+---
 
-**For RERA Authority:**
-- White-label property check widget for official RERA website
-- Reduces fraud complaints reaching RERA office
+## Ask
 
-**For HDFC Ergo / Other Insurers:**
-- Title insurance co-referral — we identify clean titles, you insure
-- Revenue share: 8–12% of premium
+**For Banks / NBFCs:** Property pre-verification API before loan disbursement (₹50,000/month)
+**For RERA Authority:** White-label property check widget for official portal
+**For Sub-Registrar Offices:** API access to guidance value + mutation completion alerts
+**For Insurers (HDFC Ergo):** Title insurance co-referral — 8–12% revenue share
+**For Investors:** Seed round — scaling portal automation, ML risk model, iOS launch
 
 ---
 
 ## Contact
 
-**App:** DigiSampatti (available on Play Store — search "DigiSampatti")
-**GitHub:** github.com/sanjay-lab-ops/digi-sampatti
 **Email:** jrjeethu018@gmail.com
+**App:** DigiSampatti (Android APK available)
 
 *"Not just checking documents — verifying futures."*

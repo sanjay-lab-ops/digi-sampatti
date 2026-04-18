@@ -92,11 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                   ),
                   padding: const EdgeInsets.all(10),
-                  child: Image.asset(
-                    'assets/images/arth_id_logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const DSLogo(size: 80),
-                  ),
+                  child: const DSLogo(size: 80),
                 ),
                 const SizedBox(height: 24),
                 const Text(

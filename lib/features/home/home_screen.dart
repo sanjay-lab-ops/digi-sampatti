@@ -102,7 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: const EdgeInsets.all(3),
-              child: Image.asset('assets/images/arth_id_logo.png', fit: BoxFit.contain,
+              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const DSLogo(size: 26)),
             ),
             const SizedBox(width: 10),
@@ -134,16 +134,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _animated(1, _ModeSelectionCards()),
             const SizedBox(height: 16),
 
-            // ── 3. Know Your Property ─────────────────────────────────────
-            _animated(2, const _KnowYourProperty()),
-            const SizedBox(height: 14),
-
-            // ── 4. Quick-Access Tools ─────────────────────────────────────
-            _animated(3, const _QuickToolsGrid()),
+            // ── 3. Tools Row ──────────────────────────────────────────────
+            _animated(2, const _ToolsRow()),
             const SizedBox(height: 16),
 
-            // ── 5. Escrow & Agreement flow banner ─────────────────────────
-            _animated(4, const _EscrowFlowBanner()),
+            // ── 4. Safe Transaction banner ────────────────────────────────
+            _animated(3, const _SafeTransactionBanner()),
+            const SizedBox(height: 16),
+
+            // ── 5. Quick-Access Tools ─────────────────────────────────────
+            _animated(4, const _QuickToolsGrid()),
             const SizedBox(height: 24),
 
             // ── 6. Recent Reports ─────────────────────────────────────────
@@ -2365,6 +2365,196 @@ class _DocItem {
   final IconData icon;
   final bool isCritical;
   const _DocItem(this.name, this.desc, this.icon, this.isCritical);
+}
+
+// ─── Tools Row (SRO, Property Tax, Finance) ───────────────────────────────────
+class _ToolsRow extends StatelessWidget {
+  const _ToolsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Property Tools',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(child: _ToolBox(Icons.location_city_outlined, 'SRO\nLocator', AppColors.primary, '/sro-locator')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.receipt_outlined, 'Property\nTax', AppColors.warning, '/property-tax')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.calculate_outlined, 'Stamp\nDuty', AppColors.info, '/stamp-duty')),
+        const SizedBox(width: 8),
+        Expanded(child: _ToolBox(Icons.account_balance_outlined, 'Finance\nTools', AppColors.safe, '/financial-tools')),
+      ]),
+    ]);
+  }
+}
+
+class _ToolBox extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final String route;
+  const _ToolBox(this.icon, this.label, this.color, this.route);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(route),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 6),
+          Text(label, textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+        ]),
+      ),
+    );
+  }
+}
+
+// ─── Safe Transaction Banner ──────────────────────────────────────────────────
+class _SafeTransactionBanner extends StatelessWidget {
+  const _SafeTransactionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showHowItWorks(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0D2137), Color(0xFF1A3A5C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(children: [
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.amber, width: 1.5),
+            ),
+            child: const Icon(Icons.verified_user_outlined, color: Colors.amber, size: 22),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Safe Transaction — How it works',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            SizedBox(height: 2),
+            Text('Escrow · Chat · Document Lock · e-Sign · Expert Help',
+              style: TextStyle(color: Colors.white60, fontSize: 11)),
+          ])),
+          const Icon(Icons.arrow_forward_ios, color: Colors.amber, size: 14),
+        ]),
+      ),
+    );
+  }
+
+  void _showHowItWorks(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(children: [
+          Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 16),
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('Safe Transaction — How it works',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 4),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('Every property deal on DigiSampatti is protected end-to-end',
+              style: TextStyle(color: AppColors.textLight, fontSize: 13), textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: ListView(padding: const EdgeInsets.symmetric(horizontal: 20), children: const [
+            _SafeStep(1, Icons.verified_user_outlined, 'AI Document Verification',
+              'Seller uploads RTC, EC, Title Deed → DigiSampatti AI reads and gives a 0–100 safety score. Flagged if forged or disputed.',
+              Color(0xFF1565C0)),
+            _SafeStep(2, Icons.chat_outlined, 'Secure Chat (No Direct Contact)',
+              'Buyer pays ₹99 to contact seller. Chat is monitored. No phone numbers shared until both parties agree.',
+              AppColors.primary),
+            _SafeStep(3, Icons.lock_outlined, 'Document Vault with OTP Lock',
+              'Seller documents are locked. Buyer can view only after both agree to proceed. Key released via OTP.',
+              AppColors.warning),
+            _SafeStep(4, Icons.account_balance_outlined, 'Digital Escrow',
+              'Buyer deposit held in escrow. Released to seller only when all conditions are met: clear title, no encumbrance, registered agreement.',
+              AppColors.safe),
+            _SafeStep(5, Icons.assignment_outlined, 'e-Sign Agreement',
+              'Sale agreement signed digitally via Aadhaar e-Sign. Legally valid under IT Act 2000. No physical stamp required for draft.',
+              Color(0xFF7C3AED)),
+            _SafeStep(6, Icons.people_outline, 'Expert Network (Optional)',
+              'Verified lawyers, surveyors, and banks available. Arth ID earns referral — no hidden charges to you.',
+              AppColors.info),
+            SizedBox(height: 16),
+          ])),
+        ]),
+      ),
+    );
+  }
+}
+
+class _SafeStep extends StatelessWidget {
+  final int num;
+  final IconData icon;
+  final String title, description;
+  final Color color;
+  const _SafeStep(this.num, this.icon, this.title, this.description, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Container(
+              width: 20, height: 20,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Center(child: Text('$num', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+            ),
+            const SizedBox(width: 6),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark))),
+          ]),
+          const SizedBox(height: 4),
+          Text(description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.4)),
+        ])),
+      ]),
+    );
+  }
 }
 
 // ─── 5 Quick-Access Tool Boxes ─────────────────────────────────────────────────

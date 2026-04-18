@@ -8,7 +8,10 @@ class SellerHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) { if (!didPop) context.go('/home'); },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('I\'m a Seller'),
@@ -116,7 +119,7 @@ class SellerHomeScreen extends ConsumerWidget {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('New Listing', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-    );
+    ));
   }
 }
 

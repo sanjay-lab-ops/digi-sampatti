@@ -132,6 +132,10 @@ class _AccountAggregatorScreenState
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
         title: Row(children: [
           Image.asset('assets/images/arth_id_logo.png',
               height: 28, width: 28,
@@ -257,7 +261,7 @@ class _AccountAggregatorScreenState
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/home'),
           child: const Text('Skip for now',
               style: TextStyle(color: Colors.grey)),
         ),

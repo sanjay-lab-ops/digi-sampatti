@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiSampatti — Pitch Deck</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#0a0a0a; color:#fff; overflow:hidden; }
+
+  .deck { width:100vw; height:100vh; position:relative; }
+  .slide { display:none; width:100%; height:100vh; padding:60px 80px; flex-direction:column; justify-content:center; position:absolute; top:0; left:0; }
+  .slide.active { display:flex; }
+
+  /* Navigation */
+  .nav { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); display:flex; gap:12px; z-index:100; }
+  .nav button { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:10px 24px; border-radius:24px; cursor:pointer; font-size:14px; font-weight:600; transition:all 0.2s; }
+  .nav button:hover { background:rgba(255,255,255,0.3); }
+  .nav button.active { background:#1B5E20; }
+  .counter { position:fixed; top:20px; right:30px; font-size:13px; color:rgba(255,255,255,0.4); }
+  .dots { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); display:flex; gap:8px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); cursor:pointer; transition:all 0.2s; }
+  .dot.active { background:#4CAF50; width:24px; border-radius:4px; }
+
+  /* Slide styles */
+  .slide-1 { background:linear-gradient(135deg,#0D2B0D 0%,#1B5E20 50%,#0D2B0D 100%); }
+  .slide-2 { background:linear-gradient(135deg,#1a0a0a 0%,#4a0a0a 100%); }
+  .slide-3 { background:linear-gradient(135deg,#0a1a2e 0%,#16213e 100%); }
+  .slide-4 { background:linear-gradient(135deg,#0a0a1a 0%,#1a0a3a 100%); }
+  .slide-5 { background:linear-gradient(135deg,#0a1a0a 0%,#0a2a1a 100%); }
+  .slide-6 { background:linear-gradient(135deg,#1a1a0a 0%,#2a2a0a 100%); }
+  .slide-7 { background:linear-gradient(135deg,#0a1a2e 0%,#0a2e2e 100%); }
+  .slide-8 { background:linear-gradient(135deg,#1a0a1a 0%,#2a0a2a 100%); }
+  .slide-9 { background:linear-gradient(135deg,#0a1a0a 0%,#1B5E20 100%); }
+  .slide-10 { background:linear-gradient(135deg,#0D2B0D 0%,#1B5E20 50%,#0D2B0D 100%); }
+
+  h1 { font-size:52px; font-weight:800; line-height:1.1; margin-bottom:16px; }
+  h2 { font-size:36px; font-weight:700; margin-bottom:24px; }
+  h3 { font-size:22px; font-weight:600; margin-bottom:12px; color:rgba(255,255,255,0.85); }
+  p  { font-size:18px; line-height:1.6; color:rgba(255,255,255,0.8); }
+  .tag { display:inline-block; background:rgba(76,175,80,0.2); border:1px solid rgba(76,175,80,0.5); color:#81C784; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; margin-bottom:20px; letter-spacing:1px; }
+
+  /* Problem stats */
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:32px; }
+  .stat { background:rgba(255,0,0,0.08); border:1px solid rgba(255,0,0,0.2); border-radius:16px; padding:28px; text-align:center; }
+  .stat .num { font-size:40px; font-weight:800; color:#ff6b6b; }
+  .stat .label { font-size:14px; color:rgba(255,255,255,0.6); margin-top:8px; line-height:1.4; }
+
+  /* Pipeline */
+  .pipeline { display:flex; align-items:center; gap:0; margin:28px 0; flex-wrap:nowrap; overflow-x:auto; }
+  .pipe-step { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px 20px; text-align:center; min-width:110px; }
+  .pipe-step .icon { font-size:28px; margin-bottom:6px; }
+  .pipe-step .name { font-size:11px; font-weight:600; color:rgba(255,255,255,0.7); }
+  .pipe-arrow { font-size:20px; color:rgba(255,255,255,0.3); margin:0 4px; flex-shrink:0; }
+
+  /* Feature grid */
+  .feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px; }
+  .feature-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:20px; }
+  .feature-card .fc-icon { font-size:26px; margin-bottom:10px; }
+  .feature-card h4 { font-size:15px; font-weight:700; margin-bottom:6px; }
+  .feature-card p { font-size:12px; color:rgba(255,255,255,0.55); line-height:1.5; }
+
+  /* Journey */
+  .journey { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-top:24px; }
+  .j-step { background:rgba(255,255,255,0.06); border-radius:12px; padding:16px 8px; text-align:center; border:1px solid rgba(255,255,255,0.1); }
+  .j-step .j-num { font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:4px; font-weight:700; letter-spacing:1px; }
+  .j-step .j-icon { font-size:24px; margin:4px 0; }
+  .j-step .j-label { font-size:12px; font-weight:700; color:#81C784; }
+  .j-step .j-sub { font-size:10px; color:rgba(255,255,255,0.45); margin-top:4px; line-height:1.3; }
+
+  /* Revenue table */
+  .rev-table { width:100%; border-collapse:collapse; margin-top:20px; }
+  .rev-table th { background:rgba(76,175,80,0.2); padding:12px 16px; text-align:left; font-size:13px; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .rev-table td { padding:10px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.8); }
+  .rev-table tr:last-child td { font-weight:700; color:#81C784; background:rgba(76,175,80,0.08); }
+
+  /* Moat */
+  .moat-row { display:flex; gap:16px; margin-bottom:12px; align-items:flex-start; }
+  .moat-bad { flex:1; background:rgba(255,0,0,0.06); border:1px solid rgba(255,0,0,0.15); border-radius:10px; padding:12px 16px; font-size:13px; color:rgba(255,100,100,0.8); }
+  .moat-vs { font-size:18px; font-weight:700; color:rgba(255,255,255,0.2); align-self:center; padding:0 4px; }
+  .moat-good { flex:1; background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.2); border-radius:10px; padding:12px 16px; font-size:13px; color:#81C784; }
+
+  /* Key system */
+  .key-display { background:rgba(27,94,32,0.15); border:2px dashed rgba(76,175,80,0.4); border-radius:16px; padding:28px; text-align:center; margin:20px 0; }
+  .key-code { font-size:44px; font-weight:800; letter-spacing:12px; color:#81C784; font-family:monospace; }
+  .key-meta { font-size:13px; color:rgba(255,255,255,0.45); margin-top:8px; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+  .highlight { color:#81C784; }
+  .red { color:#ff6b6b; }
+  .amber { color:#FFD54F; }
+
+  /* ESCrow FSM */
+  .fsm { display:flex; align-items:center; gap:0; margin:24px 0; overflow-x:auto; }
+  .fsm-state { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:14px 16px; text-align:center; min-width:100px; }
+  .fsm-state.active-state { background:rgba(76,175,80,0.15); border-color:rgba(76,175,80,0.4); }
+  .fsm-state .s-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); }
+  .fsm-arrow { font-size:16px; color:rgba(255,255,255,0.2); margin:0 4px; }
+
+  /* CTA slide */
+  .cta-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:28px; }
+  .cta-card { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:24px; }
+  .cta-card h4 { font-size:15px; font-weight:700; margin-bottom:8px; color:#81C784; }
+  .cta-card p { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- SLIDE 1: COVER -->
+  <div class="slide slide-1 active">
+    <div class="tag">PROPERTY TECH · INDIA · 2025</div>
+    <h1>Digi<span style="color:#81C784">Sampatti</span></h1>
+    <p style="font-size:24px; margin-bottom:16px; color:rgba(255,255,255,0.9);">India's First End-to-End Property Verification<br>& Safe Transaction Platform</p>
+    <p>Buyer to Owner — 7 stages. One app. No fraud.</p>
+    <div style="margin-top:48px; display:flex; gap:32px;">
+      <div><div style="font-size:32px;font-weight:800;color:#81C784;">₹300L Cr</div><div style="font-size:13px;color:rgba(255,255,255,0.5);">Indian Real Estate Market</div></div>
+      <div><div style="font-size:32px;font-weight:800;color:#ff6b6b;">70,000+</div><div style="font-size:13px;color:rgba(255,255,255,0.5);">Fraud cases/year (NCRB)</div></div>
+      <div><div style="font-size:32px;font-weight:800;color:#FFD54F;">3 min</div><div style="font-size:13px;color:rgba(255,255,255,0.5);">vs 3–6 months traditional</div></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <div class="slide slide-2">
+    <div class="tag">THE PROBLEM</div>
+    <h2>Every property deal in India is a leap of faith</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="num">₹8,000 Cr</div>
+        <div class="label">Lost by NRIs annually to property fraud from abroad</div>
+      </div>
+      <div class="stat">
+        <div class="num">6 months</div>
+        <div class="label">Average time to verify a property through traditional lawyers</div>
+      </div>
+      <div class="stat">
+        <div class="num">₹50,000</div>
+        <div class="label">Cost of a full legal due diligence — unaffordable for most</div>
+      </div>
+    </div>
+    <div style="margin-top:28px; background:rgba(255,255,255,0.04); border-radius:12px; padding:20px; border:1px solid rgba(255,255,255,0.08);">
+      <p style="font-size:15px;">Buyer → Lawyer → Sub-Registrar → Revenue Dept → EC Search → Court → RERA → Bank — each step requires a <span class="red">physical visit</span>, costs money, takes weeks. <span class="amber">Nobody tells the buyer what to do first.</span> Sellers with clean documents can't prove it. Money changes hands with no protection.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: SOLUTION -->
+  <div class="slide slide-3">
+    <div class="tag">THE SOLUTION</div>
+    <h2>One app. Upload any document. Get a verdict in 3 minutes.</h2>
+    <div class="pipeline">
+      <div class="pipe-step"><div class="icon">📸</div><div class="name">Upload Doc</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><div class="icon">🤖</div><div class="name">Claude AI reads it</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><div class="icon">🏛️</div><div class="name">8 Portal checks</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><div class="icon">⚖️</div><div class="name">30+ Rules</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><div class="icon">📊</div><div class="name">Risk Score 0–100</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" style="background:rgba(76,175,80,0.15);border-color:rgba(76,175,80,0.4)"><div class="icon">✅</div><div class="name" style="color:#81C784">DO BUY / CAUTION / DON'T BUY</div></div>
+    </div>
+    <div style="display:flex; gap:16px; margin-top:8px;">
+      <div style="flex:1; background:rgba(255,255,255,0.04); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:13px; font-weight:700; color:#81C784; margin-bottom:8px;">8 PORTALS CHECKED</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.8;">Bhoomi · Kaveri · eCourts · BBMP e-Aasthi<br>CERSAI · RERA · IGR · BDA/BMRDA</div>
+      </div>
+      <div style="flex:1; background:rgba(255,255,255,0.04); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:13px; font-weight:700; color:#FFD54F; margin-bottom:8px;">30+ FRAUD CHECKS</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.8;">Agricultural land · DC conversion · Lake bed<br>Injunction · B-Khata · Mutation · CERSAI loan</div>
+      </div>
+      <div style="flex:1; background:rgba(255,255,255,0.04); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:13px; font-weight:700; color:#81C784; margin-bottom:8px;">PRICE</div>
+        <div style="font-size:30px; font-weight:800; color:#fff;">₹499</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5);">vs ₹20,000–₹50,000 lawyer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: 7-STAGE JOURNEY -->
+  <div class="slide slide-4">
+    <div class="tag">PRODUCT</div>
+    <h2>7-Stage Guided Journey — Nobody Gets Lost</h2>
+    <p style="font-size:15px; margin-bottom:4px;">Every buyer and seller is guided step by step. The app tells you exactly what to do at every stage.</p>
+    <div class="journey">
+      <div class="j-step"><div class="j-num">STAGE 1</div><div class="j-icon">🔍</div><div class="j-label">CHECK</div><div class="j-sub">AI document analysis · Risk score</div></div>
+      <div class="j-step"><div class="j-num">STAGE 2</div><div class="j-icon">📍</div><div class="j-label">INSPECT</div><div class="j-sub">Field agent · GPS visit · 48hr report</div></div>
+      <div class="j-step"><div class="j-num">STAGE 3</div><div class="j-icon">⚖️</div><div class="j-label">LEGAL</div><div class="j-sub">eCourts · Lawyer connect · Opinion</div></div>
+      <div class="j-step"><div class="j-num">STAGE 4</div><div class="j-icon">💰</div><div class="j-label">FINANCE</div><div class="j-sub">Loan check · EMI · Stamp duty</div></div>
+      <div class="j-step"><div class="j-num">STAGE 5</div><div class="j-icon">🔒</div><div class="j-label">PROTECT</div><div class="j-sub">Doc locker · Key sharing · Insurance</div></div>
+      <div class="j-step"><div class="j-num">STAGE 6</div><div class="j-icon">🤝</div><div class="j-label">TRANSACT</div><div class="j-sub">e-Sign · Escrow · Advance</div></div>
+      <div class="j-step"><div class="j-num">STAGE 7</div><div class="j-icon">🏠</div><div class="j-label">OWN</div><div class="j-sub">Mutation · Tax alerts · Fraud watch</div></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: BUYER + SELLER FLOWS -->
+  <div class="slide slide-5">
+    <div class="tag">PRODUCT</div>
+    <h2>Buyer & Seller — Two Separate Guided Flows</h2>
+    <div class="two-col">
+      <div>
+        <h3 style="color:#81C784;">🏠 Buyer Flow</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #81C784;">🔍 <b>Search</b> — Locality + keyword (3BHK, BMRDA, near school)</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #81C784;">💸 <b>₹99 Basic</b> — Owner name, doc score, location (no phone)</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #81C784;">📋 <b>₹499 Full</b> — All 7 portals, AI report, contact, PDF</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #81C784;">💬 <b>Contact</b> — WhatsApp/video (moderated, no direct loopholes)</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #81C784;">🏦 <b>Escrow → Sign → Own</b></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:#CE93D8;">🏷️ Seller Flow</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #CE93D8;">📍 <b>Step 1</b> — Location (State → District → Village)</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #CE93D8;">🏗️ <b>Step 2</b> — Property type, area, price, description</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #CE93D8;">📊 <b>Step 3</b> — Document Score (CIBIL-like, 0–100)</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #CE93D8;">📸 <b>Step 4</b> — GPS location + up to 10 photos</div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 16px;font-size:13px;border-left:3px solid #CE93D8;">💰 <b>Step 5</b> — ₹99 Basic / ₹499 Full Service</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: DOCUMENT KEY -->
+  <div class="slide slide-6">
+    <div class="tag">UNIQUE FEATURE</div>
+    <h2>Document Key — Time-Limited, Tamper-Proof Sharing</h2>
+    <div class="two-col">
+      <div>
+        <div class="key-display">
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:8px;">PROPERTY ACCESS KEY</div>
+          <div class="key-code">ABCD EFGH</div>
+          <div class="key-meta">Valid 48 hours · For: Advocate Rajesh · Purpose: Legal review</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 14px;font-size:12px;">🔑 Seller generates key → chooses validity (24h/48h/7d/30d)</div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 14px;font-size:12px;">📲 Shares with lawyer / bank / buyer via WhatsApp</div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 14px;font-size:12px;">⏰ Auto-expires — no manual revoke needed</div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 14px;font-size:12px;">🚫 Seller can revoke any key instantly</div>
+        </div>
+      </div>
+      <div>
+        <h3>Chain-of-Custody (Blockchain-lite)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+          <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#81C784;margin-bottom:6px;">AT KEY ISSUE TIME</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);">SHA-256 hash of all documents (IDs + titles + dates) is stored with the key</div>
+          </div>
+          <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#81C784;margin-bottom:6px;">WHEN BUYER VALIDATES</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);">Re-hash current docs. If different → "Documents were modified after key was issued" ⚠</div>
+          </div>
+          <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#81C784;margin-bottom:6px;">PRODUCTION</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);">Hash anchored to Ethereum/Polygon — immutable, public, permanent record</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: ESCROW -->
+  <div class="slide slide-7">
+    <div class="tag">FINTECH</div>
+    <h2>Digital Escrow — Advance Money Held Safely</h2>
+    <div class="fsm">
+      <div class="fsm-state active-state"><div class="s-label">INIT</div></div>
+      <div class="fsm-arrow">→</div>
+      <div class="fsm-state active-state"><div class="s-label">FUNDED</div></div>
+      <div class="fsm-arrow">→</div>
+      <div class="fsm-state active-state"><div class="s-label">DOC VERIFIED</div></div>
+      <div class="fsm-arrow">→</div>
+      <div class="fsm-state active-state"><div class="s-label">BUYER APPROVED</div></div>
+      <div class="fsm-arrow">→</div>
+      <div class="fsm-state active-state"><div class="s-label">RELEASED ✓</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin-left:8px;">
+        <div class="fsm-arrow" style="transform:rotate(90deg);margin:2px 0;">↓</div>
+        <div class="fsm-state" style="background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.3);"><div class="s-label" style="color:#ff6b6b;">DISPUTE</div></div>
+        <div class="fsm-arrow" style="transform:rotate(90deg);margin:2px 0;">↓</div>
+        <div class="fsm-state"><div class="s-label">REFUNDED</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px;">
+      <div>
+        <h3>How It Works</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);">
+          <div>1. Buyer deposits advance → ICICI virtual account (IMPS/NEFT)</div>
+          <div>2. Seller uploads all docs to Document Locker</div>
+          <div>3. Buyer reviews AI report + inspection findings</div>
+          <div>4. Both sign via Aadhaar e-Sign</div>
+          <div>5. Advance released. Balance at SRO registration.</div>
+        </div>
+      </div>
+      <div>
+        <h3>Penalty Engine</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+          <div style="background:rgba(255,0,0,0.06);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,150,150,0.9);">Seller forged docs → 200% of advance forfeited</div>
+          <div style="background:rgba(255,0,0,0.06);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,150,150,0.9);">Seller no-show at registration → 100% forfeited</div>
+          <div style="background:rgba(255,160,0,0.06);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,200,100,0.9);">Buyer withdraws after inspection → 25% forfeited</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;">Per Indian Contract Act Sec 73 & 74. Agreed at signing.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: COMPETITIVE MOAT -->
+  <div class="slide slide-8">
+    <div class="tag">WHY US</div>
+    <h2>Nobody Else Does All of This Together</h2>
+    <div style="margin-top:16px;">
+      <div class="moat-row">
+        <div class="moat-bad">99acres / MagicBricks — list properties, no verification, no document check</div>
+        <div class="moat-vs">VS</div>
+        <div class="moat-good">DigiSampatti — verify AND list. Buyer knows the property is clean before paying.</div>
+      </div>
+      <div class="moat-row">
+        <div class="moat-bad">Traditional lawyer — ₹20,000–₹50,000, physical visits, 4–6 weeks</div>
+        <div class="moat-vs">VS</div>
+        <div class="moat-good">AI report in 7 minutes for ₹499. Same government portals, better speed.</div>
+      </div>
+      <div class="moat-row">
+        <div class="moat-bad">No escrow product exists for individual property buyers in India</div>
+        <div class="moat-vs">VS</div>
+        <div class="moat-good">FSM escrow with penalty engine, dispute resolution, RBI-compliant ICICI virtual accounts</div>
+      </div>
+      <div class="moat-row">
+        <div class="moat-bad">Sellers have no way to prove their document quality to buyers</div>
+        <div class="moat-vs">VS</div>
+        <div class="moat-good">Document Score (0–100) + Verified Badge — like CIBIL for properties</div>
+      </div>
+      <div class="moat-row">
+        <div class="moat-bad">NRIs have zero remote verification tool. Buy blindly through relatives.</div>
+        <div class="moat-vs">VS</div>
+        <div class="moat-good">Full NRI module — FEMA, TDS 22.88%, PoA, repatriation, 15 countries</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: BUSINESS MODEL -->
+  <div class="slide slide-9">
+    <div class="tag">BUSINESS MODEL</div>
+    <h2>8 Revenue Streams — Month 12 Target: ₹1.18 Cr/month</h2>
+    <table class="rev-table">
+      <tr>
+        <th>Revenue Stream</th>
+        <th>Price</th>
+        <th>Month 12 Volume</th>
+        <th>Monthly Revenue</th>
+      </tr>
+      <tr><td>Buyer AI report</td><td>₹499</td><td>8,000 reports</td><td>₹39.9 L</td></tr>
+      <tr><td>Buyer basic view</td><td>₹99</td><td>20,000 views</td><td>₹19.8 L</td></tr>
+      <tr><td>Seller full listing</td><td>₹499</td><td>2,000 listings</td><td>₹9.98 L</td></tr>
+      <tr><td>Seller basic listing</td><td>₹99</td><td>5,000 listings</td><td>₹4.95 L</td></tr>
+      <tr><td>Digital escrow fee</td><td>0.25%</td><td>200 deals</td><td>~₹15 L</td></tr>
+      <tr><td>Field inspection</td><td>₹2,499</td><td>500 visits</td><td>₹12.5 L</td></tr>
+      <tr><td>Lawyer referral</td><td>₹2,000</td><td>300 connects</td><td>₹6 L</td></tr>
+      <tr><td>Bank API + Insurance</td><td>₹50,000/mo</td><td>5 banks</td><td>₹10.5 L</td></tr>
+      <tr><td><b>TOTAL</b></td><td></td><td></td><td><b>₹1.18 Cr/month</b></td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 10: CTA -->
+  <div class="slide slide-10">
+    <div class="tag">LET'S BUILD THIS TOGETHER</div>
+    <h1>Property trust.<br><span style="color:#81C784">Finally.</span></h1>
+    <p style="font-size:18px; margin:16px 0 32px;">₹300 lakh crore market. Zero trusted verification layer. DigiSampatti changes that.</p>
+    <div class="cta-grid">
+      <div class="cta-card">
+        <h4>🏦 For Banks / NBFCs</h4>
+        <p>Property pre-verification API before loan disbursement. ₹50,000/month per bank. Reduces NPA from property fraud.</p>
+      </div>
+      <div class="cta-card">
+        <h4>🏛️ For RERA / Government</h4>
+        <p>White-label property check widget for official portals. Reduces fraud complaints reaching RERA office by 60%.</p>
+      </div>
+      <div class="cta-card">
+        <h4>🛡️ For Insurers</h4>
+        <p>Title insurance co-referral. We identify clean titles, you insure. 8–12% premium revenue share.</p>
+      </div>
+      <div class="cta-card">
+        <h4>📧 Contact</h4>
+        <p style="font-size:16px;font-weight:600;color:#81C784;">jrjeethu018@gmail.com</p>
+        <p style="margin-top:8px;font-style:italic;color:rgba(255,255,255,0.5);">"Not just checking documents — verifying futures."</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="counter"><span id="current">1</span> / 10</div>
+<div class="dots" id="dots"></div>
+<div class="nav">
+  <button onclick="prevSlide()">← Prev</button>
+  <button onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total  = slides.length;
+  const dotsEl = document.getElementById('dots');
+
+  // Build dots
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = (n + total) % total;
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    document.getElementById('current').textContent = current + 1;
+  }
+
+  function nextSlide() { goTo(current + 1); }
+  function prevSlide() { goTo(current - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') nextSlide();
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')  prevSlide();
+  });
+</script>
+</body>
+</html>

@@ -38,7 +38,7 @@ class UserTypeScreen extends ConsumerWidget {
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
               ),
               padding: const EdgeInsets.all(8),
-              child: Image.asset('assets/images/arth_id_logo.png', fit: BoxFit.contain,
+              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const DSLogo(size: 64)),
             ),
             const SizedBox(height: 16),
