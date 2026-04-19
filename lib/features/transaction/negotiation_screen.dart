@@ -197,218 +197,238 @@ class _NegotiationScreenState extends State<NegotiationScreen>
     );
   }
 
-  // ── Offer Tab ────────────────────────────────────────────────────────────────
+  // ── Offer Tab ─── Stack pattern: ListView + pinned input bar ─────────────────
   Widget _buildOfferTab() {
-    return Column(children: [
-      Expanded(
-        child: _offers.isEmpty
-          ? const Center(child: Text('No offers yet. Make the first offer below.',
-              style: TextStyle(color: AppColors.textLight)))
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              reverse: false,
-              itemCount: _offers.length,
-              itemBuilder: (context, i) {
-                final offer = _offers[i];
-                final isBuyer = offer.role == 'buyer';
-                final isLast = i == _offers.length - 1;
-                final canRespond = isLast && offer.role != _role && !_agreed;
+    return Stack(children: [
+      // Offer list scrolls behind input bar
+      _offers.isEmpty
+        ? const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.handshake_outlined, size: 48, color: Color(0xFFBBDEFB)),
+                SizedBox(height: 12),
+                Text('No offers yet', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1A1A2E))),
+                SizedBox(height: 6),
+                Text('Make the first offer below to start the negotiation.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey), textAlign: TextAlign.center),
+              ]),
+            ))
+        : ListView.builder(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, _agreed ? 16 : 110),
+            itemCount: _offers.length,
+            itemBuilder: (context, i) {
+              final offer = _offers[i];
+              final isBuyer = offer.role == 'buyer';
+              final isLast = i == _offers.length - 1;
+              final canRespond = isLast && offer.role != _role && !_agreed;
 
-                return Align(
-                  alignment: isBuyer ? Alignment.centerLeft : Alignment.centerRight,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isBuyer
-                            ? const Color(0xFFE3F2FD)
-                            : const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isBuyer
-                              ? const Color(0xFF1565C0).withOpacity(0.25)
-                              : AppColors.safe.withOpacity(0.25)),
+              return Align(
+                alignment: isBuyer ? Alignment.centerLeft : Alignment.centerRight,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isBuyer ? const Color(0xFFE3F2FD) : const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(14),
+                        topRight: const Radius.circular(14),
+                        bottomLeft: Radius.circular(isBuyer ? 4 : 14),
+                        bottomRight: Radius.circular(isBuyer ? 14 : 4),
                       ),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [
-                          Icon(isBuyer ? Icons.person : Icons.sell,
-                            size: 12,
-                            color: isBuyer ? const Color(0xFF1565C0) : AppColors.safe),
-                          const SizedBox(width: 4),
-                          Text(isBuyer ? 'Buyer' : 'Seller',
-                            style: TextStyle(
-                              fontSize: 10, fontWeight: FontWeight.bold,
-                              color: isBuyer ? const Color(0xFF1565C0) : AppColors.safe)),
-                          const Spacer(),
-                          Text(offer.time,
-                            style: const TextStyle(fontSize: 9, color: Colors.grey)),
-                        ]),
-                        const SizedBox(height: 4),
-                        Text(_fmt(offer.amount),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 20,
-                            color: Color(0xFF1A1A2E))),
-                        if (offer.note != null) ...[
-                          const SizedBox(height: 3),
-                          Text(offer.note!,
-                            style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                        ],
-                        if (canRespond) ...[
-                          const SizedBox(height: 8),
-                          Row(children: [
-                            Expanded(child: OutlinedButton(
-                              onPressed: () => _acceptOffer(offer),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.safe,
-                                side: const BorderSide(color: AppColors.safe),
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                              ),
-                              child: const Text('Accept', style: TextStyle(fontSize: 12)),
-                            )),
-                            const SizedBox(width: 8),
-                            Expanded(child: OutlinedButton(
-                              onPressed: () => _tabs.animateTo(0),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.orange,
-                                side: const BorderSide(color: Colors.orange),
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                              ),
-                              child: const Text('Counter', style: TextStyle(fontSize: 12)),
-                            )),
-                          ]),
-                        ],
-                      ]),
+                      border: Border.all(
+                        color: isBuyer
+                          ? const Color(0xFF1565C0).withOpacity(0.2)
+                          : AppColors.safe.withOpacity(0.2)),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
                     ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isBuyer ? const Color(0xFF1565C0) : AppColors.safe,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(isBuyer ? '🏠 Buyer' : '🏷️ Seller',
+                            style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                        const Spacer(),
+                        Text(offer.time, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      ]),
+                      const SizedBox(height: 8),
+                      Text(_fmt(offer.amount),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900, fontSize: 22,
+                          color: isBuyer ? const Color(0xFF1565C0) : const Color(0xFF2E7D32))),
+                      if (offer.note != null) ...[
+                        const SizedBox(height: 3),
+                        Text(offer.note!, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      ],
+                      if (canRespond) ...[
+                        const SizedBox(height: 10),
+                        Row(children: [
+                          Expanded(child: ElevatedButton.icon(
+                            onPressed: () => _acceptOffer(offer),
+                            icon: const Icon(Icons.check_circle_outline, size: 14),
+                            label: const Text('Accept', style: TextStyle(fontSize: 12)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.safe, foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 6)),
+                          )),
+                          const SizedBox(width: 8),
+                          Expanded(child: OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.reply, size: 14),
+                            label: const Text('Counter', style: TextStyle(fontSize: 12)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange),
+                              padding: const EdgeInsets.symmetric(vertical: 6)),
+                          )),
+                        ]),
+                      ],
+                    ]),
                   ),
-                );
-              },
-            ),
-      ),
-
-      // Offer input
-      if (!_agreed)
-        SafeArea(
-          top: false,
-          child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+                ),
+              );
+            },
           ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(
-              _role == 'buyer' ? 'Make a counter-offer as Buyer:' : 'Update your asking price as Seller:',
-              style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+
+      // Pinned input bar at bottom
+      if (!_agreed)
+        Positioned(
+          bottom: 0, left: 0, right: 0,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: const Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))],
             ),
-            const SizedBox(height: 8),
-            Row(children: [
-              const Text('₹', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
-              Expanded(child: TextField(
-                controller: _priceCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Enter amount (e.g. 7200000)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _role == 'buyer' ? '🏠 Buyer — Make a counter-offer:' : '🏷️ Seller — Update your asking price:',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              )),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _submitOffer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1565C0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                ),
-                child: const Text('Send'),
               ),
+              const SizedBox(height: 8),
+              Row(children: [
+                const Text('₹', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
+                const SizedBox(width: 8),
+                Expanded(child: TextField(
+                  controller: _priceCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Amount (e.g. 72,00,000)',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2)),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                )),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _submitOffer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1565C0),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Send', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ]),
             ]),
-          ]),
-        )),
+          ),
+        ),
     ]);
   }
 
-  // ── Chat Tab ─────────────────────────────────────────────────────────────────
+  // ── Chat Tab ── Stack pattern ─────────────────────────────────────────────────
   Widget _buildChatTab() {
-    return Column(children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        color: const Color(0xFFFFF8E1),
-        child: const Row(children: [
-          Icon(Icons.lock_outline, size: 14, color: Colors.amber),
-          SizedBox(width: 6),
-          Expanded(child: Text(
-            'Monitored secure chat. No phone numbers until both agree.',
-            style: TextStyle(fontSize: 11, color: Colors.black54),
-          )),
-        ]),
-      ),
-      Expanded(
-        child: ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          itemCount: _messages.length,
-          itemBuilder: (context, i) {
-            final msg = _messages[i];
-            final isMe = msg.role == _role;
-            return Align(
-              alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.75),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? const Color(0xFF1565C0)
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 4, offset: const Offset(0, 2))],
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(msg.text,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isMe ? Colors.white : const Color(0xFF1A1A2E),
-                        height: 1.4,
-                      )),
-                    const SizedBox(height: 3),
-                    Text(msg.time,
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: isMe ? Colors.white60 : Colors.grey,
-                      )),
-                  ]),
-                ),
-              ),
-            );
-          },
+    return Stack(children: [
+      // Messages list
+      Column(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          color: const Color(0xFFFFF3CD),
+          child: const Row(children: [
+            Icon(Icons.lock_outline, size: 14, color: Color(0xFFD97706)),
+            SizedBox(width: 6),
+            Expanded(child: Text(
+              'End-to-end monitored. No personal contact details shared until both parties agree to proceed.',
+              style: TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+            )),
+          ]),
         ),
-      ),
-      SafeArea(
-        top: false,
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+            itemCount: _messages.length,
+            itemBuilder: (context, i) {
+              final msg = _messages[i];
+              final isMe = msg.role == _role;
+              return Align(
+                alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isMe ? const Color(0xFF1565C0) : Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(14),
+                        topRight: const Radius.circular(14),
+                        bottomLeft: Radius.circular(isMe ? 14 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 14),
+                      ),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 4, offset: const Offset(0, 2))],
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(msg.text,
+                        style: TextStyle(
+                          fontSize: 13, height: 1.4,
+                          color: isMe ? Colors.white : const Color(0xFF1A1A2E))),
+                      const SizedBox(height: 4),
+                      Text(msg.time, style: TextStyle(fontSize: 9, color: isMe ? Colors.white54 : Colors.grey)),
+                    ]),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+
+      // Pinned chat input
+      Positioned(
+        bottom: 0, left: 0, right: 0,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-          decoration: const BoxDecoration(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+          decoration: BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+            border: const Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))],
           ),
           child: Row(children: [
             Expanded(child: TextField(
               controller: _chatCtrl,
               decoration: InputDecoration(
                 hintText: 'Type a message...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
-                isDense: true,
+                filled: true,
+                fillColor: const Color(0xFFF5F7FA),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               style: const TextStyle(fontSize: 13),
@@ -417,10 +437,9 @@ class _NegotiationScreenState extends State<NegotiationScreen>
             GestureDetector(
               onTap: _sendChat,
               child: Container(
-                width: 42, height: 42,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1565C0), shape: BoxShape.circle),
-                child: const Icon(Icons.send, color: Colors.white, size: 18),
+                width: 44, height: 44,
+                decoration: const BoxDecoration(color: Color(0xFF1565C0), shape: BoxShape.circle),
+                child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
               ),
             ),
           ]),

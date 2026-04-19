@@ -470,16 +470,70 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
   final Map<int, String> _filePaths = {};         // idx → absolute file path
   final Map<int, Map<String, dynamic>> _ocrData = {}; // idx → Claude OCR result
   final Map<int, bool> _analyzing = {};           // idx → loading
+  final Map<int, String?> _ocrError = {};         // idx → validation error msg
+  bool _generatingScore = false;
   final _picker = ImagePicker();
+
+  static const _allowedExts = ['jpg', 'jpeg', 'png', 'pdf'];
+
+  bool _isValidExt(String path) {
+    final ext = path.toLowerCase().split('.').last;
+    return _allowedExts.contains(ext);
+  }
+
+  // True if OCR returned any recognisable property data
+  bool _hasPropertyData(Map<String, dynamic>? data) {
+    if (data == null) return false;
+    final fields = [
+      data['owner_name'], data['ownerName'],
+      data['survey_number'], data['surveyNumber'],
+      data['document_type'], data['documentType'],
+      data['raw_text'],
+    ];
+    return fields.any((v) => v != null && v.toString().trim().length > 3);
+  }
 
   Future<void> _pickDoc(int idx) async {
     final choice = await showModalBottomSheet<String>(
       context: context,
-      builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        ListTile(leading: const Icon(Icons.camera_alt_outlined), title: const Text('Take Photo'), onTap: () => Navigator.pop(context, 'camera')),
-        ListTile(leading: const Icon(Icons.photo_library_outlined), title: const Text('Choose from Gallery'), onTap: () => Navigator.pop(context, 'gallery')),
-        ListTile(leading: const Icon(Icons.picture_as_pdf_outlined), title: const Text('Upload PDF or Image File'), onTap: () => Navigator.pop(context, 'file')),
-      ])),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text('Upload Document', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text('Only JPG, PNG, or PDF property documents are accepted.',
+              style: TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const CircleAvatar(backgroundColor: Color(0xFFE3F2FD), child: Icon(Icons.camera_alt_outlined, color: Color(0xFF1565C0), size: 20)),
+            title: const Text('Take Photo', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Camera · JPG only'),
+            onTap: () => Navigator.pop(context, 'camera'),
+          ),
+          ListTile(
+            leading: const CircleAvatar(backgroundColor: Color(0xFFE8F5E9), child: Icon(Icons.photo_library_outlined, color: Colors.green, size: 20)),
+            title: const Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Photos · JPG / PNG'),
+            onTap: () => Navigator.pop(context, 'gallery'),
+          ),
+          ListTile(
+            leading: const CircleAvatar(backgroundColor: Color(0xFFFFF3E0), child: Icon(Icons.picture_as_pdf_outlined, color: Colors.orange, size: 20)),
+            title: const Text('Upload PDF or Image File', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('PDF · JPG · PNG'),
+            onTap: () => Navigator.pop(context, 'file'),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      )),
     );
     if (choice == null) return;
 
@@ -495,7 +549,7 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
     } else {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowedExtensions: _allowedExts,
         withData: false,
         withReadStream: false,
       );
@@ -506,61 +560,74 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
     }
 
     if (path == null || name == null) return;
+
+    // ── File type validation ────────────────────────────────────────────────
+    if (!_isValidExt(path)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Invalid file type. Only JPG, PNG, or PDF property documents are accepted.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    }
+
     setState(() {
       _uploaded[idx] = name!;
       _filePaths[idx] = path!;
       _analyzing[idx] = true;
+      _ocrError.remove(idx);
     });
     await _runOcr(idx, path);
+  }
+
+  Future<void> _generateAiScore() async {
+    setState(() => _generatingScore = true);
+    // Brief pause to show the loading animation (OCR is already done during upload)
+    await Future.delayed(const Duration(milliseconds: 1800));
+    if (mounted) {
+      setState(() => _generatingScore = false);
+      widget.onNext(_ocrData);
+    }
   }
 
   Future<void> _runOcr(int idx, String filePath) async {
     try {
       final ext = filePath.toLowerCase();
       final isPdf = ext.endsWith('.pdf');
+      final bytes = await File(filePath).readAsBytes();
+      final b64 = base64Encode(bytes);
+      final mime = isPdf ? 'application/pdf' : (ext.endsWith('.png') ? 'image/png' : 'image/jpeg');
 
-      if (isPdf) {
-        // PDF: send as base64 to backend with pdf type
-        final bytes = await File(filePath).readAsBytes();
-        final b64 = base64Encode(bytes);
-        final resp = await http.post(
-          Uri.parse('${ApiConstants.backendBaseUrl}/rtc-from-image'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'image_base64': b64,
-            'image_type': 'application/pdf',
-            'document_hint': 'property_document',
-          }),
-        ).timeout(const Duration(seconds: 60));
-        if (resp.statusCode == 200) {
-          final data = json.decode(resp.body) as Map<String, dynamic>;
-          setState(() { _ocrData[idx] = data; _analyzing[idx] = false; });
-          return;
+      final resp = await http.post(
+        Uri.parse('${ApiConstants.backendBaseUrl}/rtc-from-image'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'image_base64': b64,
+          'image_type': mime,
+          'document_hint': 'property_document',
+        }),
+      ).timeout(const Duration(seconds: 60));
+
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        if (_hasPropertyData(data)) {
+          setState(() { _ocrData[idx] = data; _analyzing[idx] = false; _ocrError.remove(idx); });
+        } else {
+          // OCR returned data but no recognisable property fields
+          setState(() {
+            _ocrData[idx] = data;
+            _analyzing[idx] = false;
+            _ocrError[idx] = 'Could not read property details. Ensure this is a clear photo of your property document.';
+          });
         }
-      } else {
-        // Image: send as base64 image
-        final bytes = await File(filePath).readAsBytes();
-        final b64 = base64Encode(bytes);
-        final mime = ext.endsWith('.png') ? 'image/png' : 'image/jpeg';
-        final resp = await http.post(
-          Uri.parse('${ApiConstants.backendBaseUrl}/rtc-from-image'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'image_base64': b64,
-            'image_type': mime,
-            'document_hint': 'property_document',
-          }),
-        ).timeout(const Duration(seconds: 60));
-        if (resp.statusCode == 200) {
-          final data = json.decode(resp.body) as Map<String, dynamic>;
-          setState(() { _ocrData[idx] = data; _analyzing[idx] = false; });
-          return;
-        }
+        return;
       }
     } catch (e) {
       debugPrint('[OCR] doc $idx failed: $e');
     }
-    setState(() => _analyzing[idx] = false);
+    // Backend unavailable — allow upload but mark as unverified
+    setState(() { _analyzing[idx] = false; });
   }
 
   @override
@@ -621,14 +688,33 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
         ],
 
         const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: allRequiredDone ? () => widget.onNext(_ocrData) : null,
-          icon: const Icon(Icons.psychology_outlined),
-          label: const Text('Get AI Verification Score →'),
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48),
-            backgroundColor: allRequiredDone ? AppColors.safe : null),
-        ),
-        if (!allRequiredDone)
+
+        // Generate AI Score button — stable, stays on screen
+        if (_generatingScore)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF1B3A5C), Color(0xFF0D2137)]),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Column(children: [
+              CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+              SizedBox(height: 14),
+              Text('Analysing your documents...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+              SizedBox(height: 4),
+              Text('Checking ownership, encumbrances, risk flags', style: TextStyle(color: Colors.white54, fontSize: 11)),
+            ]),
+          )
+        else
+          ElevatedButton.icon(
+            onPressed: allRequiredDone ? _generateAiScore : null,
+            icon: const Icon(Icons.psychology_outlined),
+            label: const Text('Get AI Verification Score →', style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 52),
+              backgroundColor: allRequiredDone ? AppColors.safe : null),
+          ),
+
+        if (!allRequiredDone && !_generatingScore)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text('Upload ${required.length - reqUploaded} more required document(s) to continue',
@@ -642,11 +728,21 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
   Widget _ocrBadge(int idx) {
     if (_analyzing[idx] == true) {
       return const Padding(
-        padding: EdgeInsets.only(top: 4),
+        padding: EdgeInsets.only(top: 6),
         child: Row(children: [
-          SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 1.5)),
+          SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primary)),
           SizedBox(width: 6),
-          Text('Reading with AI...', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
+          Text('Reading with AI...', style: TextStyle(fontSize: 10, color: AppColors.primary)),
+        ]),
+      );
+    }
+    if (_ocrError.containsKey(idx)) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Icon(Icons.warning_amber_rounded, size: 12, color: AppColors.warning),
+          const SizedBox(width: 4),
+          Expanded(child: Text(_ocrError[idx]!, style: const TextStyle(fontSize: 10, color: AppColors.warning, height: 1.4))),
         ]),
       );
     }
@@ -910,24 +1006,29 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
         ),
         const SizedBox(height: 16),
 
+        // ── Score breakdown table ───────────────────────────────────────────
+        _ScoreBandBreakdown(result: result),
+        const SizedBox(height: 12),
+
         // What AI found (positives)
         if (result.positives.isNotEmpty) ...[
-          _ScoreSection('Verified ✓', result.positives.map((p) =>
+          _ScoreSection('What DigiSampatti Verified ✓', result.positives.map((p) =>
             _ScoreRow(p, '', Colors.green, Icons.check_circle_rounded)).toList()),
           const SizedBox(height: 12),
         ],
 
         // Extracted values
-        if (result.ownerNames.isNotEmpty || result.surveyNumbers.isNotEmpty)
-          _ScoreSection('Extracted from Documents', [
+        if (result.ownerNames.isNotEmpty || result.surveyNumbers.isNotEmpty) ...[
+          _ScoreSection('Data Extracted from Documents', [
             if (result.ownerNames.isNotEmpty)
               _ScoreRow('Owner Name(s)', result.ownerNames.join(', '), Colors.blueGrey, Icons.person_outline),
             if (result.surveyNumbers.isNotEmpty)
               _ScoreRow('Survey Number(s)', result.surveyNumbers.join(', '), Colors.blueGrey, Icons.map_outlined),
             if (result.ownerNames.toSet().length > 1)
-              _ScoreRow('Name Mismatch', 'DIFFERENT names found — verify', Colors.red, Icons.warning_amber_rounded),
+              _ScoreRow('⚠ Name Mismatch', 'Different owner names across docs', Colors.red, Icons.warning_amber_rounded),
           ]),
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
+        ],
 
         // Risk flags
         if (result.flags.isNotEmpty)
@@ -1000,11 +1101,32 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
 
   // ── Listing plans ──────────────────────────────────────────────────────────
   Widget _buildPlans() {
+    final ocr = widget.ocrResults;
+    final hasOwnerMatch = () {
+      final owners = ocr.values.map((d) =>
+        (d['owner_name'] ?? d['ownerName'] ?? '').toString().trim().toLowerCase())
+        .where((s) => s.isNotEmpty).toList();
+      return owners.toSet().length == 1 && owners.length >= 2;
+    }();
+    final hasSurveyMatch = () {
+      final surveys = ocr.values.map((d) =>
+        (d['survey_number'] ?? d['surveyNumber'] ?? '').toString().trim())
+        .where((s) => s.isNotEmpty).toList();
+      return surveys.toSet().length == 1 && surveys.length >= 2;
+    }();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _SHeader('Step 4 of 4', 'List & Set Price', Icons.sell_outlined, AppColors.primary),
         const SizedBox(height: 16),
+        // Verify Seller status card
+        _VerifySellerCard(
+          docsUploaded: ocr.length,
+          hasOwnerMatch: hasOwnerMatch,
+          hasSurveyMatch: hasSurveyMatch,
+        ),
+        const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -1016,7 +1138,7 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
             SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('AI Verified ✓', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('Your documents have been verified. Your listing will show a verified badge.',
+              Text('Your documents have been analysed. Verified badge applied to your listing.',
                 style: TextStyle(color: Colors.white70, fontSize: 11)),
             ])),
           ]),
@@ -1095,6 +1217,214 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
       ]),
     );
   }
+}
+
+// ── Score breakdown widget ────────────────────────────────────────────────────
+class _ScoreBandBreakdown extends StatelessWidget {
+  final _TrustResult result;
+  const _ScoreBandBreakdown({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    // Points table — mirrors _computeScore() logic
+    final rows = [
+      _ScoreFactor('Document Reads', 20, (20 * (result.docsRead / (result.docsRead > 0 ? result.docsRead : 1))).round(),
+        'AI successfully read ${result.docsRead} document(s)'),
+      _ScoreFactor('Ownership Consistency', 20,
+        result.ownerNames.toSet().length == 1 && result.ownerNames.length >= 2 ? 20
+          : result.ownerNames.length == 1 ? 12 : 0,
+        result.ownerNames.isEmpty ? 'Owner name not detected'
+          : result.ownerNames.toSet().length > 1 ? 'MISMATCH — different names'
+          : 'Owner name matches across documents'),
+      _ScoreFactor('Survey Number Match', 15,
+        result.surveyNumbers.toSet().length == 1 && result.surveyNumbers.length >= 2 ? 15
+          : result.surveyNumbers.length == 1 ? 8 : 0,
+        result.surveyNumbers.isEmpty ? 'Survey number not found'
+          : result.surveyNumbers.toSet().length > 1 ? 'MISMATCH — different survey numbers'
+          : 'Survey number consistent'),
+      _ScoreFactor('No Mortgage/Charge', 15, result.mortgageFound ? 0 : 15,
+        result.mortgageFound ? 'Active mortgage or charge detected' : 'No mortgage/charge found'),
+      _ScoreFactor('No Court Order', 10, result.injunctionFound ? -30 : 10,
+        result.injunctionFound ? 'CRITICAL: Injunction/stay order detected' : 'No court order found'),
+      _ScoreFactor('Land Type', 10, result.agriculturalFound ? -20 : 10,
+        result.agriculturalFound ? 'Agricultural land — construction illegal without DC Conversion' : 'Non-agricultural (safe)'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.06),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: const Row(children: [
+            Icon(Icons.bar_chart_rounded, color: AppColors.primary, size: 16),
+            SizedBox(width: 8),
+            Text('Score Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark)),
+            Spacer(),
+            Text('How your score was calculated', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
+          ]),
+        ),
+        const Divider(height: 1),
+        ...rows.map((r) => _FactorRow(factor: r)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+          child: Row(children: [
+            const Expanded(child: Text('Total Score', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: result.score >= 80 ? AppColors.safe.withOpacity(0.12)
+                  : result.score >= 60 ? const Color(0xFFFFF3E0)
+                  : const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text('${result.score}/100',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14,
+                  color: result.score >= 80 ? AppColors.safe
+                    : result.score >= 60 ? const Color(0xFFE65100) : Colors.red)),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _ScoreFactor {
+  final String label, detail;
+  final int maxPts, earnedPts;
+  const _ScoreFactor(this.label, this.maxPts, this.earnedPts, this.detail);
+}
+
+class _FactorRow extends StatelessWidget {
+  final _ScoreFactor factor;
+  const _FactorRow({required this.factor});
+
+  @override
+  Widget build(BuildContext context) {
+    final pts = factor.earnedPts.clamp(-99, factor.maxPts);
+    final isGood = pts > 0;
+    final isBad = pts < 0;
+    final color = isBad ? Colors.red : (pts == factor.maxPts ? AppColors.safe : AppColors.warning);
+
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+        child: Row(children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(factor.label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            const SizedBox(height: 2),
+            Text(factor.detail, style: const TextStyle(fontSize: 10, color: AppColors.textLight, height: 1.3)),
+          ])),
+          const SizedBox(width: 8),
+          Text(isBad ? '$pts pts' : '+$pts / ${factor.maxPts}',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+        child: LinearProgressIndicator(
+          value: pts <= 0 ? 0 : pts / factor.maxPts,
+          backgroundColor: AppColors.borderColor,
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+          minHeight: 3,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+      const Divider(height: 12, indent: 14, endIndent: 14),
+    ]);
+  }
+}
+
+// ── Verify Seller status card ─────────────────────────────────────────────────
+class _VerifySellerCard extends StatelessWidget {
+  final int docsUploaded;
+  final bool hasOwnerMatch;
+  final bool hasSurveyMatch;
+  const _VerifySellerCard({required this.docsUploaded, required this.hasOwnerMatch, required this.hasSurveyMatch});
+
+  @override
+  Widget build(BuildContext context) {
+    final checks = [
+      _VerifyItem('Phone Verified', true, 'OTP verified during registration'),
+      _VerifyItem('Documents Uploaded', docsUploaded > 0, '$docsUploaded document(s) provided'),
+      _VerifyItem('Ownership Name Match', hasOwnerMatch, hasOwnerMatch ? 'Consistent across docs' : 'Pending — upload more docs'),
+      _VerifyItem('Survey Number Verified', hasSurveyMatch, hasSurveyMatch ? 'Consistent across docs' : 'Pending — upload more docs'),
+      _VerifyItem('Identity Verification', false, 'Aadhaar e-KYC — coming soon'),
+    ];
+
+    final verifiedCount = checks.where((c) => c.verified).length;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B5E20).withOpacity(0.06),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.verified_user_outlined, color: AppColors.safe, size: 16),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Seller Verification Status',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.safe.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text('$verifiedCount / ${checks.length}',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.safe)),
+            ),
+          ]),
+        ),
+        const Divider(height: 1),
+        ...checks.map((c) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(children: [
+            Icon(c.verified ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+              color: c.verified ? AppColors.safe : AppColors.textLight, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(c.label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                color: c.verified ? AppColors.textDark : AppColors.textMedium)),
+              Text(c.detail, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+            ])),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: c.verified ? AppColors.safe.withOpacity(0.1) : const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(c.verified ? 'Verified' : 'Pending',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold,
+                  color: c.verified ? AppColors.safe : const Color(0xFFE65100))),
+            ),
+          ]),
+        )),
+        const SizedBox(height: 4),
+      ]),
+    );
+  }
+}
+
+class _VerifyItem {
+  final String label, detail;
+  final bool verified;
+  const _VerifyItem(this.label, this.verified, this.detail);
 }
 
 // ── Payment bottom sheet ──────────────────────────────────────────────────────

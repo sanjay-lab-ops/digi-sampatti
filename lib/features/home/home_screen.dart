@@ -2715,31 +2715,38 @@ class _QuickToolsGrid extends ConsumerWidget {
     (Icons.support_agent_outlined, Color(0xFFD97706), '/partners',       'Expert\nHelp'),
     (Icons.flight,                 Color(0xFF6366F1), '/nri',            'NRI\nMode'),
     (Icons.token_outlined,         Color(0xFF26C6DA), '/tokenization',   'Tokenize\n[Demo]'),
-    (Icons.storefront_outlined,    Color(0xFF546E7A), '/broker-zone',    'Broker\nZone'),
-    (Icons.home_work_outlined,     Color(0xFF7B5EA7), '/post-purchase',  'Post\nPurchase'),
+    (Icons.storefront_outlined,    Color(0xFF546E7A), '/broker',         'Broker\nZone'),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tools = _meta.map((m) => _QuickTool(m.$1, m.$4, m.$2, m.$3)).toList();
+    // Split into rows of 3 for a clean 2×3 grid instead of a cramped 1×6 row
+    final row1 = tools.take(3).toList();
+    final row2 = tools.skip(3).toList();
+
+    Widget toolRow(List<_QuickTool> items) => Row(
+      children: items.asMap().entries.map((e) => Expanded(
+        child: Padding(
+          padding: EdgeInsets.only(right: e.key < items.length - 1 ? 8 : 0),
+          child: _QuickToolBox(tool: e.value),
+        ),
+      )).toList(),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Row(children: [
-          Icon(Icons.dashboard_outlined, size: 16, color: AppColors.textDark),
+          Icon(Icons.apps_rounded, size: 16, color: AppColors.textDark),
           SizedBox(width: 6),
-          Text('Property Pro',
+          Text('Quick Access',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
         ]),
         const SizedBox(height: 10),
-        Row(
-          children: tools.asMap().entries.map((e) => Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: e.key < tools.length - 1 ? 8 : 0),
-              child: _QuickToolBox(tool: e.value),
-            ),
-          )).toList(),
-        ),
+        toolRow(row1),
+        const SizedBox(height: 8),
+        if (row2.isNotEmpty) toolRow(row2),
       ],
     );
   }
