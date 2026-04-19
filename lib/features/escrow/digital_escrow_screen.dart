@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 
-// ─── Digital Escrow Screen (MVP) ──────────────────────────────────────────────
-// Correct transaction order:
-//   1. VERIFY DOCS   — Buyer runs AI check on seller's documents
-//   2. INSPECT       — Buyer visits property, field agent confirms
-//   3. ADVANCE       — Only after verify + inspect: buyer deposits advance into escrow
-//   4. SIGN          — Both parties e-sign sale agreement
-//   5. REGISTER      — Full payment + SRO registration within 3 months
-//                   ↘ DISPUTE → REFUND (at any point after advance)
-//
-// MVP: simulated — no real bank API wired yet.
-// ──────────────────────────────────────────────────────────────────────────────
+// ─── Digital Escrow Screen ────────────────────────────────────────────────────
+// Escrow flow (buyer-first model):
+//   1. FUND ESCROW    — Buyer deposits advance; funds locked, not released yet
+//   2. VERIFY DOCS    — AI + 6-portal document check (Bhoomi / Kaveri / CERSAI…)
+//   3. SELLER VERIFY  — Identity + ownership confirmation at government portals
+//   4. SIGN AGREEMENT — Both parties e-sign; ownership transfer initiated
+//   5. RELEASE FUNDS  — SRO registration complete; funds released to seller
+//                    ↘ DISPUTE → mediation → REFUND (at any point)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Enum values repurposed to correct sequence:
-// init=VerifyDocs, funded=Inspected, docVerified=AdvancePaid, buyerApproved=Signed, released=Registered
-enum EscrowState { init, funded, docVerified, buyerApproved, released, dispute, refunded }
+enum EscrowState { fund, docVerify, sellerVerify, sign, released, dispute, refunded }
 
 class DigitalEscrowScreen extends StatefulWidget {
   final Map<String, dynamic>? dealData;
@@ -27,12 +23,11 @@ class DigitalEscrowScreen extends StatefulWidget {
 }
 
 class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
-  EscrowState _state = EscrowState.init;
+  EscrowState _state = EscrowState.fund;
 
-  // Demo deal values — in production these come from dealData
   final String _propertyAddress = 'Survey 123, Yelahanka, Bengaluru';
   final double _salePrice       = 4500000;
-  final double _advanceAmount   = 450000; // 10% advance
+  final double _advanceAmount   = 450000;
   final String _buyerName       = 'Rahul Sharma';
   final String _sellerName      = 'Suresh Kumar';
 
@@ -41,7 +36,7 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Digital Escrow'),
+        title: const Text('Secure Escrow'),
         backgroundColor: Colors.white,
         actions: [
           if (_state != EscrowState.released && _state != EscrowState.refunded)
@@ -58,6 +53,12 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _EscrowGuaranteeBanner(
+              fundLocked: _state != EscrowState.fund,
+              released: _state == EscrowState.released,
+              disputed: _state == EscrowState.dispute || _state == EscrowState.refunded,
+            ),
+            const SizedBox(height: 14),
             _DealSummaryCard(
               address: _propertyAddress,
               salePrice: _salePrice,
@@ -65,11 +66,11 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
               buyer: _buyerName,
               seller: _sellerName,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _EscrowFsm(current: _state),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _buildActionCard(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _PenaltyReminder(advance: _advanceAmount),
           ],
         ),
@@ -77,77 +78,84 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
     );
   }
 
-  // ─── Action card changes based on current FSM state ────────────────────────
   Widget _buildActionCard() {
     return switch (_state) {
-      // ── Step 1: Verify documents BEFORE anything else ─────────────────────
-      EscrowState.init => _ActionCard(
-          icon: Icons.psychology_outlined,
-          color: AppColors.arthBlue,
-          title: 'Step 1 — Verify the Property Documents',
-          body: 'Before paying anything, run the AI check on the seller\'s '
-              'documents.\n\nArth ID checks 8 government portals: '
-              'Bhoomi · Kaveri EC · eCourts · BBMP Khata · CERSAI · RERA.\n\n'
-              'Get the Risk Score and AI verdict first.',
-          primaryLabel: 'Run AI Document Check',
-          onPrimary: () => context.push('/scan/guide'),
-          secondaryLabel: 'Docs Verified — Next Step (Simulate)',
-          onSecondary: () => setState(() => _state = EscrowState.funded),
-        ),
-      // ── Step 2: Physically inspect the property ───────────────────────────
-      EscrowState.funded => _ActionCard(
-          icon: Icons.location_on_outlined,
-          color: AppColors.warning,
-          title: 'Step 2 — Inspect the Property',
-          body: 'Visit the property in person — check physical boundaries, '
-              'construction quality, neighbours, road access.\n\n'
-              'Or book a Arth ID field agent for a GPS-verified '
-              '48-hour inspection report.',
-          primaryLabel: 'Book Field Inspection',
-          onPrimary: () => context.push('/field-inspection'),
-          secondaryLabel: 'Inspection Done — Next Step (Simulate)',
-          onSecondary: () => setState(() => _state = EscrowState.docVerified),
-        ),
-      // ── Step 3: Advance payment into escrow (AFTER verify + inspect) ──────
-      EscrowState.docVerified => _ActionCard(
-          icon: Icons.account_balance_outlined,
+      // ── Step 1: Buyer deposits advance into escrow (commitment) ───────────
+      EscrowState.fund => _ActionCard(
+          icon: Icons.lock_outlined,
           color: AppColors.primary,
-          title: 'Step 3 — Deposit Advance into Escrow',
-          body: 'You have verified the documents and inspected the property.\n\n'
-              'Now deposit ₹${_fmt(_advanceAmount)} (10% advance) into the '
-              'Arth ID escrow account via IMPS/NEFT.\n\n'
-              'Funds are held safely — not released to seller until you sign '
-              'the agreement.',
+          title: 'Step 1 — Lock Advance in Escrow',
+          body: 'Deposit ₹${_fmt(_advanceAmount)} (10% advance) into the '
+              'DigiSampatti escrow account via IMPS/NEFT.\n\n'
+              '🔒 Funds are frozen — not released to seller until all '
+              'conditions are met: verified documents, clear title, '
+              'signed agreement, and SRO registration.\n\n'
+              'This protects both buyer and seller.',
           primaryLabel: 'Show Escrow Account Details',
           onPrimary: _showBankDetails,
-          secondaryLabel: 'Advance Paid — Next Step (Simulate)',
-          onSecondary: () => setState(() => _state = EscrowState.buyerApproved),
+          secondaryLabel: 'Advance Locked — Next Step (Simulate)',
+          onSecondary: () => setState(() => _state = EscrowState.docVerify),
         ),
-      // ── Step 4: Both parties e-sign the sale agreement ────────────────────
-      EscrowState.buyerApproved => _ActionCard(
+      // ── Step 2: AI + portal document verification ─────────────────────────
+      EscrowState.docVerify => _ActionCard(
+          icon: Icons.psychology_outlined,
+          color: AppColors.arthBlue,
+          title: 'Step 2 — Verify Property Documents',
+          body: 'Run the AI document check on the seller\'s uploaded '
+              'documents.\n\n'
+              'DigiSampatti checks 6 government portals:\n'
+              'Bhoomi · Kaveri EC · eCourts · BBMP Khata · CERSAI · RERA\n\n'
+              'You get a Risk Score + plain-language verdict on each document.',
+          primaryLabel: 'Run AI Document Check',
+          onPrimary: () => context.push('/scan/guide'),
+          secondaryLabel: 'Documents Verified — Next Step (Simulate)',
+          onSecondary: () => setState(() => _state = EscrowState.sellerVerify),
+        ),
+      // ── Step 3: Seller identity + ownership verification ──────────────────
+      EscrowState.sellerVerify => _ActionCard(
+          icon: Icons.verified_user_outlined,
+          color: const Color(0xFF6A1B9A),
+          title: 'Step 3 — Verify Seller Identity',
+          body: 'DigiSampatti confirms the seller\'s identity and '
+              'ownership via Aadhaar, PAN, and Bhoomi records.\n\n'
+              '✓ Name match across all documents\n'
+              '✓ No impersonation or benami ownership flags\n'
+              '✓ Seller is the legal title holder\n\n'
+              'This step prevents fraud by fake sellers.',
+          primaryLabel: 'Check Seller Verification Status',
+          onPrimary: () => context.push('/broker'),
+          secondaryLabel: 'Seller Verified — Next Step (Simulate)',
+          onSecondary: () => setState(() => _state = EscrowState.sign),
+        ),
+      // ── Step 4: Both parties sign — ownership transfer initiated ─────────
+      EscrowState.sign => _ActionCard(
           icon: Icons.draw_outlined,
           color: AppColors.esign,
           title: 'Step 4 — Sign Sale Agreement',
           body: 'Both buyer and seller sign the sale agreement using '
               'Aadhaar e-Sign.\n\n'
-              'After signing, advance is released to seller. Balance payment '
-              '(₹${_fmt(_salePrice - _advanceAmount)}) to be made at SRO '
-              'registration within 3 months.',
+              'After signing, ownership transfer is initiated at the '
+              'Sub-Registrar Office (SRO).\n\n'
+              'Balance payment ₹${_fmt(_salePrice - _advanceAmount)} '
+              'is due at SRO within 3 months of signing.',
           primaryLabel: 'e-Sign Agreement (Aadhaar)',
           onPrimary: () => context.push('/esign'),
           secondaryLabel: 'Agreement Signed — Next Step (Simulate)',
           onSecondary: () => setState(() => _state = EscrowState.released),
         ),
-      // ── Step 5: Full payment + SRO registration ───────────────────────────
+      // ── Step 5: Registration complete, funds released ─────────────────────
       EscrowState.released => _ActionCard(
           icon: Icons.check_circle_outline,
           color: AppColors.safe,
-          title: '✓ Agreement Signed — Registration Pending',
-          body: 'Advance ₹${_fmt(_advanceAmount)} has been released to seller.\n\n'
-              'Complete the transaction:\n'
-              '• Pay balance ₹${_fmt(_salePrice - _advanceAmount)} at SRO\n'
-              '• Register the sale deed within 3 months\n'
-              '• Get Bhoomi mutation + BBMP Khata transfer in your name',
+          title: '✓ Ownership Transferred — Funds Released',
+          body: 'SRO registration is complete. Ownership has been '
+              'transferred to the buyer.\n\n'
+              '✅ Advance ₹${_fmt(_advanceAmount)} released to seller\n'
+              '✅ Sale deed registered at SRO\n\n'
+              'Next steps:\n'
+              '• Bhoomi mutation in buyer\'s name\n'
+              '• BBMP Khata transfer\n'
+              '• Download registered document copy',
           primaryLabel: 'Find Sub-Registrar Office',
           onPrimary: () => context.push('/transfer/sro'),
           secondaryLabel: null,
@@ -156,10 +164,12 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
       EscrowState.dispute => _ActionCard(
           icon: Icons.warning_amber_outlined,
           color: Colors.red,
-          title: 'Dispute Raised',
-          body: 'Funds are frozen. Arth ID\'s dispute team will review '
-              'evidence from both parties within 5 business days.\n\n'
-              'Provide screenshots, documents, and communication records.',
+          title: 'Dispute Raised — Funds Frozen',
+          body: 'Escrow funds are frozen immediately.\n\n'
+              'DigiSampatti\'s dispute team will review evidence '
+              'from both parties within 5 business days.\n\n'
+              'Provide screenshots, documents, and communication '
+              'records to support your case.',
           primaryLabel: 'Submit Evidence',
           onPrimary: _submitEvidence,
           secondaryLabel: 'Refund Buyer (Simulate)',
@@ -169,9 +179,9 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
           icon: Icons.undo_outlined,
           color: Colors.grey,
           title: 'Advance Refunded',
-          body: '₹${_fmt(_advanceAmount)} has been refunded to the buyer after '
-              'dispute resolution.\n\nApplicable penalties (if any) have been '
-              'applied per the agreement terms.',
+          body: '₹${_fmt(_advanceAmount)} has been returned to the buyer '
+              'after dispute resolution.\n\nApplicable penalties (if any) '
+              'have been applied per the agreement terms.',
           primaryLabel: 'View Penalty Terms',
           onPrimary: () => context.push('/advance-receipt'),
           secondaryLabel: null,
@@ -193,12 +203,15 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
           children: [
             const Text('Escrow Account Details',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 4),
+            const Text('Transfer your advance to this account',
+                style: TextStyle(fontSize: 12, color: AppColors.textLight)),
             const SizedBox(height: 16),
             _BankRow(label: 'Bank', value: 'ICICI Bank — Virtual Account'),
             _BankRow(label: 'Account No.',
                 value: 'DIGI${DateTime.now().millisecondsSinceEpoch % 1000000}'),
             _BankRow(label: 'IFSC', value: 'ICIC0000104'),
-            _BankRow(label: 'Account Name', value: 'Arth ID Escrow'),
+            _BankRow(label: 'Account Name', value: 'DigiSampatti Escrow'),
             _BankRow(
                 label: 'Amount to Transfer',
                 value: '₹${_fmt(_advanceAmount)}',
@@ -211,9 +224,10 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
-                'Use IMPS or NEFT. Add your mobile number as payment description '
-                'so we can link the transfer automatically.',
-                style: TextStyle(fontSize: 11, color: AppColors.warning),
+                '🔒 Funds go to a dedicated escrow account — not directly to seller. '
+                'Add your mobile number as payment description so we can link '
+                'the transfer automatically.',
+                style: TextStyle(fontSize: 11, color: AppColors.warning, height: 1.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -235,9 +249,9 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
         title: const Text('Raise a Dispute?',
             style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text(
-          'This will freeze the escrow funds immediately.\n\n'
-          'Both parties will be notified and asked to submit evidence. '
-          'Arth ID will mediate within 5 business days.',
+          'This will freeze the escrow funds immediately — no funds move '
+          'until resolved.\n\n'
+          'Both parties will be notified. DigiSampatti mediates within 5 business days.',
           style: TextStyle(fontSize: 13, height: 1.5),
         ),
         actions: [
@@ -275,6 +289,154 @@ class _DigitalEscrowScreenState extends State<DigitalEscrowScreen> {
   }
 }
 
+// ─── Escrow Guarantee Banner ───────────────────────────────────────────────────
+class _EscrowGuaranteeBanner extends StatelessWidget {
+  final bool fundLocked;
+  final bool released;
+  final bool disputed;
+
+  const _EscrowGuaranteeBanner({
+    required this.fundLocked,
+    required this.released,
+    required this.disputed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg;
+    final Color border;
+    final IconData icon;
+    final String heading;
+    final String sub;
+
+    if (disputed) {
+      bg = Colors.red.withOpacity(0.06);
+      border = Colors.red.withOpacity(0.3);
+      icon = Icons.warning_amber_rounded;
+      heading = 'Funds Frozen — Dispute Active';
+      sub = 'DigiSampatti mediates within 5 business days.';
+    } else if (released) {
+      bg = AppColors.safe.withOpacity(0.07);
+      border = AppColors.safe.withOpacity(0.3);
+      icon = Icons.verified_rounded;
+      heading = 'Transaction Complete';
+      sub = 'Ownership transferred · Funds released · Registered at SRO.';
+    } else if (fundLocked) {
+      bg = AppColors.primary.withOpacity(0.07);
+      border = AppColors.primary.withOpacity(0.3);
+      icon = Icons.lock_rounded;
+      heading = '₹ Funds Locked in Escrow';
+      sub = 'Money is safe · Not released until all steps complete.';
+    } else {
+      bg = Colors.orange.withOpacity(0.07);
+      border = Colors.orange.withOpacity(0.3);
+      icon = Icons.lock_open_rounded;
+      heading = 'Escrow Not Funded Yet';
+      sub = 'Start by locking your advance — it protects both parties.';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(icon, size: 18,
+                color: disputed
+                    ? Colors.red
+                    : released
+                        ? AppColors.safe
+                        : fundLocked
+                            ? AppColors.primary
+                            : Colors.orange),
+            const SizedBox(width: 8),
+            Text(heading,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: disputed
+                        ? Colors.red
+                        : released
+                            ? AppColors.safe
+                            : fundLocked
+                                ? AppColors.primary
+                                : Colors.orange)),
+          ]),
+          const SizedBox(height: 4),
+          Text(sub,
+              style: const TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.4)),
+          if (!fundLocked && !disputed && !released) ...[
+            const SizedBox(height: 10),
+            const _EscrowHowItWorks(),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EscrowHowItWorks extends StatelessWidget {
+  const _EscrowHowItWorks();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _EscrowFlowChip(Icons.lock_outlined, 'Lock\nFunds'),
+        _EscrowFlowArrow(),
+        _EscrowFlowChip(Icons.psychology_outlined, 'Verify\nDocs'),
+        _EscrowFlowArrow(),
+        _EscrowFlowChip(Icons.verified_user_outlined, 'Verify\nSeller'),
+        _EscrowFlowArrow(),
+        _EscrowFlowChip(Icons.draw_outlined, 'Sign &\nTransfer'),
+        _EscrowFlowArrow(),
+        _EscrowFlowChip(Icons.check_circle_outline, 'Release\nFunds'),
+      ],
+    );
+  }
+}
+
+class _EscrowFlowChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _EscrowFlowChip(this.icon, this.label);
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.borderColor),
+        ),
+        child: Icon(icon, size: 14, color: AppColors.primary),
+      ),
+      const SizedBox(height: 3),
+      Text(label,
+          style: const TextStyle(fontSize: 8, color: AppColors.textLight),
+          textAlign: TextAlign.center),
+    ],
+  );
+}
+
+class _EscrowFlowArrow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: Container(
+      height: 1,
+      margin: const EdgeInsets.only(bottom: 16),
+      color: AppColors.borderColor,
+    ),
+  );
+}
+
 // ─── Deal Summary ──────────────────────────────────────────────────────────────
 class _DealSummaryCard extends StatelessWidget {
   final String address, buyer, seller;
@@ -301,8 +463,7 @@ class _DealSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.home_outlined,
-                color: AppColors.primary, size: 20),
+            const Icon(Icons.home_outlined, color: AppColors.primary, size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: Text(address,
@@ -316,26 +477,22 @@ class _DealSummaryCard extends StatelessWidget {
           Row(children: [
             Expanded(child: _DealStat('Sale Price',
                 '₹${_fmt(salePrice)}', AppColors.textDark)),
-            Expanded(child: _DealStat('Advance (Escrow)',
+            Expanded(child: _DealStat('In Escrow',
                 '₹${_fmt(advance)}', AppColors.primary)),
-            Expanded(child: _DealStat('Balance',
+            Expanded(child: _DealStat('Balance Due',
                 '₹${_fmt(salePrice - advance)}', AppColors.slate)),
           ]),
           const Divider(height: 20),
           Row(children: [
-            const Icon(Icons.person_outline,
-                size: 14, color: AppColors.textLight),
+            const Icon(Icons.person_outline, size: 14, color: AppColors.textLight),
             const SizedBox(width: 4),
             Text('Buyer: $buyer',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textLight)),
+                style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
             const SizedBox(width: 16),
-            const Icon(Icons.sell_outlined,
-                size: 14, color: AppColors.textLight),
+            const Icon(Icons.sell_outlined, size: 14, color: AppColors.textLight),
             const SizedBox(width: 4),
             Text('Seller: $seller',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textLight)),
+                style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
           ]),
         ],
       ),
@@ -358,8 +515,7 @@ class _DealStat extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       Text(value,
-          style: TextStyle(fontWeight: FontWeight.bold,
-              fontSize: 14, color: color)),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
       const SizedBox(height: 2),
       Text(label,
           style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
@@ -390,7 +546,7 @@ class _EscrowFsm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Escrow Status',
+          const Text('Progress',
               style: TextStyle(fontWeight: FontWeight.bold,
                   fontSize: 13, color: AppColors.textDark)),
           const SizedBox(height: 14),
@@ -409,11 +565,11 @@ class _NormalFsm extends StatelessWidget {
   const _NormalFsm({required this.current});
 
   static const _steps = [
-    (EscrowState.init,          'Verify\nDocs',   Icons.psychology_outlined),
-    (EscrowState.funded,        'Inspect\nPlace', Icons.location_on_outlined),
-    (EscrowState.docVerified,   'Deposit\nAdvance', Icons.account_balance_outlined),
-    (EscrowState.buyerApproved, 'Sign\nAgreement', Icons.draw_outlined),
-    (EscrowState.released,      'Register\n(SRO)', Icons.home_outlined),
+    (EscrowState.fund,         'Lock\nFunds',       Icons.lock_outlined),
+    (EscrowState.docVerify,    'Verify\nDocs',      Icons.psychology_outlined),
+    (EscrowState.sellerVerify, 'Verify\nSeller',    Icons.verified_user_outlined),
+    (EscrowState.sign,         'Sign &\nTransfer',  Icons.draw_outlined),
+    (EscrowState.released,     'Release\nFunds',    Icons.check_circle_outline),
   ];
 
   int get _currentIndex =>
@@ -509,15 +665,13 @@ class _DisputeBanner extends StatelessWidget {
             Text(
               refunded ? 'Escrow Refunded' : 'Funds Frozen — Dispute Active',
               style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13, color: Colors.red),
+                  fontWeight: FontWeight.bold, fontSize: 13, color: Colors.red),
             ),
             Text(
               refunded
                   ? 'Advance has been returned to buyer after dispute resolution.'
                   : 'Mediation in progress. No funds will move until resolved.',
-              style: const TextStyle(
-                  fontSize: 11, color: Colors.red, height: 1.4),
+              style: const TextStyle(fontSize: 11, color: Colors.red, height: 1.4),
             ),
           ],
         )),
@@ -573,16 +727,13 @@ class _ActionCard extends StatelessWidget {
             Expanded(
               child: Text(title,
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14, color: color)),
+                      fontWeight: FontWeight.bold, fontSize: 14, color: color)),
             ),
           ]),
           const SizedBox(height: 12),
           Text(body,
               style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textLight,
-                  height: 1.6)),
+                  fontSize: 12, color: AppColors.textLight, height: 1.65)),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: onPrimary,
@@ -593,8 +744,7 @@ class _ActionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10)),
             ),
             child: Text(primaryLabel,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 13)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           ),
           if (secondaryLabel != null && onSecondary != null) ...[
             const SizedBox(height: 8),
@@ -607,8 +757,7 @@ class _ActionCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
-              child: Text(secondaryLabel!,
-                  style: const TextStyle(fontSize: 12)),
+              child: Text(secondaryLabel!, style: const TextStyle(fontSize: 12)),
             ),
           ],
         ],
@@ -665,14 +814,11 @@ class _BankRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textLight)),
+              style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
           Text(value,
               style: TextStyle(
                   fontSize: highlight ? 15 : 12,
-                  fontWeight: highlight
-                      ? FontWeight.bold
-                      : FontWeight.w500,
+                  fontWeight: highlight ? FontWeight.bold : FontWeight.w500,
                   color: highlight ? AppColors.primary : AppColors.textDark)),
         ],
       ),
