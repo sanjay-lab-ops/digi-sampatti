@@ -198,20 +198,30 @@ class _AccountAggregatorScreenState
               style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            // Finvu + Sahamati badges
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _AaBadge('🔐 Finvu AA'),
+              const SizedBox(width: 8),
+              _AaBadge('🏛 Sahamati Network'),
+              const SizedBox(width: 8),
+              _AaBadge('✅ RBI Regulated'),
+            ]),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white24),
               ),
               child: const Row(children: [
-                Icon(Icons.lock, color: Colors.white, size: 16),
+                Icon(Icons.lock, color: Colors.white70, size: 16),
                 SizedBox(width: 8),
                 Expanded(child: Text(
-                  'RBI regulated · Data encrypted · You own it · '
-                  'Banks see score, not raw data',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                  'Consent-based · Data encrypted · You own your data · '
+                  'We never store bank credentials',
+                  style: TextStyle(color: Colors.white60, fontSize: 11),
                 )),
               ]),
             ),
@@ -520,4 +530,23 @@ class _AccountAggregatorScreenState
       ),
     ),
   );
+}
+
+class _AaBadge extends StatelessWidget {
+  final String label;
+  const _AaBadge(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Text(label,
+        style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+    );
+  }
 }

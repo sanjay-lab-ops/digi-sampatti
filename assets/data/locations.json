@@ -1,0 +1,366 @@
+{
+  "state": "Karnataka",
+  "districts": [
+    {
+      "name": "Bengaluru Urban",
+      "guidance": "₹3,500–₹25,000/sqft",
+      "taluks": [
+        { "name": "Bengaluru North", "villages": ["Yelahanka", "Kogilu", "Hebbal", "Jakkur", "Thanisandra", "Horamavu", "Banaswadi", "Kalyan Nagar"] },
+        { "name": "Bengaluru South", "villages": ["JP Nagar", "Banashankari", "Kanakapura Road", "Arekere", "Gottigere", "Hulimavu"] },
+        { "name": "Bengaluru East", "villages": ["Whitefield", "Marathahalli", "Varthur", "Sarjapur", "Bellandur", "Brookefield"] },
+        { "name": "Yelahanka", "villages": ["Yelahanka", "Bagalur", "Jala", "Kannur", "Singanayakanahalli"] },
+        { "name": "Krishnarajapura", "villages": ["KR Puram", "Mahadevapura", "Kadugodi", "Virgonagar"] },
+        { "name": "Rajarajeshwari Nagar", "villages": ["RR Nagar", "Kengeri", "Uttarahalli", "Nayandahalli"] },
+        { "name": "Anekal", "villages": ["Anekal", "Attibele", "Chandapura", "Electronic City", "Jigani"] }
+      ]
+    },
+    {
+      "name": "Bengaluru Rural",
+      "guidance": "₹800–₹4,000/sqft",
+      "taluks": [
+        { "name": "Devanahalli", "villages": ["Devanahalli", "Vijayapura", "Nandi Hills", "Budigere"] },
+        { "name": "Doddaballapur", "villages": ["Doddaballapur", "Bashettihalli", "Tubgere"] },
+        { "name": "Hosakote", "villages": ["Hosakote", "Malur Road", "Anugondanahalli"] },
+        { "name": "Nelamangala", "villages": ["Nelamangala", "Hesarghatta", "Dobbaspet"] }
+      ]
+    },
+    {
+      "name": "Mysuru",
+      "guidance": "₹1,200–₹6,000/sqft",
+      "taluks": [
+        { "name": "Mysuru", "villages": ["Mysuru City", "Bogadi", "Kuvempunagar", "Vijayanagar", "Nazarbad"] },
+        { "name": "Nanjangud", "villages": ["Nanjangud", "Gundlupet Road", "Hullahalli"] },
+        { "name": "Hunsur", "villages": ["Hunsur", "Antarsante", "Bilikere"] },
+        { "name": "Periyapatna", "villages": ["Periyapatna", "Saragur", "Hanur"] },
+        { "name": "H.D. Kote", "villages": ["H.D. Kote", "Nagarahole", "Sathegala"] },
+        { "name": "Krishnarajanagara", "villages": ["K.R. Nagar", "Arakere", "Bettadapura"] },
+        { "name": "T. Narasipura", "villages": ["T. Narasipura", "Bannur", "Muguru"] }
+      ]
+    },
+    {
+      "name": "Mandya",
+      "guidance": "₹600–₹2,500/sqft",
+      "taluks": [
+        { "name": "Mandya", "villages": ["Mandya City", "Melukote", "Pandavapura Road"] },
+        { "name": "Maddur", "villages": ["Maddur", "Malavalli Road", "Shivapura"] },
+        { "name": "Srirangapatna", "villages": ["Srirangapatna", "Kirugavalu", "Talkad"] },
+        { "name": "Pandavapura", "villages": ["Pandavapura", "Shivanasamudra", "Nagamangala Road"] },
+        { "name": "Nagamangala", "villages": ["Nagamangala", "Basaralu", "Hulikere"] },
+        { "name": "Krishnarajapete", "villages": ["K.R. Pete", "Kadur Road", "Belagola"] },
+        { "name": "Malavalli", "villages": ["Malavalli", "Kowdle", "Huliyur Durga"] }
+      ]
+    },
+    {
+      "name": "Hassan",
+      "guidance": "₹500–₹2,500/sqft",
+      "taluks": [
+        { "name": "Hassan", "villages": ["Hassan City", "Shanthigrama", "Dudda", "Gorur"] },
+        { "name": "Alur", "villages": ["Alur", "Doddakere", "Karekere"] },
+        { "name": "Belur", "villages": ["Belur", "Halebidu", "Javagal"] },
+        { "name": "Channarayapatna", "villages": ["Channarayapatna", "Hunsigere", "Dudda"] },
+        { "name": "Sakaleshpur", "villages": ["Sakaleshpur", "Yeslur", "Bisale"] },
+        { "name": "Arakalagudu", "villages": ["Arakalagudu", "Dudda", "Shettihalli"] },
+        { "name": "Holenarasipura", "villages": ["Holenarasipura", "Mosale", "Bankal"] }
+      ]
+    },
+    {
+      "name": "Kodagu",
+      "guidance": "₹400–₹2,000/sqft",
+      "taluks": [
+        { "name": "Madikeri", "villages": ["Madikeri", "Kushalnagar", "Bhagamandala"] },
+        { "name": "Virajpet", "villages": ["Virajpet", "Ponnampet", "Siddapura"] },
+        { "name": "Somwarpet", "villages": ["Somwarpet", "Shanivarasanthe", "Kushalnagar"] }
+      ]
+    },
+    {
+      "name": "Dakshina Kannada",
+      "guidance": "₹1,500–₹8,000/sqft",
+      "taluks": [
+        { "name": "Mangaluru", "villages": ["Mangaluru City", "Bajpe", "Surathkal", "Ullal", "Mulky"] },
+        { "name": "Bantwal", "villages": ["Bantwal", "Uppinangady", "Naravi"] },
+        { "name": "Belthangady", "villages": ["Belthangady", "Dharmasthala", "Ujire"] },
+        { "name": "Puttur", "villages": ["Puttur", "Sullia Road", "Kadaba"] },
+        { "name": "Sullia", "villages": ["Sullia", "Subramanya", "Kedila"] }
+      ]
+    },
+    {
+      "name": "Udupi",
+      "guidance": "₹1,200–₹5,000/sqft",
+      "taluks": [
+        { "name": "Udupi", "villages": ["Udupi City", "Manipal", "Malpe", "Brahmavar"] },
+        { "name": "Kundapura", "villages": ["Kundapura", "Byndoor", "Gangolli"] },
+        { "name": "Karkala", "villages": ["Karkala", "Moodbidri", "Nitte"] }
+      ]
+    },
+    {
+      "name": "Shivamogga",
+      "guidance": "₹700–₹3,500/sqft",
+      "taluks": [
+        { "name": "Shivamogga", "villages": ["Shivamogga City", "Bhadravati", "Doddapet"] },
+        { "name": "Bhadravati", "villages": ["Bhadravati", "Shikaripur Road"] },
+        { "name": "Sagar", "villages": ["Sagar", "Jog Falls", "Keladi"] },
+        { "name": "Hosanagara", "villages": ["Hosanagara", "Tirtahalli Road"] },
+        { "name": "Shikaripura", "villages": ["Shikaripura", "Anandapura"] },
+        { "name": "Sorab", "villages": ["Sorab", "Anandapura"] },
+        { "name": "Tirthahalli", "villages": ["Tirthahalli", "Agumbe"] }
+      ]
+    },
+    {
+      "name": "Chikkamagaluru",
+      "guidance": "₹500–₹2,500/sqft",
+      "taluks": [
+        { "name": "Chikkamagaluru", "villages": ["Chikkamagaluru City", "Bababudangiri", "Kemmanagundi"] },
+        { "name": "Kadur", "villages": ["Kadur", "Birur", "Banavara"] },
+        { "name": "Koppa", "villages": ["Koppa", "Sringeri Road"] },
+        { "name": "Mudigere", "villages": ["Mudigere", "Yagachi"] },
+        { "name": "Sringeri", "villages": ["Sringeri", "Kigga"] },
+        { "name": "Tarikere", "villages": ["Tarikere", "Ajjampura"] },
+        { "name": "NR Pura", "villages": ["NR Pura", "Kalasa"] }
+      ]
+    },
+    {
+      "name": "Tumakuru",
+      "guidance": "₹600–₹2,800/sqft",
+      "taluks": [
+        { "name": "Tumakuru", "villages": ["Tumakuru City", "Tiptur Road", "Kyathasandra"] },
+        { "name": "Tiptur", "villages": ["Tiptur", "Turuvekere"] },
+        { "name": "Sira", "villages": ["Sira", "Nittur"] },
+        { "name": "Gubbi", "villages": ["Gubbi", "Koratagere Road"] },
+        { "name": "Kunigal", "villages": ["Kunigal", "Yediyur"] },
+        { "name": "Madhugiri", "villages": ["Madhugiri", "Koratagere"] },
+        { "name": "Pavagada", "villages": ["Pavagada", "Dodderi"] },
+        { "name": "Koratagere", "villages": ["Koratagere", "Gollarahatti"] }
+      ]
+    },
+    {
+      "name": "Ramanagara",
+      "guidance": "₹500–₹2,000/sqft",
+      "taluks": [
+        { "name": "Ramanagara", "villages": ["Ramanagara City", "Bidadi", "Sathanur"] },
+        { "name": "Channapatna", "villages": ["Channapatna", "Maddur Road"] },
+        { "name": "Kanakapura", "villages": ["Kanakapura", "Sangama"] },
+        { "name": "Magadi", "villages": ["Magadi", "Solur"] }
+      ]
+    },
+    {
+      "name": "Chitradurga",
+      "guidance": "₹400–₹1,800/sqft",
+      "taluks": [
+        { "name": "Chitradurga", "villages": ["Chitradurga City", "Turuvanur"] },
+        { "name": "Holalkere", "villages": ["Holalkere", "Brahmsamudra"] },
+        { "name": "Hiriyur", "villages": ["Hiriyur", "Mayakonda"] },
+        { "name": "Hosadurga", "villages": ["Hosadurga", "Nayakanahatti"] },
+        { "name": "Challakere", "villages": ["Challakere", "Molakalmuru"] },
+        { "name": "Molakalmuru", "villages": ["Molakalmuru", "Jagalur Road"] }
+      ]
+    },
+    {
+      "name": "Davanagere",
+      "guidance": "₹600–₹2,500/sqft",
+      "taluks": [
+        { "name": "Davanagere", "villages": ["Davanagere City", "Harihar Road", "Bathi"] },
+        { "name": "Harihar", "villages": ["Harihar", "Ranebennur Road"] },
+        { "name": "Channagiri", "villages": ["Channagiri", "Nyamathi"] },
+        { "name": "Jagaluru", "villages": ["Jagaluru", "Santebennur"] },
+        { "name": "Honnali", "villages": ["Honnali", "Nyamathi"] }
+      ]
+    },
+    {
+      "name": "Haveri",
+      "guidance": "₹400–₹1,800/sqft",
+      "taluks": [
+        { "name": "Haveri", "villages": ["Haveri City", "Bankapur"] },
+        { "name": "Byadgi", "villages": ["Byadgi", "Rattihalli"] },
+        { "name": "Hanagal", "villages": ["Hanagal", "Shiggaon Road"] },
+        { "name": "Hirekerur", "villages": ["Hirekerur", "Motebennur"] },
+        { "name": "Ranebennur", "villages": ["Ranebennur", "Guttal"] },
+        { "name": "Savanur", "villages": ["Savanur", "Binkadakatti"] },
+        { "name": "Shiggaon", "villages": ["Shiggaon", "Hangal"] }
+      ]
+    },
+    {
+      "name": "Gadag",
+      "guidance": "₹400–₹1,600/sqft",
+      "taluks": [
+        { "name": "Gadag", "villages": ["Gadag City", "Betgeri", "Laxmeshwar"] },
+        { "name": "Mundaragi", "villages": ["Mundaragi", "Rona"] },
+        { "name": "Naragund", "villages": ["Naragund", "Shirhatti Road"] },
+        { "name": "Ron", "villages": ["Ron", "Naregal"] },
+        { "name": "Shirhatti", "villages": ["Shirhatti", "Hombal"] }
+      ]
+    },
+    {
+      "name": "Dharwad",
+      "guidance": "₹800–₹3,500/sqft",
+      "taluks": [
+        { "name": "Dharwad", "villages": ["Dharwad City", "Alnavar", "Kalaghatgi"] },
+        { "name": "Hubli", "villages": ["Hubli City", "Gokul Road", "Vidyanagar"] },
+        { "name": "Kalghatgi", "villages": ["Kalghatgi", "Kundgol Road"] },
+        { "name": "Navalgund", "villages": ["Navalgund", "Annigeri"] },
+        { "name": "Kundgol", "villages": ["Kundgol", "Amminabhavi"] }
+      ]
+    },
+    {
+      "name": "Belagavi",
+      "guidance": "₹700–₹3,000/sqft",
+      "taluks": [
+        { "name": "Belagavi", "villages": ["Belagavi City", "Tilakwadi", "Shahapur"] },
+        { "name": "Bailhongal", "villages": ["Bailhongal", "Nandagad"] },
+        { "name": "Chikkodi", "villages": ["Chikkodi", "Nippani", "Sankeshwar"] },
+        { "name": "Gokak", "villages": ["Gokak", "Mudalgi"] },
+        { "name": "Hukkeri", "villages": ["Hukkeri", "Boragaon"] },
+        { "name": "Ramdurg", "villages": ["Ramdurg", "Saudatti"] },
+        { "name": "Saundatti", "villages": ["Saundatti", "Yallamma"] },
+        { "name": "Raibag", "villages": ["Raibag", "Parasgad"] },
+        { "name": "Khanapur", "villages": ["Khanapur", "Dandeli Road"] }
+      ]
+    },
+    {
+      "name": "Vijayapura",
+      "guidance": "₹500–₹2,000/sqft",
+      "taluks": [
+        { "name": "Vijayapura", "villages": ["Vijayapura City", "Indi Road", "Kolhar"] },
+        { "name": "Basavana Bagewadi", "villages": ["Basavana Bagewadi", "Nidagundi"] },
+        { "name": "Indi", "villages": ["Indi", "Chadachan"] },
+        { "name": "Muddebihal", "villages": ["Muddebihal", "Talikote"] },
+        { "name": "Sindagi", "villages": ["Sindagi", "Almatti"] }
+      ]
+    },
+    {
+      "name": "Bagalkot",
+      "guidance": "₹400–₹1,800/sqft",
+      "taluks": [
+        { "name": "Bagalkot", "villages": ["Bagalkot City", "Navanagar"] },
+        { "name": "Badami", "villages": ["Badami", "Pattadakal", "Aihole"] },
+        { "name": "Bilagi", "villages": ["Bilagi", "Mudhol Road"] },
+        { "name": "Hungund", "villages": ["Hungund", "Ilkal"] },
+        { "name": "Jamkhandi", "villages": ["Jamkhandi", "Kushtagi"] },
+        { "name": "Mudhol", "villages": ["Mudhol", "Shirahatti"] }
+      ]
+    },
+    {
+      "name": "Bidar",
+      "guidance": "₹400–₹1,600/sqft",
+      "taluks": [
+        { "name": "Bidar", "villages": ["Bidar City", "Udgir Road"] },
+        { "name": "Aurad", "villages": ["Aurad", "Chitaguppa"] },
+        { "name": "Basavakalyan", "villages": ["Basavakalyan", "Hulsoor"] },
+        { "name": "Bhalki", "villages": ["Bhalki", "Humnabad Road"] },
+        { "name": "Humnabad", "villages": ["Humnabad", "Kamalnagar"] }
+      ]
+    },
+    {
+      "name": "Kalaburagi",
+      "guidance": "₹500–₹2,000/sqft",
+      "taluks": [
+        { "name": "Kalaburagi", "villages": ["Kalaburagi City", "Sedam Road", "Aland Road"] },
+        { "name": "Afzalpur", "villages": ["Afzalpur", "Devangaon"] },
+        { "name": "Aland", "villages": ["Aland", "Gogi"] },
+        { "name": "Chincholi", "villages": ["Chincholi", "Shelgi"] },
+        { "name": "Chittapur", "villages": ["Chittapur", "Shahabad"] },
+        { "name": "Jevargi", "villages": ["Jevargi", "Gulbarga Road"] },
+        { "name": "Sedam", "villages": ["Sedam", "Yadgir Road"] }
+      ]
+    },
+    {
+      "name": "Yadgir",
+      "guidance": "₹350–₹1,400/sqft",
+      "taluks": [
+        { "name": "Yadgir", "villages": ["Yadgir City", "Wadagera"] },
+        { "name": "Shahapur", "villages": ["Shahapur", "Shorapur Road", "Surpur"] },
+        { "name": "Shorapur", "villages": ["Shorapur", "Hunasagi"] }
+      ]
+    },
+    {
+      "name": "Raichur",
+      "guidance": "₹400–₹1,600/sqft",
+      "taluks": [
+        { "name": "Raichur", "villages": ["Raichur City", "Sirwar"] },
+        { "name": "Deodurga", "villages": ["Deodurga", "Maski"] },
+        { "name": "Lingasugur", "villages": ["Lingasugur", "Mudgal"] },
+        { "name": "Manvi", "villages": ["Manvi", "Jaladurga"] },
+        { "name": "Sindhanur", "villages": ["Sindhanur", "Gangavathi Road"] }
+      ]
+    },
+    {
+      "name": "Koppal",
+      "guidance": "₹400–₹1,500/sqft",
+      "taluks": [
+        { "name": "Koppal", "villages": ["Koppal City", "Ginigera"] },
+        { "name": "Gangavathi", "villages": ["Gangavathi", "Kampli"] },
+        { "name": "Kustagi", "villages": ["Kustagi", "Kanakagiri"] },
+        { "name": "Yelburga", "villages": ["Yelburga", "Kuknoor"] }
+      ]
+    },
+    {
+      "name": "Ballari",
+      "guidance": "₹500–₹2,200/sqft",
+      "taluks": [
+        { "name": "Ballari", "villages": ["Ballari City", "Pampapura", "Hosapete"] },
+        { "name": "Hagaribommanahalli", "villages": ["Hagaribommanahalli", "Tekkalakota"] },
+        { "name": "Hovinahadagali", "villages": ["Hovinahadagali", "Kudligi Road"] },
+        { "name": "Sandur", "villages": ["Sandur", "Toranagallu"] },
+        { "name": "Siruguppa", "villages": ["Siruguppa", "Raichur Road"] },
+        { "name": "Kudligi", "villages": ["Kudligi", "Hadagali"] }
+      ]
+    },
+    {
+      "name": "Uttara Kannada",
+      "guidance": "₹500–₹2,500/sqft",
+      "taluks": [
+        { "name": "Karwar", "villages": ["Karwar City", "Sadashivgad"] },
+        { "name": "Sirsi", "villages": ["Sirsi", "Siddapur"] },
+        { "name": "Dandeli", "villages": ["Dandeli", "Kalghatgi Road"] },
+        { "name": "Supa", "villages": ["Supa", "Joida"] },
+        { "name": "Haliyal", "villages": ["Haliyal", "Dharwad Road"] },
+        { "name": "Yellapur", "villages": ["Yellapur", "Mundgod Road"] },
+        { "name": "Mundgod", "villages": ["Mundgod", "Hubli Road"] },
+        { "name": "Ankola", "villages": ["Ankola", "Kumta"] }
+      ]
+    },
+    {
+      "name": "Chamarajanagar",
+      "guidance": "₹400–₹1,800/sqft",
+      "taluks": [
+        { "name": "Chamarajanagar", "villages": ["Chamarajanagar City", "Santhemaralli"] },
+        { "name": "Gundlupete", "villages": ["Gundlupete", "Moolehole"] },
+        { "name": "Kollegal", "villages": ["Kollegal", "Ponnachi"] },
+        { "name": "Yelandur", "villages": ["Yelandur", "Ramapura"] }
+      ]
+    },
+    {
+      "name": "Chikkaballapur",
+      "guidance": "₹500–₹2,500/sqft",
+      "taluks": [
+        { "name": "Chikkaballapur", "villages": ["Chikkaballapur City", "Peresandra"] },
+        { "name": "Bagepalli", "villages": ["Bagepalli", "Gauribidanur Road"] },
+        { "name": "Chintamani", "villages": ["Chintamani", "Mulbagal Road"] },
+        { "name": "Gauribidanur", "villages": ["Gauribidanur", "Bagepalli Road"] },
+        { "name": "Gudibanda", "villages": ["Gudibanda", "Nandi Hills Road"] },
+        { "name": "Sidlaghatta", "villages": ["Sidlaghatta", "Chintamani Road"] }
+      ]
+    },
+    {
+      "name": "Kolar",
+      "guidance": "₹500–₹2,500/sqft",
+      "taluks": [
+        { "name": "Kolar", "villages": ["Kolar City", "Bangarpet Road"] },
+        { "name": "Bangarpet", "villages": ["Bangarpet", "Malur"] },
+        { "name": "Malur", "villages": ["Malur", "Bangarpet Road"] },
+        { "name": "Mulbagal", "villages": ["Mulbagal", "Srinivaspur Road"] },
+        { "name": "Srinivaspur", "villages": ["Srinivaspur", "Kolar Road"] }
+      ]
+    },
+    {
+      "name": "Mangaluru",
+      "guidance": "₹1,500–₹8,000/sqft",
+      "taluks": [
+        { "name": "Mangaluru", "villages": ["Mangaluru City", "Bajpe", "Surathkal", "Ullal", "Mulky"] },
+        { "name": "Bantwal", "villages": ["Bantwal", "Uppinangady"] },
+        { "name": "Belthangady", "villages": ["Belthangady", "Dharmasthala"] },
+        { "name": "Puttur", "villages": ["Puttur", "Kadaba"] },
+        { "name": "Sullia", "villages": ["Sullia", "Subramanya"] }
+      ]
+    }
+  ]
+}

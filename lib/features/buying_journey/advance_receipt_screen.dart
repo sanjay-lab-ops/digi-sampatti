@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -39,7 +40,7 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
   // Transaction
   final _totalPrice = TextEditingController();
   final _advanceAmount = TextEditingController();
-  final _paymentMode = TextEditingController(text: 'Cheque / RTGS');
+  final _paymentMode = TextEditingController();
   final _chequeNo = TextEditingController();
   final _balanceDueDate = TextEditingController();
   final _registrationDeadline = TextEditingController();
@@ -363,9 +364,14 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
     final lang = ref.watch(languageProvider);
     final isKn = lang == 'kn';
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) { if (!didPop) context.go('/transaction'); },
+      child: Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(isKn ? 'ಮುಂಗಡ ರಸೀದಿ' : 'Advance Receipt')),
+      appBar: AppBar(
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/transaction')),
+        title: Text(isKn ? 'ಮುಂಗಡ ರಸೀದಿ' : 'Advance Receipt')),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -420,12 +426,23 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
 
               const SizedBox(height: 6),
               _sectionTitle(isKn ? 'ಪಾವತಿ ವಿವರ (ಐಚ್ಛಿಕ)' : 'Payment Details (optional)'),
-              _buildField(_paymentMode, isKn ? 'ಪಾವತಿ ವಿಧಾನ' : 'Payment Mode — Cheque / RTGS / NEFT'),
-              _buildField(_chequeNo, isKn ? 'ಚೆಕ್ / RTGS ಸಂಖ್ಯೆ' : 'Cheque / RTGS Reference No.'),
+              DropdownButtonFormField<String>(
+                value: _paymentMode.text.isEmpty ? null : _paymentMode.text,
+                hint: Text(isKn ? 'ಪಾವತಿ ವಿಧಾನ ಆಯ್ಕೆ ಮಾಡಿ' : 'Select Payment Mode'),
+                decoration: const InputDecoration(
+                  labelText: 'Payment Mode',
+                  prefixIcon: Icon(Icons.payment_outlined),
+                ),
+                items: ['Cash', 'UPI', 'NEFT', 'RTGS', 'Cheque', 'Demand Draft']
+                    .map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                onChanged: (v) => setState(() => _paymentMode.text = v ?? ''),
+              ),
+              const SizedBox(height: 10),
+              _buildField(_chequeNo, isKn ? 'ಚೆಕ್ / RTGS ಸಂಖ್ಯೆ' : 'Reference / Cheque Number (if any)'),
               Row(children: [
-                Expanded(child: _buildField(_balanceDueDate, isKn ? 'ಬಾಕಿ ದಿನಾಂಕ' : 'Balance Due Date')),
+                Expanded(child: _buildDateField(_balanceDueDate, isKn ? 'ಬಾಕಿ ದಿನಾಂಕ' : 'Balance Due Date')),
                 const SizedBox(width: 10),
-                Expanded(child: _buildField(_registrationDeadline, isKn ? 'ನೋಂದಣಿ ಗಡುವು' : 'Registration Deadline')),
+                Expanded(child: _buildDateField(_registrationDeadline, isKn ? 'ನೋಂದಣಿ ಗಡುವು' : 'Registration Deadline')),
               ]),
 
               const SizedBox(height: 6),
@@ -520,13 +537,49 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
                     style: const TextStyle(fontSize: 12, color: AppColors.safe, height: 1.4),
                   ),
                 ),
-              ],
-              const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B5E20).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.5), width: 1.5),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Row(children: [
+                      Icon(Icons.account_balance_outlined, color: Color(0xFF2E7D32), size: 20),
+                      SizedBox(width: 8),
+                      Text('Next Step: Digital Escrow',
+                        style: TextStyle(color: Color(0xFF2E7D32), fontWeight: FontWeight.bold, fontSize: 14)),
+                    ]),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Your advance amount will be held securely in a digital escrow account. It is released to the seller ONLY after property registration is complete.',
+                      style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/escrow'),
+                        icon: const Icon(Icons.lock_outline),
+                        label: Text(isKn ? 'ಡಿಜಿಟಲ್ ಎಸ್ಕ್ರೋ ಸ್ಥಾಪಿಸಿ →' : 'Set Up Digital Escrow →'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E7D32),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 32),
+            ],
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _sectionTitle(String title) {
@@ -558,6 +611,35 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
         validator: required
             ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
             : null,
+      ),
+    );
+  }
+
+  Widget _buildDateField(TextEditingController ctrl, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now().add(const Duration(days: 30)),
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+          );
+          if (picked != null) {
+            setState(() => ctrl.text = DateFormat('dd-MM-yyyy').format(picked));
+          }
+        },
+        child: IgnorePointer(
+          child: TextFormField(
+            controller: ctrl,
+            readOnly: true,
+            decoration: InputDecoration(
+              labelText: label,
+              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+            ),
+          ),
+        ),
       ),
     );
   }

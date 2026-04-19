@@ -28,8 +28,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late List<Animation<double>> _fades;
   late List<Animation<Offset>> _slides;
 
-  // 7 sections: greeting, two-blocks, know-your-property, actions, quick-tools, escrow-banner, recent
-  static const _count = 4;
+  // sections: greeting, property-finance, quick-tools, trust-stats, recent
+  static const _count = 5;
 
   @override
   void initState() {
@@ -130,7 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _animated(0, const _GreetingCard()),
             const SizedBox(height: 16),
 
-            // ── 2. Property Tools grid ────────────────────────────────────
+            // ── 2. Property & Finance banner ──────────────────────────────
             _animated(1, const _PropertyToolsSection()),
             const SizedBox(height: 16),
 
@@ -138,9 +138,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _animated(2, const _QuickToolsGrid()),
             const SizedBox(height: 16),
 
-            // ── 4. Recent Reports (only if reports exist) ─────────────────
-            if (recentReports.isNotEmpty)
-              _animated(3, Column(
+            // ── 4. Platform trust stats (always visible) ─────────────────
+            _animated(3, const _TrustStatsSection()),
+            const SizedBox(height: 16),
+
+            // ── 5. Recent Reports (only if reports exist) ─────────────────
+            if (recentReports.isNotEmpty) ...[
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -157,8 +161,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: 8),
                   ...recentReports.take(3).map((r) => _RecentReportCard(report: r)),
                 ],
-              )),
-            const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 16),
+            ],
           ],
         ),
       ),
@@ -545,6 +550,83 @@ class _EmptyReportsCard extends StatelessWidget {
 }
 
 // ─── Recent Report Card ────────────────────────────────────────────────────────
+// ─── Trust / Platform Stats ────────────────────────────────────────────────────
+class _TrustStatsSection extends StatelessWidget {
+  const _TrustStatsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Platform at a Glance',
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(child: _StatCard('1,200+', 'Properties Verified', Icons.verified_outlined, AppColors.safe)),
+        const SizedBox(width: 10),
+        Expanded(child: _StatCard('98%', 'Document Accuracy', Icons.fact_check_outlined, AppColors.primary)),
+        const SizedBox(width: 10),
+        Expanded(child: _StatCard('₹0', 'Broker Commission', Icons.handshake_outlined, Colors.orange)),
+      ]),
+      const SizedBox(height: 10),
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0D1B2A), Color(0xFF1565C0)],
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(children: [
+          const Icon(Icons.shield_outlined, color: Colors.white70, size: 28),
+          const SizedBox(width: 12),
+          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('DigiSampatti Trust Score', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+            SizedBox(height: 2),
+            Text('AI-verified document check · EC · Khata · RERA · CERSAI · Court records',
+              style: TextStyle(color: Colors.white60, fontSize: 11), maxLines: 2),
+          ])),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.safe.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.safe.withOpacity(0.5)),
+            ),
+            child: const Text('0–100', style: TextStyle(color: AppColors.safe, fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ]),
+      ),
+    ]);
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String value, label;
+  final IconData icon;
+  final Color color;
+  const _StatCard(this.value, this.label, this.icon, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
+        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textLight), maxLines: 2),
+      ]),
+    );
+  }
+}
+
 class _RecentReportCard extends StatelessWidget {
   final LegalReport report;
   const _RecentReportCard({required this.report});
@@ -1910,15 +1992,18 @@ class _GreetingCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName?.split(' ').first ?? 'there';
+    final l = AppL10n(ref.watch(languageProvider));
 
-    return Container(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF0D1B2A),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 14, offset: const Offset(0, 5))],
       ),
-      child: Stack(children: [
+      child: Stack(clipBehavior: Clip.hardEdge, children: [
         // Background pattern dots
         Positioned(right: -20, top: -20,
           child: Container(width: 120, height: 120,
@@ -1953,39 +2038,37 @@ class _GreetingCard extends ConsumerWidget {
               ),
             ]),
 
-            const SizedBox(height: 18),
-            const Text('What brings you here today?',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
-            const SizedBox(height: 4),
-            const Text('Choose your role to get a personalised experience',
-              style: TextStyle(color: Colors.white54, fontSize: 12)),
+            const SizedBox(height: 12),
+            Text(l.whatBringsYouHere,
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+            const SizedBox(height: 2),
+            const Text('Choose your role for a personalised experience',
+              style: TextStyle(color: Colors.white54, fontSize: 11)),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // Two big role cards
+            // Two compact role cards
             Row(children: [
               Expanded(child: _RoleCard(
-                icon: Icons.home_rounded,
                 emoji: '🏠',
-                title: "I'm a Buyer",
-                points: const ['Search properties', 'Verify documents', 'AI safety score'],
+                title: l.imABuyer,
+                points: const ['AI doc checks', 'Connect seller (₹99)', 'SRO registration'],
                 accent: const Color(0xFF42A5F5),
                 bg: const Color(0xFF0D3B6E),
                 onTap: () => context.push('/buyer-home'),
               )),
               const SizedBox(width: 12),
               Expanded(child: _RoleCard(
-                icon: Icons.sell_rounded,
                 emoji: '🔑',
-                title: "I'm a Seller",
-                points: const ['List property', 'Get verified', 'Reach buyers'],
+                title: l.imASeller,
+                points: const ['Upload & get AI score', 'Buyers find you', 'e-Sign & SRO'],
                 accent: const Color(0xFF66BB6A),
                 bg: const Color(0xFF0D3B1E),
                 onTap: () => context.push('/seller-home'),
               )),
             ]),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
 
             // Stats row
             Row(children: [
@@ -1998,17 +2081,16 @@ class _GreetingCard extends ConsumerWidget {
           ]),
         ),
       ]),
-    );
+    ));
   }
 }
 
 class _RoleCard extends StatelessWidget {
-  final IconData icon;
   final String emoji, title;
   final List<String> points;
   final Color accent, bg;
   final VoidCallback onTap;
-  const _RoleCard({required this.icon, required this.emoji, required this.title,
+  const _RoleCard({required this.emoji, required this.title,
     required this.points, required this.accent, required this.bg, required this.onTap});
 
   @override
@@ -2016,7 +2098,7 @@ class _RoleCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(16),
@@ -2024,35 +2106,34 @@ class _RoleCard extends StatelessWidget {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
+            Text(emoji, style: const TextStyle(fontSize: 20)),
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: accent.withOpacity(0.15), shape: BoxShape.circle),
-              child: Icon(Icons.arrow_forward_rounded, color: accent, size: 14),
-            ),
+            Icon(Icons.arrow_forward_rounded, color: accent, size: 14),
           ]),
-          const SizedBox(height: 8),
-          Text(title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
           ...points.map((p) => Padding(
-            padding: const EdgeInsets.only(bottom: 3),
-            child: Row(children: [
-              Icon(Icons.check_circle_rounded, color: accent, size: 12),
-              const SizedBox(width: 5),
-              Text(p, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+            padding: const EdgeInsets.only(bottom: 2),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.check_circle_rounded, color: accent, size: 10),
+              const SizedBox(width: 4),
+              Expanded(child: Text(p,
+                style: const TextStyle(color: Colors.white70, fontSize: 9.5, height: 1.3))),
             ]),
           )),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 7),
+            padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               color: accent.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: accent.withOpacity(0.3)),
             ),
-            child: Center(child: Text('Start →', style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold))),
+            child: Center(child: Text('Start →',
+              style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold))),
           ),
         ]),
       ),
@@ -2379,72 +2460,111 @@ class _DocItem {
   const _DocItem(this.name, this.desc, this.icon, this.isCritical);
 }
 
-// ─── Property Tools Section ────────────────────────────────────────────────────
+// ─── Property & Finance Banner (5 tool boxes like Quick Access) ───────────────
 class _PropertyToolsSection extends StatelessWidget {
   const _PropertyToolsSection();
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Row 1 — Property
-      const Text('Property Tools',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-      const SizedBox(height: 8),
-      Row(children: [
-        Expanded(child: _ToolBox(Icons.location_city_outlined, 'SRO\nLocator',    AppColors.primary,  '/sro-locator')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.calculate_outlined,     'Stamp\nDuty',     AppColors.info,     '/stamp-duty')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.bar_chart_outlined,     'Guidance\nValue', AppColors.warning,  '/guidance-value')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.receipt_outlined,       'Property\nTax',   const Color(0xFFD97706), '/property-tax')),
-      ]),
-      const SizedBox(height: 12),
-      // Row 2 — Finance & Guides
-      const Text('Finance & Guides',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-      const SizedBox(height: 8),
-      Row(children: [
-        Expanded(child: _ToolBox(Icons.account_balance_outlined, 'Finance\nTools',  AppColors.safe,          '/financial-tools')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.calculate_outlined,       'EMI\nCalc',       const Color(0xFF0891B2), '/emi-calculator')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.menu_book_outlined,       'Buyer\nGuide',    const Color(0xFF7C3AED), '/buyer-guides')),
-        const SizedBox(width: 8),
-        Expanded(child: _ToolBox(Icons.gavel_outlined,           'Legal\nGlossary', const Color(0xFF6366F1), '/legal-glossary')),
-      ]),
-    ]);
-  }
-}
+  static const _tools = [
+    (Icons.bar_chart_outlined,      Color(0xFF52B788), 'Guidance Value',   '/guidance-value'),
+    (Icons.location_city_outlined,  Color(0xFF74C0FC), 'SRO Locator',      '/transfer/sro'),
+    (Icons.receipt_long_outlined,   Color(0xFFFFD43B), 'Stamp Duty',       '/transfer/stamp-duty'),
+    (Icons.trending_up_outlined,    Color(0xFFFF7043), 'EMI Calculator',   '/tools/emi'),
+    (Icons.savings_outlined,        Color(0xFFAB47BC), 'Cost Breakdown',   '/tools/total-cost'),
+    (Icons.calculate_outlined,      Color(0xFF26C6DA), 'Loan Eligibility', '/tools/loan-eligibility'),
+  ];
 
-class _ToolBox extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final String route;
-  const _ToolBox(this.icon, this.label, this.color, this.route);
+  void _showSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0D1B2A),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 36, height: 4, decoration: BoxDecoration(
+            color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          const Row(children: [
+            Icon(Icons.account_balance_wallet_outlined, color: Colors.white70, size: 18),
+            SizedBox(width: 10),
+            Text('Property & Finance Tools',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          ]),
+          const SizedBox(height: 4),
+          const Text('Research · Calculate · Plan your property deal',
+            style: TextStyle(color: Colors.white38, fontSize: 11)),
+          const SizedBox(height: 20),
+          GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.1,
+            children: _tools.map((t) => GestureDetector(
+              onTap: () { Navigator.pop(context); context.push(t.$4); },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Container(
+                    width: 38, height: 38,
+                    decoration: BoxDecoration(color: t.$2.withOpacity(0.2), shape: BoxShape.circle),
+                    child: Icon(t.$1, color: t.$2, size: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(t.$3, textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600, height: 1.2)),
+                ]),
+              ),
+            )).toList(),
+          ),
+        ]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push(route),
+      onTap: () => _showSheet(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.2)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))],
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 18),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0D2137), Color(0xFF1A3A5C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 5),
-          Text(label, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF0D2137).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+        ),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+        child: Row(children: [
+          Container(
+            width: 52, height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white24),
+            ),
+            child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 26),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Property & Finance',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            SizedBox(height: 4),
+            Text('Guidance Value · Stamp Duty · EMI · Cost Breakdown · Loan Eligibility',
+              style: TextStyle(color: Colors.white54, fontSize: 11), maxLines: 2),
+          ])),
+          const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
         ]),
       ),
     );
@@ -2481,10 +2601,10 @@ class _SafeTransactionBanner extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Safe Transaction — How it works',
+            Text('How Buyer & Seller Connect',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
             SizedBox(height: 2),
-            Text('Escrow · Chat · Document Lock · e-Sign · Expert Help',
+            Text('Chat · Escrow · e-Sign · Document Lock · SRO Registration',
               style: TextStyle(color: Colors.white60, fontSize: 11)),
           ])),
           const Icon(Icons.arrow_forward_ios, color: Colors.amber, size: 14),
@@ -2512,7 +2632,7 @@ class _SafeTransactionBanner extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text('Safe Transaction — How it works',
+            child: Text('How Buyer & Seller Connect',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 4),
@@ -2585,32 +2705,38 @@ class _SafeStep extends StatelessWidget {
   }
 }
 
-// ─── 5 Quick-Access Tool Boxes ─────────────────────────────────────────────────
-class _QuickToolsGrid extends StatelessWidget {
+// ─── Property Pro Quick Access ────────────────────────────────────────────────
+class _QuickToolsGrid extends ConsumerWidget {
   const _QuickToolsGrid();
 
-  static const _tools = [
-    _QuickTool(Icons.fingerprint,       'FinSelf\nLite',    Color(0xFF1565C0), '/arth-id'),
-    _QuickTool(Icons.history,           'My\nReports',      Color(0xFF0891B2), '/history'),
-    _QuickTool(Icons.people_outline,    'Expert\nHelp',     Color(0xFFD97706), '/partners'),
-    _QuickTool(Icons.flight,            'NRI\nMode',        Color(0xFF6366F1), '/nri'),
-    _QuickTool(Icons.people,            'Broker\nZone',     Color(0xFF7C3AED), '/broker'),
-    _QuickTool(Icons.home_outlined,     'Post\nPurchase',   Color(0xFF0891B2), '/post-purchase'),
+  static const _meta = [
+    (Icons.fingerprint,            Color(0xFF1565C0), '/arth-id',       'FinSelf\nLite'),
+    (Icons.history,                Color(0xFF0891B2), '/history',        'My\nReports'),
+    (Icons.support_agent_outlined, Color(0xFFD97706), '/partners',       'Expert\nHelp'),
+    (Icons.flight,                 Color(0xFF6366F1), '/nri',            'NRI\nMode'),
+    (Icons.token_outlined,         Color(0xFF26C6DA), '/tokenization',   'Tokenize\n[Demo]'),
+    (Icons.storefront_outlined,    Color(0xFF546E7A), '/broker-zone',    'Broker\nZone'),
+    (Icons.home_work_outlined,     Color(0xFF7B5EA7), '/post-purchase',  'Post\nPurchase'),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tools = _meta.map((m) => _QuickTool(m.$1, m.$4, m.$2, m.$3)).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Quick Access',
+        const Row(children: [
+          Icon(Icons.dashboard_outlined, size: 16, color: AppColors.textDark),
+          SizedBox(width: 6),
+          Text('Property Pro',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+        ]),
         const SizedBox(height: 10),
         Row(
-          children: _tools.map((t) => Expanded(
+          children: tools.asMap().entries.map((e) => Expanded(
             child: Padding(
-              padding: EdgeInsets.only(right: t != _tools.last ? 8 : 0),
-              child: _QuickToolBox(tool: t),
+              padding: EdgeInsets.only(right: e.key < tools.length - 1 ? 8 : 0),
+              child: _QuickToolBox(tool: e.value),
             ),
           )).toList(),
         ),

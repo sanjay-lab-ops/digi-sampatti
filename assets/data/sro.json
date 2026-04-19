@@ -1,0 +1,332 @@
+[
+  {
+    "id": "sro_blr_north",
+    "name": "SRO Bengaluru North",
+    "district": "Bengaluru Urban",
+    "taluks": ["Bengaluru North", "Yelahanka"],
+    "address": "No. 10, 2nd Cross, Sadashivanagar, Bengaluru – 560080",
+    "phone": "080-23560100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Yelahanka", "Hebbal", "Banaswadi", "Kogilu", "Jakkur", "Thanisandra"]
+  },
+  {
+    "id": "sro_blr_south",
+    "name": "SRO Bengaluru South",
+    "district": "Bengaluru Urban",
+    "taluks": ["Bengaluru South"],
+    "address": "No. 45, Banashankari 2nd Stage, Bengaluru – 560070",
+    "phone": "080-26712345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["JP Nagar", "Banashankari", "Gottigere", "Hulimavu", "Kanakapura Road"]
+  },
+  {
+    "id": "sro_blr_east",
+    "name": "SRO Bengaluru East",
+    "district": "Bengaluru Urban",
+    "taluks": ["Bengaluru East", "Krishnarajapura"],
+    "address": "No. 78, Whitefield Main Road, Bengaluru – 560066",
+    "phone": "080-28456789",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Whitefield", "Marathahalli", "Varthur", "Sarjapur", "Bellandur", "KR Puram"]
+  },
+  {
+    "id": "sro_anekal",
+    "name": "SRO Anekal",
+    "district": "Bengaluru Urban",
+    "taluks": ["Anekal", "Rajarajeshwari Nagar"],
+    "address": "Near Anekal Town Hall, Bengaluru – 562106",
+    "phone": "080-27823456",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Anekal", "Attibele", "Chandapura", "Electronic City", "Jigani", "RR Nagar", "Kengeri"]
+  },
+  {
+    "id": "sro_devanahalli",
+    "name": "SRO Devanahalli",
+    "district": "Bengaluru Rural",
+    "taluks": ["Devanahalli"],
+    "address": "Near Devanahalli Court Complex, Bengaluru Rural – 562110",
+    "phone": "080-27681234",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Devanahalli", "Nandi Hills", "Vijayapura", "Budigere"]
+  },
+  {
+    "id": "sro_doddaballapur",
+    "name": "SRO Doddaballapur",
+    "district": "Bengaluru Rural",
+    "taluks": ["Doddaballapur", "Nelamangala"],
+    "address": "Doddaballapur Town, Bengaluru Rural – 561203",
+    "phone": "080-27651234",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Doddaballapur", "Nelamangala", "Hesarghatta"]
+  },
+  {
+    "id": "sro_hosakote",
+    "name": "SRO Hosakote",
+    "district": "Bengaluru Rural",
+    "taluks": ["Hosakote"],
+    "address": "Hosakote Town, Bengaluru Rural – 562114",
+    "phone": "080-27903456",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Hosakote", "Anugondanahalli", "Malur Road"]
+  },
+  {
+    "id": "sro_mysuru",
+    "name": "SRO Mysuru (City)",
+    "district": "Mysuru",
+    "taluks": ["Mysuru"],
+    "address": "No. 1, Irwin Road, Near DC Office, Mysuru – 570001",
+    "phone": "0821-2422100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Mysuru City", "Bogadi", "Kuvempunagar", "Vijayanagar", "Nazarbad"]
+  },
+  {
+    "id": "sro_nanjangud",
+    "name": "SRO Nanjangud",
+    "district": "Mysuru",
+    "taluks": ["Nanjangud", "T. Narasipura"],
+    "address": "Nanjangud Town, Mysuru – 571301",
+    "phone": "08221-220345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Nanjangud", "T. Narasipura", "Hullahalli"]
+  },
+  {
+    "id": "sro_hunsur",
+    "name": "SRO Hunsur",
+    "district": "Mysuru",
+    "taluks": ["Hunsur", "H.D. Kote", "Periyapatna"],
+    "address": "Hunsur Town, Mysuru District – 571105",
+    "phone": "08222-252345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Hunsur", "Periyapatna", "H.D. Kote", "Nagarahole"]
+  },
+  {
+    "id": "sro_hassan",
+    "name": "SRO Hassan",
+    "district": "Hassan",
+    "taluks": ["Hassan", "Alur"],
+    "address": "Near DC Office, BM Road, Hassan – 573201",
+    "phone": "08172-268100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Hassan City", "Shanthigrama", "Gorur", "Alur"]
+  },
+  {
+    "id": "sro_channarayapatna",
+    "name": "SRO Channarayapatna",
+    "district": "Hassan",
+    "taluks": ["Channarayapatna"],
+    "address": "Channarayapatna Town, Hassan District – 573116",
+    "phone": "08176-252345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Channarayapatna", "Hunsigere", "Dudda"]
+  },
+  {
+    "id": "sro_belur",
+    "name": "SRO Belur",
+    "district": "Hassan",
+    "taluks": ["Belur", "Sakaleshpur", "Arakalagudu"],
+    "address": "Belur Town, Hassan District – 573115",
+    "phone": "08177-222345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Belur", "Halebidu", "Sakaleshpur", "Arakalagudu"]
+  },
+  {
+    "id": "sro_holenarasipura",
+    "name": "SRO Holenarasipura",
+    "district": "Hassan",
+    "taluks": ["Holenarasipura"],
+    "address": "Holenarasipura Town, Hassan District – 573211",
+    "phone": "08175-232345",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Holenarasipura", "Mosale", "Bankal"]
+  },
+  {
+    "id": "sro_mandya",
+    "name": "SRO Mandya",
+    "district": "Mandya",
+    "taluks": ["Mandya", "Srirangapatna"],
+    "address": "Near Court Complex, Mandya – 571401",
+    "phone": "08232-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Mandya City", "Srirangapatna", "Pandavapura Road"]
+  },
+  {
+    "id": "sro_mangaluru",
+    "name": "SRO Mangaluru",
+    "district": "Dakshina Kannada",
+    "taluks": ["Mangaluru"],
+    "address": "Lal Bagh, Mangaluru – 575001",
+    "phone": "0824-2495100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Mangaluru City", "Bajpe", "Surathkal", "Ullal", "Mulky"]
+  },
+  {
+    "id": "sro_bantwal",
+    "name": "SRO Bantwal",
+    "district": "Dakshina Kannada",
+    "taluks": ["Bantwal", "Belthangady"],
+    "address": "Bantwal Town, DK District – 574211",
+    "phone": "08255-232100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Bantwal", "Uppinangady", "Belthangady", "Dharmasthala"]
+  },
+  {
+    "id": "sro_puttur",
+    "name": "SRO Puttur",
+    "district": "Dakshina Kannada",
+    "taluks": ["Puttur", "Sullia"],
+    "address": "Puttur Town, DK District – 574201",
+    "phone": "08251-232100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Puttur", "Kadaba", "Sullia", "Subramanya"]
+  },
+  {
+    "id": "sro_udupi",
+    "name": "SRO Udupi",
+    "district": "Udupi",
+    "taluks": ["Udupi", "Karkala"],
+    "address": "Near DC Office, Udupi – 576101",
+    "phone": "0820-2521100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Udupi City", "Manipal", "Malpe", "Brahmavar", "Karkala", "Moodbidri"]
+  },
+  {
+    "id": "sro_kundapura",
+    "name": "SRO Kundapura",
+    "district": "Udupi",
+    "taluks": ["Kundapura"],
+    "address": "Kundapura Town, Udupi – 576201",
+    "phone": "08254-232100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Kundapura", "Byndoor", "Gangolli"]
+  },
+  {
+    "id": "sro_shivamogga",
+    "name": "SRO Shivamogga",
+    "district": "Shivamogga",
+    "taluks": ["Shivamogga", "Bhadravati"],
+    "address": "Near District Court, Shivamogga – 577201",
+    "phone": "08182-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Shivamogga City", "Bhadravati", "Doddapet"]
+  },
+  {
+    "id": "sro_dharwad",
+    "name": "SRO Dharwad",
+    "district": "Dharwad",
+    "taluks": ["Dharwad"],
+    "address": "Near DC Office, Station Road, Dharwad – 580001",
+    "phone": "0836-2447100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Dharwad City", "Alnavar", "Kalghatgi"]
+  },
+  {
+    "id": "sro_hubli",
+    "name": "SRO Hubli",
+    "district": "Dharwad",
+    "taluks": ["Hubli", "Navalgund", "Kundgol"],
+    "address": "Near Municipal Corporation, Hubli – 580020",
+    "phone": "0836-2362100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Hubli City", "Gokul Road", "Vidyanagar", "Navalgund"]
+  },
+  {
+    "id": "sro_belagavi",
+    "name": "SRO Belagavi",
+    "district": "Belagavi",
+    "taluks": ["Belagavi", "Ramdurg"],
+    "address": "Near DC Office, Club Road, Belagavi – 590001",
+    "phone": "0831-2428100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Belagavi City", "Tilakwadi", "Shahapur", "Ramdurg"]
+  },
+  {
+    "id": "sro_gokak",
+    "name": "SRO Gokak",
+    "district": "Belagavi",
+    "taluks": ["Gokak", "Hukkeri", "Chikkodi"],
+    "address": "Gokak Town, Belagavi – 591307",
+    "phone": "08332-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Gokak", "Hukkeri", "Chikkodi", "Nippani", "Sankeshwar"]
+  },
+  {
+    "id": "sro_tumakuru",
+    "name": "SRO Tumakuru",
+    "district": "Tumakuru",
+    "taluks": ["Tumakuru", "Gubbi"],
+    "address": "Near District Court, Tumakuru – 572101",
+    "phone": "0816-2272100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Tumakuru City", "Kyathasandra", "Gubbi"]
+  },
+  {
+    "id": "sro_kalaburagi",
+    "name": "SRO Kalaburagi",
+    "district": "Kalaburagi",
+    "taluks": ["Kalaburagi", "Aland", "Afzalpur"],
+    "address": "Near DC Office, Sedam Road, Kalaburagi – 585101",
+    "phone": "08472-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Kalaburagi City", "Aland Road", "Afzalpur", "Sedam Road"]
+  },
+  {
+    "id": "sro_ballari",
+    "name": "SRO Ballari",
+    "district": "Ballari",
+    "taluks": ["Ballari", "Sandur"],
+    "address": "Near District Court, Ballari – 583101",
+    "phone": "08392-256100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Ballari City", "Hosapete", "Pampapura", "Sandur", "Toranagallu"]
+  },
+  {
+    "id": "sro_raichur",
+    "name": "SRO Raichur",
+    "district": "Raichur",
+    "taluks": ["Raichur", "Manvi", "Deodurga"],
+    "address": "Near DC Office, Station Road, Raichur – 584101",
+    "phone": "08532-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Raichur City", "Sirwar", "Manvi", "Deodurga"]
+  },
+  {
+    "id": "sro_chikkaballapur",
+    "name": "SRO Chikkaballapur",
+    "district": "Chikkaballapur",
+    "taluks": ["Chikkaballapur", "Gudibanda"],
+    "address": "Near DC Office, Chikkaballapur – 562101",
+    "phone": "08156-272100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Chikkaballapur City", "Nandi Hills Road", "Gudibanda"]
+  },
+  {
+    "id": "sro_kolar",
+    "name": "SRO Kolar",
+    "district": "Kolar",
+    "taluks": ["Kolar", "Bangarpet", "Malur"],
+    "address": "Near DC Office, Kolar – 563101",
+    "phone": "08152-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Kolar City", "Bangarpet", "Malur", "KGF"]
+  },
+  {
+    "id": "sro_ramanagara",
+    "name": "SRO Ramanagara",
+    "district": "Ramanagara",
+    "taluks": ["Ramanagara", "Magadi"],
+    "address": "Near DC Office, Ramanagara – 562159",
+    "phone": "08027-272100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Ramanagara City", "Bidadi", "Sathanur", "Magadi"]
+  },
+  {
+    "id": "sro_chamarajanagar",
+    "name": "SRO Chamarajanagar",
+    "district": "Chamarajanagar",
+    "taluks": ["Chamarajanagar", "Gundlupete", "Kollegal"],
+    "address": "Near DC Office, Chamarajanagar – 571313",
+    "phone": "08226-222100",
+    "hours": "10:00 AM – 5:30 PM (Mon–Sat, closed 2nd Sat)",
+    "areas": ["Chamarajanagar City", "Gundlupete", "Kollegal", "Yelandur"]
+  }
+]

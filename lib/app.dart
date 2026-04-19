@@ -46,6 +46,8 @@ import 'package:digi_sampatti/features/profile/profile_screen.dart';
 import 'package:digi_sampatti/features/gov_services/gov_services_screen.dart';
 import 'package:digi_sampatti/features/buying_journey/buying_journey_screen.dart';
 import 'package:digi_sampatti/features/buying_journey/advance_receipt_screen.dart';
+import 'package:digi_sampatti/features/buying_journey/deal_connect_screen.dart';
+import 'package:digi_sampatti/features/tokenization/tokenization_screen.dart';
 import 'package:digi_sampatti/features/nri/nri_mode_screen.dart';
 import 'package:digi_sampatti/features/demo/demo_report_screen.dart';
 import 'package:digi_sampatti/features/auth/user_type_screen.dart';
@@ -77,6 +79,10 @@ import 'package:digi_sampatti/features/marketplace/property_search_screen.dart';
 import 'package:digi_sampatti/features/seller/seller_listing_screen.dart';
 import 'package:digi_sampatti/features/escrow/digital_escrow_screen.dart';
 import 'package:digi_sampatti/features/verification/agent_workflow_screen.dart';
+import 'package:digi_sampatti/features/transaction/transaction_flow_screen.dart';
+import 'package:digi_sampatti/features/transaction/negotiation_screen.dart';
+import 'package:digi_sampatti/features/transaction/due_diligence_screen.dart';
+import 'package:digi_sampatti/features/transaction/agreement_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
@@ -269,6 +275,26 @@ final _router = GoRouter(
       builder: (context, state) => const PostPurchaseScreen(),
     ),
     GoRoute(
+      path: '/transaction',
+      name: 'transaction',
+      builder: (context, state) => const TransactionFlowScreen(),
+    ),
+    GoRoute(
+      path: '/negotiation',
+      name: 'negotiation',
+      builder: (context, state) => const NegotiationScreen(),
+    ),
+    GoRoute(
+      path: '/due-diligence',
+      name: 'due-diligence',
+      builder: (context, state) => const DueDiligenceScreen(),
+    ),
+    GoRoute(
+      path: '/agreement',
+      name: 'agreement',
+      builder: (context, state) => const AgreementScreen(),
+    ),
+    GoRoute(
       path: '/guidance-value',
       name: 'guidance-value',
       builder: (context, state) => const GuidanceValueScreen(),
@@ -448,6 +474,23 @@ final _router = GoRouter(
       path: '/advance-receipt',
       name: 'advance-receipt',
       builder: (context, state) => const AdvanceReceiptScreen(),
+    ),
+    GoRoute(
+      path: '/tokenization',
+      name: 'tokenization',
+      builder: (context, state) => const TokenizationScreen(),
+    ),
+    GoRoute(
+      path: '/deal-connect',
+      name: 'deal-connect',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return DealConnectScreen(
+          propertyTitle: extra?['propertyTitle'] as String?,
+          sellerName: extra?['sellerName'] as String?,
+          price: extra?['price'] as String?,
+        );
+      },
     ),
     GoRoute(
       path: '/nri',

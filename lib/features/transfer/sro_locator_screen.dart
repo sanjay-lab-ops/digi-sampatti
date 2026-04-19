@@ -19,8 +19,6 @@ class SroLocatorScreen extends StatefulWidget {
 class _SroLocatorScreenState extends State<SroLocatorScreen> {
   String? _district;
   String? _taluka;
-  String? _hobli;
-  String? _village;
 
   // ── District → Taluka map ─────────────────────────────────────────────────
   static const Map<String, List<String>> _talukas = {
@@ -277,9 +275,18 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
 
   List<String> get _districtList => _talukas.keys.toList()..sort();
   List<String> get _talukaList   => _district == null ? [] : (_talukas[_district] ?? []);
-  List<String> get _hobliList    => _taluka  == null ? [] : (_hoblis[_taluka]   ?? []);
-  List<String> get _villageList  => _hobli   == null ? [] : (_villages[_hobli]  ?? []);
-  List<_SroEntry> get _sroResults => _district == null ? [] : (_sroTable[_district] ?? []);
+
+  List<_SroEntry> get _sroResults {
+    if (_district == null) return [];
+    final all = _sroTable[_district] ?? [];
+    if (_taluka == null) return all;
+    // Filter to SROs matching the selected taluka name
+    final q = _taluka!.toLowerCase();
+    final filtered = all.where((e) =>
+      e.sro.toLowerCase().contains(q) || q.contains(e.sro.toLowerCase())
+    ).toList();
+    return filtered.isEmpty ? all : filtered;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -348,52 +355,25 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
 
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Row 1 — District + Taluka
-                        Row(children: [
-                          Expanded(child: _buildDropdown(
-                            label: 'DISTRICT',
-                            value: _district,
-                            items: _districtList,
-                            onChanged: (v) => setState(() {
-                              _district = v; _taluka = null;
-                              _hobli = null; _village = null;
-                            }),
-                          )),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildDropdown(
-                            label: 'TALUKA',
-                            value: _taluka,
-                            items: _talukaList,
-                            onChanged: _district == null ? null : (v) => setState(() {
-                              _taluka = v; _hobli = null; _village = null;
-                            }),
-                          )),
-                        ]),
-                        const SizedBox(height: 12),
-                        // Row 2 — Hobli/Town + Village
-                        Row(children: [
-                          Expanded(child: _buildDropdown(
-                            label: 'HOBLI / TOWN',
-                            value: _hobli,
-                            items: _hobliList,
-                            onChanged: _taluka == null ? null : (v) => setState(() {
-                              _hobli = v; _village = null;
-                            }),
-                          )),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildDropdown(
-                            label: 'INDEX II: VILLAGE',
-                            value: _village,
-                            items: _villageList,
-                            onChanged: _hobli == null ? null : (v) => setState(() {
-                              _village = v;
-                            }),
-                          )),
-                        ]),
-                      ],
-                    ),
+                    child: Row(children: [
+                      Expanded(child: _buildDropdown(
+                        label: 'DISTRICT',
+                        value: _district,
+                        items: _districtList,
+                        onChanged: (v) => setState(() {
+                          _district = v; _taluka = null;
+                        }),
+                      )),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildDropdown(
+                        label: 'TALUKA',
+                        value: _taluka,
+                        items: _talukaList,
+                        onChanged: _district == null ? null : (v) => setState(() {
+                          _taluka = v;
+                        }),
+                      )),
+                    ]),
                   ),
 
                   // ── Results Table ─────────────────────────────────────
@@ -462,38 +442,6 @@ class _SroLocatorScreenState extends State<SroLocatorScreen> {
               ),
             ),
 
-            // ── Quick tools ─────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Row(children: [
-                Expanded(child: _quickTile(
-                  icon: Icons.attach_money,
-                  label: 'Guidance Value',
-                  sub: 'Check area rate',
-                  color: AppColors.teal,
-                  onTap: () => context.push('/guidance-value'),
-                )),
-                const SizedBox(width: 10),
-                Expanded(child: _quickTile(
-                  icon: Icons.calculate_outlined,
-                  label: 'Stamp Duty',
-                  sub: 'Calculate cost',
-                  color: AppColors.arthBlue,
-                  onTap: () => context.push('/transfer/stamp-duty'),
-                )),
-                const SizedBox(width: 10),
-                Expanded(child: _quickTile(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Book Slot',
-                  sub: 'Kaveri Online',
-                  color: const Color(0xFF003087),
-                  onTap: () async {
-                    final uri = Uri.parse('https://kaverionline.karnataka.gov.in');
-                    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  },
-                )),
-              ]),
-            ),
           ],
         ),
       ),

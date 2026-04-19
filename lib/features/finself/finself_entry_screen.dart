@@ -137,10 +137,21 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
                 const SizedBox(height: 12),
                 Text(
                   'Powered by RBI Account Aggregator',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                ),
+                const SizedBox(height: 16),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  _AaBadge('Finvu'),
+                  const SizedBox(width: 8),
+                  _AaBadge('Sahamati'),
+                  const SizedBox(width: 8),
+                  _AaBadge('RBI Regulated'),
+                ]),
+                const SizedBox(height: 10),
+                Text(
+                  'Your data is fetched with your consent only.\nWe never store your bank credentials.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, height: 1.5),
                 ),
               ],
             ),
@@ -150,5 +161,29 @@ class _FinselfEntryScreenState extends State<FinselfEntryScreen>
     ),
   ),
 );
+  }
+}
+
+class _AaBadge extends StatelessWidget {
+  final String label;
+  const _AaBadge(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.arthGold.withOpacity(0.25)),
+      ),
+      child: Text(label,
+        style: TextStyle(
+          color: AppColors.arthGold.withOpacity(0.7),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        )),
+    );
   }
 }

@@ -144,17 +144,19 @@ class _PostPurchaseScreenState extends ConsumerState<PostPurchaseScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _properties.isEmpty
-              ? _buildEmpty()
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    _infoBox(),
-                    const SizedBox(height: 16),
-                    ..._properties.map(_buildPropertyCard),
-                    const SizedBox(height: 80),
-                  ],
-                ),
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _stepsGuide(),
+                const SizedBox(height: 16),
+                if (_properties.isNotEmpty) ...[
+                  _infoBox(),
+                  const SizedBox(height: 16),
+                  ..._properties.map(_buildPropertyCard),
+                ],
+                const SizedBox(height: 80),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addProperty,
         backgroundColor: AppColors.primary,
@@ -162,6 +164,45 @@ class _PostPurchaseScreenState extends ConsumerState<PostPurchaseScreen> {
         label: const Text('Track My Property',
             style: TextStyle(color: Colors.white)),
       ),
+    );
+  }
+
+  Widget _stepsGuide() {
+    const steps = [
+      (Icons.edit_document, Color(0xFF1565C0), 'Step 1: Khata Mutation', 'Transfer municipal/revenue records to your name within 6 months of registration. Required for property tax, building permits, and resale.\n\nDo: Bhoomi mutation (revenue dept) + BBMP/Panchayat Khata transfer.\nDocuments needed: Sale deed copy, EC, RTC.'),
+      (Icons.account_balance, Color(0xFF2E7D32), 'Step 2: Pay Property Tax', 'Pay BBMP / Panchayat property tax annually before April 1st. Late payment attracts penalty + interest.\n\nPay online at bbmpeaasthi.karnataka.gov.in or at ward office.'),
+      (Icons.currency_rupee, Color(0xFF00695C), 'Step 3: Update Bank & Insurance', 'Update your address in bank accounts, insurance policies, and income tax (ITR) with the new property address.\n\nTDS on property purchase above ₹50 lakhs — file Form 26QB within 30 days of registration.'),
+      (Icons.photo_camera_outlined, Color(0xFF5D4037), 'Step 4: Photograph & Store Documents', 'Keep certified copies of: Sale deed, EC (get fresh EC after registration), RTC, Khata certificate.\n\nStore in DigiSampatti vault. Share access with family members.'),
+      (Icons.security_outlined, Color(0xFF6A1B9A), 'Step 5: Annual Legal Health Check', 'Every year, check: EC for new encumbrances, court cases in your name/property, RTC for any mutation by strangers.\n\nDigiSampatti auto-alerts you if any change is detected.'),
+      (Icons.trending_up, Color(0xFF0277BD), 'Step 6: Resale Readiness', 'When you decide to sell: Get fresh EC (30-year), renew Khata, update RTC, check current guidance value.\n\nSellers with pre-verified documents sell 40% faster on DigiSampatti.'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(children: [
+            Container(width: 36, height: 36,
+              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.home_work_outlined, color: AppColors.primary, size: 18)),
+            const SizedBox(width: 12),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Post-Purchase Checklist', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark)),
+              Text('6 things to do after property registration', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+            ])),
+          ]),
+        ),
+        const Divider(height: 1),
+        ...steps.asMap().entries.map((e) {
+          final s = e.value;
+          return _StepTile(icon: s.$1, color: s.$2, title: s.$3, body: s.$4);
+        }),
+      ]),
     );
   }
 
@@ -543,4 +584,45 @@ class _AddPropertyDialogState extends State<_AddPropertyDialog> {
       ),
     ],
   );
+}
+
+class _StepTile extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  final String title, body;
+  const _StepTile({required this.icon, required this.color, required this.title, required this.body});
+  @override
+  State<_StepTile> createState() => _StepTileState();
+}
+
+class _StepTileState extends State<_StepTile> {
+  bool _open = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      InkWell(
+        onTap: () => setState(() => _open = !_open),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(children: [
+            Container(width: 32, height: 32,
+              decoration: BoxDecoration(color: widget.color.withOpacity(0.1), shape: BoxShape.circle),
+              child: Icon(widget.icon, color: widget.color, size: 16)),
+            const SizedBox(width: 12),
+            Expanded(child: Text(widget.title,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                color: _open ? widget.color : AppColors.textDark))),
+            Icon(_open ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textLight),
+          ]),
+        ),
+      ),
+      if (_open)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(60, 0, 16, 12),
+          child: Text(widget.body,
+            style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.6)),
+        ),
+      const Divider(height: 1),
+    ]);
+  }
 }

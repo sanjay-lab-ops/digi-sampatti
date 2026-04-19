@@ -395,6 +395,120 @@ const Map<String, Map<String, String>> _strings = {
     'mr': 'अॅप\nआवृत्ती', 'bn': 'অ্যাপ\nভার্সন', 'gu': 'એપ\nઆ版本',
     'pa': 'ਐਪ\nਵਰਜ਼ਨ', 'ur': 'ایپ\nورژن',
   },
+
+  // ── Home screen role cards ────────────────────────────────────────────────────
+  'whatBringsYouHere': {
+    'en': 'What brings you here today?',
+    'hi': 'आज आप यहाँ क्यों आए हैं?',
+    'kn': 'ಇಂದು ನೀವು ಇಲ್ಲಿ ಏಕೆ ಬಂದಿದ್ದೀರಿ?',
+    'ta': 'இன்று நீங்கள் இங்கு ஏன் வந்தீர்கள்?',
+    'te': 'నేడు మీరు ఇక్కడకు ఎందుకు వచ్చారు?',
+    'ml': 'ഇന്ന് നിങ്ങൾ ഇവിടെ എന്തിന് വന്നു?',
+    'mr': 'आज तुम्ही इथे का आलात?',
+    'bn': 'আজ আপনি এখানে কেন এসেছেন?',
+    'gu': 'આજ તમે અહીં શા માટે આવ્યા?',
+    'pa': 'ਅੱਜ ਤੁਸੀਂ ਇੱਥੇ ਕਿਉਂ ਆਏ ਹੋ?',
+    'ur': 'آج آپ یہاں کیوں آئے ہیں؟',
+  },
+  'imABuyer': {
+    'en': "I'm a Buyer", 'hi': 'मैं खरीदार हूँ', 'kn': 'ನಾನು ಖರೀದಿದಾರ',
+    'ta': 'நான் வாங்குபவன்', 'te': 'నేను కొనుగోలుదారుడిని', 'ml': 'ഞാൻ ഒരു വാങ്ങുന്നവൻ',
+    'mr': 'मी खरेदीदार आहे', 'bn': 'আমি একজন ক্রেতা', 'gu': 'હું ખરીદનાર છું',
+    'pa': 'ਮੈਂ ਖਰੀਦਦਾਰ ਹਾਂ', 'ur': 'میں خریدار ہوں',
+  },
+  'imASeller': {
+    'en': "I'm a Seller", 'hi': 'मैं विक्रेता हूँ', 'kn': 'ನಾನು ಮಾರಾಟಗಾರ',
+    'ta': 'நான் விற்பவன்', 'te': 'నేను విక్రేతను', 'ml': 'ഞാൻ ഒരു വിൽക്കുന്നവൻ',
+    'mr': 'मी विक्रेता आहे', 'bn': 'আমি একজন বিক্রেতা', 'gu': 'હું વેચાણ કરનાર છું',
+    'pa': 'ਮੈਂ ਵੇਚਣ ਵਾਲਾ ਹਾਂ', 'ur': 'میں بیچنے والا ہوں',
+  },
+  'propertyFinanceTools': {
+    'en': 'Property & Finance Tools',
+    'hi': 'संपत्ति और वित्त उपकरण',
+    'kn': 'ಆಸ್ತಿ ಮತ್ತು ಹಣಕಾಸು ಉಪಕರಣಗಳು',
+    'ta': 'சொத்து & நிதி கருவிகள்',
+    'te': 'ఆస్తి & ఆర్థిక సాధనాలు',
+    'ml': 'സ്വത്ത് & ഫിനാൻസ് ടൂളുകൾ',
+    'mr': 'मालमत्ता आणि वित्त साधने',
+    'bn': 'সম্পত্তি ও অর্থ সরঞ্জাম',
+    'gu': 'મિલકત અને ફાઇનાન્સ સાધનો',
+    'pa': 'ਜਾਇਦਾਦ ਅਤੇ ਵਿੱਤ ਸਾਧਨ',
+    'ur': 'پراپرٹی اور فنانس ٹولز',
+  },
+  'quickAccessLabel': {
+    'en': 'Quick Access', 'hi': 'त्वरित पहुँच', 'kn': 'ತ್ವರಿತ ಪ್ರವೇಶ',
+    'ta': 'விரைவு அணுகல்', 'te': 'త్వరిత యాక్సెస్', 'ml': 'ദ്രുത ആക്സസ്',
+    'mr': 'जलद प्रवेश', 'bn': 'দ্রুত অ্যাক্সেস', 'gu': 'ઝડપી ઍક્સેસ',
+    'pa': 'ਤੇਜ਼ ਪਹੁੰਚ', 'ur': 'فوری رسائی',
+  },
+  'sroLocator': {
+    'en': 'SRO\nLocator', 'hi': 'SRO\nखोजक', 'kn': 'SRO\nಪತ್ತೆ',
+    'ta': 'SRO\nகண்டுபிடிப்பு', 'te': 'SRO\nలొకేటర్', 'ml': 'SRO\nലൊക്കേറ്റർ',
+    'mr': 'SRO\nशोधक', 'bn': 'SRO\nলোকেটার', 'gu': 'SRO\nલોકેટર',
+    'pa': 'SRO\n�ੋਜਕ', 'ur': 'SRO\nلوکیٹر',
+  },
+  'stampDutyLabel': {
+    'en': 'Stamp\nDuty', 'hi': 'स्टाम्प\nड्यूटी', 'kn': 'ಸ್ಟಾಂಪ್\nಶುಲ್ಕ',
+    'ta': 'ஸ்டாம்ப்\nதீர்வை', 'te': 'స్టాంప్\nడ్యూటీ', 'ml': 'സ്റ്റാംപ്\nഡ്യൂട്ടി',
+    'mr': 'मुद्रांक\nशुल्क', 'bn': 'স্ট্যাম্প\nশুল্ক', 'gu': 'સ્ટેમ્પ\nડ્યૂટી',
+    'pa': 'ਸਟੈਂਪ\nਡਿਊਟੀ', 'ur': 'اسٹامپ\nڈیوٹی',
+  },
+  'guidanceValue': {
+    'en': 'Guidance\nValue', 'hi': 'मार्गदर्शन\nमूल्य', 'kn': 'ಮಾರ್ಗದರ್ಶನ\nಮೌಲ್ಯ',
+    'ta': 'வழிகாட்டல்\nமதிப்பு', 'te': 'గైడెన్స్\nవాల్యూ', 'ml': 'ഗൈഡൻസ്\nവാല്യൂ',
+    'mr': 'मार्गदर्शन\nमूल्य', 'bn': 'গাইডেন্স\nভ্যালু', 'gu': 'ગાઇડન્સ\nવેલ્યુ',
+    'pa': 'ਮਾਰਗਦਰਸ਼ਨ\nਮੁੱਲ', 'ur': 'گائیڈنس\nویلیو',
+  },
+  'propertyTaxLabel': {
+    'en': 'Property\nTax', 'hi': 'संपत्ति\nकर', 'kn': 'ಆಸ್ತಿ\nತೆರಿಗೆ',
+    'ta': 'சொத்து\nவரி', 'te': 'ఆస్తి\nపన్ను', 'ml': 'സ്വത്ത്\nനികുതി',
+    'mr': 'मालमत्ता\nकर', 'bn': 'সম্পত্তি\nকর', 'gu': 'મિલકત\nવેરો',
+    'pa': 'ਜਾਇਦਾਦ\nਟੈਕਸ', 'ur': 'پراپرٹی\nٹیکس',
+  },
+  'emiCalc': {
+    'en': 'EMI\nCalc', 'hi': 'EMI\nकैलकुलेटर', 'kn': 'EMI\nಲೆಕ್ಕ',
+    'ta': 'EMI\nகணக்கீடு', 'te': 'EMI\nలెక్క', 'ml': 'EMI\nകാൽക്',
+    'mr': 'EMI\nकॅल्क', 'bn': 'EMI\nক্যালক', 'gu': 'EMI\nકૅલ્ક',
+    'pa': 'EMI\nਕੈਲਕ', 'ur': 'EMI\nکیلک',
+  },
+  'buyerGuideLabel': {
+    'en': 'Buyer\nGuide', 'hi': 'खरीदार\nगाइड', 'kn': 'ಖರೀದಿದಾರ\nಮಾರ್ಗದರ್ಶಿ',
+    'ta': 'வாங்குபவர்\nவழிகாட்டி', 'te': 'కొనుగోలుదారు\nగైడ్', 'ml': 'വാങ്ങുന്നവർ\nഗൈഡ്',
+    'mr': 'खरेदीदार\nमार्गदर्शिका', 'bn': 'ক্রেতা\nগাইড', 'gu': 'ખરીદનાર\nગાઇડ',
+    'pa': 'ਖਰੀਦਦਾਰ\nਗਾਈਡ', 'ur': 'خریدار\nگائیڈ',
+  },
+  'glossaryLabel': {
+    'en': 'Glossary', 'hi': 'शब्दकोश', 'kn': 'ಪದಕೋಶ',
+    'ta': 'சொல்லகராதி', 'te': 'గ్లాసరీ', 'ml': 'ഗ്ലോസ്സറി',
+    'mr': 'शब्दकोश', 'bn': 'গ্লোসারি', 'gu': 'ગ્લોસરી',
+    'pa': 'ਸ਼ਬਦਕੋਸ਼', 'ur': 'لغت',
+  },
+  'finSelfLite': {
+    'en': 'FinSelf\nLite', 'hi': 'फिनसेल्फ\nलाइट', 'kn': 'ಫಿನ್‌ಸೆಲ್ಫ್\nಲೈಟ್',
+    'ta': 'ஃபின்செல்ஃப்\nலைட்', 'te': 'ఫిన్‌సెల్ఫ్\nలైట్', 'ml': 'ഫിൻസെൽഫ്\nലൈറ്റ്',
+    'mr': 'फिनसेल्फ\nलाइट', 'bn': 'ফিনসেলফ\nলাইট', 'gu': 'ફિનસેલ્ફ\nલાઇટ',
+    'pa': 'ਫਿਨਸੈਲਫ\nਲਾਈਟ', 'ur': 'فن سیلف\nلائٹ',
+  },
+  'postPurchase': {
+    'en': 'Post\nPurchase', 'hi': 'खरीद\nबाद', 'kn': 'ಖರೀದಿ\nನಂತರ',
+    'ta': 'வாங்கிய\nபிறகு', 'te': 'కొనుగోలు\nతర్వాత', 'ml': 'വാങ്ങിയ\nശേഷം',
+    'mr': 'खरेदी\nनंतर', 'bn': 'কেনার\nপরে', 'gu': 'ખરીદ\nપછી',
+    'pa': 'ਖਰੀਦ\nਬਾਅਦ', 'ur': 'خریداری\nبعد',
+  },
+  'findProperty': {
+    'en': 'Find Your Property', 'hi': 'अपनी संपत्ति खोजें', 'kn': 'ನಿಮ್ಮ ಆಸ್ತಿ ಹುಡುಕಿ',
+    'ta': 'உங்கள் சொத்தை கண்டுபிடியுங்கள்', 'te': 'మీ ఆస్తి కనుగొనండి',
+    'ml': 'നിങ്ങളുടെ സ്വത്ത് കണ്ടെത്തുക', 'mr': 'तुमची मालमत्ता शोधा',
+    'bn': 'আপনার সম্পত্তি খুঁজুন', 'gu': 'તમારી મિલકત શોધો',
+    'pa': 'ਆਪਣੀ ਜਾਇਦਾਦ ਲੱਭੋ', 'ur': 'اپنی پراپرٹی تلاش کریں',
+  },
+  'listProperty': {
+    'en': 'List Your Property', 'hi': 'अपनी संपत्ति सूचीबद्ध करें', 'kn': 'ನಿಮ್ಮ ಆಸ್ತಿ ಪಟ್ಟಿ ಮಾಡಿ',
+    'ta': 'உங்கள் சொத்தை பட்டியலிடுங்கள்', 'te': 'మీ ఆస్తి లిస్ట్ చేయండి',
+    'ml': 'നിങ്ങളുടെ സ്വത്ത് ലിസ്റ്റ് ചെയ്യുക', 'mr': 'तुमची मालमत्ता यादीत टाका',
+    'bn': 'আপনার সম্পত্তি তালিকাভুক্ত করুন', 'gu': 'તમારી મિલકત સૂચિ કરો',
+    'pa': 'ਆਪਣੀ ਜਾਇਦਾਦ ਸੂਚੀਬੱਧ ਕਰੋ', 'ur': 'اپنی پراپرٹی کی فہرست بنائیں',
+  },
 };
 
 // ─── Strings accessor ─────────────────────────────────────────────────────────
@@ -467,8 +581,25 @@ class AppL10n {
   // ── Misc ─────────────────────────────────────────────────────────────────────
   String get viewAll            => _t('viewAll');
   String get whyArthId          => _t('whyArthId');
-  // Backwards compat alias (was whyDigiSampatti)
   String get whyDigiSampatti    => _t('whyArthId');
   String get knowBeforeYouBuyTag => _t('knowBeforeYouBuyTag');
   String get verifyInMinutes    => _t('verifyInMinutes');
+
+  // ── Home screen role cards & tools ───────────────────────────────────────────
+  String get whatBringsYouHere  => _t('whatBringsYouHere');
+  String get imABuyer           => _t('imABuyer');
+  String get imASeller          => _t('imASeller');
+  String get propertyFinanceTools => _t('propertyFinanceTools');
+  String get quickAccessLabel   => _t('quickAccessLabel');
+  String get sroLocator         => _t('sroLocator');
+  String get stampDutyLabel     => _t('stampDutyLabel');
+  String get guidanceValue      => _t('guidanceValue');
+  String get propertyTaxLabel   => _t('propertyTaxLabel');
+  String get emiCalc            => _t('emiCalc');
+  String get buyerGuideLabel    => _t('buyerGuideLabel');
+  String get glossaryLabel      => _t('glossaryLabel');
+  String get finSelfLite        => _t('finSelfLite');
+  String get postPurchase       => _t('postPurchase');
+  String get findProperty       => _t('findProperty');
+  String get listProperty       => _t('listProperty');
 }

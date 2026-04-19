@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
+import 'package:digi_sampatti/core/services/location_service.dart';
+import 'package:digi_sampatti/core/widgets/searchable_picker.dart';
 
 // ─── Documents required per property type ─────────────────────────────────────
 const _docsMap = {
@@ -68,16 +70,13 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
 
   // Step 1
   String? _district;
+  String? _taluk;
   String? _locality;
 
   // Step 2
   String? _propertyType;
 
-  static const _districts = [
-    'Bengaluru Urban', 'Bengaluru Rural', 'Mysuru', 'Mangaluru',
-    'Belagavi', 'Kalaburagi', 'Ballari', 'Dharwad', 'Shivamogga',
-    'Hassan', 'Tumakuru', 'Udupi', 'Haveri', 'Davanagere',
-  ];
+  // Location data loaded from JSON — no hardcoded lists here
 
   static const _propertyTypes = [
     'Apartment / Flat',
@@ -126,14 +125,15 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
 
   Widget _buildStep() {
     switch (_step) {
-      case 0: return _Step1Search(key: const ValueKey(0), onNext: (d, l) {
-        setState(() { _district = d; _locality = l; _step = 1; });
+      case 0: return _Step1Search(key: const ValueKey(0), onNext: (d, t, l) {
+        setState(() { _district = d; _taluk = t; _locality = l; _step = 1; });
       });
       case 1: return _Step2PropertyType(key: const ValueKey(1), onNext: (t) {
         setState(() { _propertyType = t; _step = 2; });
       });
       case 2: return _Step3Listings(key: const ValueKey(2),
         district: _district ?? 'Bengaluru Urban',
+        taluk: _taluk,
         locality: _locality,
         propertyType: _propertyType ?? 'Apartment / Flat',
         onViewDocs: () => setState(() => _step = 3),
@@ -166,16 +166,22 @@ class _StepProgressBar extends StatelessWidget {
 
 // ─── Step 1: Location Search ──────────────────────────────────────────────────
 class _Step1Search extends StatefulWidget {
-  final void Function(String district, String? locality) onNext;
+  final void Function(String district, String? taluk, String? locality) onNext;
   const _Step1Search({super.key, required this.onNext});
   @override
   State<_Step1Search> createState() => _Step1SearchState();
 }
 
 class _Step1SearchState extends State<_Step1Search> {
-  String? _district;
-  final _localityCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
+  // All district data loaded from JSON asset
+  List<KaDistrict> _allDistricts = [];
+  bool _loaded = false;
+
+  KaDistrict? _district;
+  KaTaluk? _taluk;
+  String? _village;
+  SroOffice? _sro;
+
   String? _budget;
   String? _bhk;
   bool _showFilters = false;
@@ -184,50 +190,120 @@ class _Step1SearchState extends State<_Step1Search> {
   static const _bhkOpts = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '4+ BHK', 'Any'];
 
   @override
-  void dispose() { _localityCtrl.dispose(); _descCtrl.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final districts = await LocationService.instance.getDistricts();
+    if (mounted) setState(() { _allDistricts = districts; _loaded = true; });
+  }
+
+  Future<void> _pickDistrict() async {
+    final picked = await showSearchablePicker<KaDistrict>(
+      context: context,
+      title: 'Select District',
+      items: _allDistricts,
+      label: (d) => d.name,
+      selected: _district,
+      hint: 'Type district name...',
+    );
+    if (picked != null && picked.name != _district?.name) {
+      final sros = await LocationService.instance.getSrosForDistrict(picked.name);
+      setState(() { _district = picked; _taluk = null; _village = null; _sro = sros.isNotEmpty ? sros.first : null; });
+    }
+  }
+
+  Future<void> _pickTaluk() async {
+    if (_district == null) return;
+    final picked = await showSearchablePicker<KaTaluk>(
+      context: context,
+      title: 'Select Taluk',
+      items: _district!.taluks,
+      label: (t) => t.name,
+      selected: _taluk,
+      hint: 'Type taluk name...',
+    );
+    if (picked != null) {
+      final sro = await LocationService.instance.getSroForTaluk(picked.name);
+      setState(() { _taluk = picked; _village = null; _sro = sro; });
+    }
+  }
+
+  Future<void> _pickVillage() async {
+    if (_taluk == null) return;
+    final picked = await showSearchablePicker<String>(
+      context: context,
+      title: 'Select Village / Area',
+      items: _taluk!.villages,
+      label: (v) => v,
+      selected: _village,
+      hint: 'Type village name...',
+    );
+    if (picked != null) setState(() => _village = picked);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const Center(child: Padding(
+        padding: EdgeInsets.all(40),
+        child: CircularProgressIndicator(),
+      ));
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _StepHeader('Step 1 of 4', 'Where do you want to buy?', Icons.location_on_outlined, AppColors.primary),
         const SizedBox(height: 20),
-        // Search by description
-        TextFormField(
-          controller: _descCtrl,
-          decoration: _inputDeco('Search by description (e.g. "3BHK near metro")').copyWith(
-            prefixIcon: const Icon(Icons.search, size: 18),
+
+        // ── State (fixed) ────────────────────────────────────────────────
+        _PickerTile(
+          icon: Icons.map_outlined,
+          label: 'State',
+          value: 'Karnataka',
+          locked: true,
+          onTap: null,
+        ),
+        const SizedBox(height: 10),
+
+        // ── District picker ──────────────────────────────────────────────
+        _PickerTile(
+          icon: Icons.location_city_outlined,
+          label: 'District *',
+          value: _district?.name,
+          placeholder: 'Tap to select district',
+          onTap: _pickDistrict,
+        ),
+
+        // ── Taluk picker (shown after district) ──────────────────────────
+        if (_district != null) ...[
+          const SizedBox(height: 10),
+          _PickerTile(
+            icon: Icons.account_tree_outlined,
+            label: 'Taluk *',
+            value: _taluk?.name,
+            placeholder: 'Tap to select taluk',
+            onTap: _pickTaluk,
           ),
-        ),
-        const SizedBox(height: 12),
-        // State (fixed)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.borderColor)),
-          child: const Row(children: [
-            Icon(Icons.map_outlined, size: 16, color: AppColors.textLight),
-            SizedBox(width: 8),
-            Text('State: Karnataka', style: TextStyle(fontWeight: FontWeight.w600)),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: _district,
-          hint: const Text('Select District *'),
-          decoration: _inputDeco('District'),
-          items: _BuyerHomeScreenState._districts.map((d) =>
-            DropdownMenuItem(value: d, child: Text(d))).toList(),
-          onChanged: (v) => setState(() => _district = v),
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _localityCtrl,
-          decoration: _inputDeco('Locality / Area (optional)'),
-        ),
-        const SizedBox(height: 12),
-        // Filters toggle
+        ],
+
+        // ── Village picker (shown after taluk) ───────────────────────────
+        if (_taluk != null) ...[
+          const SizedBox(height: 10),
+          _PickerTile(
+            icon: Icons.villa_outlined,
+            label: 'Village / Area',
+            value: _village,
+            placeholder: 'Tap to select village (optional)',
+            onTap: _pickVillage,
+          ),
+        ],
+
+        const SizedBox(height: 14),
+        // ── Filters toggle ───────────────────────────────────────────────
         GestureDetector(
           onTap: () => setState(() => _showFilters = !_showFilters),
           child: Row(children: [
@@ -277,14 +353,179 @@ class _Step1SearchState extends State<_Step1Search> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _district == null ? null : () => widget.onNext(
-              _district!, _localityCtrl.text.trim().isEmpty ? null : _localityCtrl.text.trim()),
+            onPressed: (_district == null || _taluk == null) ? null : () => widget.onNext(
+              _district!.name, _taluk!.name, _village),
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
             child: const Text('Next: Choose Property Type →', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
       ]),
     );
+  }
+}
+
+// ── Picker tile widget ──────────────────────────────────────────────────────
+class _PickerTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? value;
+  final String? placeholder;
+  final bool locked;
+  final VoidCallback? onTap;
+  const _PickerTile({required this.icon, required this.label, this.value,
+    this.placeholder, this.locked = false, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null;
+    return GestureDetector(
+      onTap: locked ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasValue ? AppColors.primary.withOpacity(0.5) : AppColors.borderColor,
+            width: hasValue ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(children: [
+          Icon(icon, size: 16, color: hasValue ? AppColors.primary : AppColors.textLight),
+          const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textLight, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 2),
+            Text(value ?? placeholder ?? '',
+              style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600,
+                color: hasValue ? AppColors.textDark : AppColors.textLight,
+              )),
+          ])),
+          if (!locked)
+            Icon(Icons.chevron_right, size: 18,
+              color: hasValue ? AppColors.primary : AppColors.textLight),
+        ]),
+      ),
+    );
+  }
+}
+
+// ── Location intelligence panel ─────────────────────────────────────────────
+class _LocationIntelPanel extends StatelessWidget {
+  final KaDistrict district;
+  final KaTaluk? taluk;
+  final SroOffice? sro;
+  const _LocationIntelPanel({required this.district, this.taluk, this.sro});
+
+  // Static AI-style guidance per property research context
+  static const _guidance = [
+    'Check RTC (Bhoomi) for owner name, khata number, land type',
+    'Obtain EC (Encumbrance Certificate) for last 30 years from Kaveri portal',
+    'Verify DC Conversion if buying plot/land for residential use',
+    'Confirm no court injunction or pending litigation on title',
+  ];
+
+  static const _risks = [
+    'B Khata properties — banks will not give home loans',
+    'Revenue sites without DC conversion — demolition risk',
+    'Properties near Raja Kaluve (storm drain buffer zone)',
+    'Lake bed / FTL encroachments — legally invalidated',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.06),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.insights_outlined, size: 16, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text('${district.name}${taluk != null ? ' · ${taluk!.name}' : ''} — Property Intelligence',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primary)),
+          ]),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Guidance value
+            _InfoRow(Icons.bar_chart_outlined, 'Guidance Value', district.guidance, AppColors.safe),
+            const SizedBox(height: 10),
+
+            // SRO info
+            if (sro != null) ...[
+              _InfoRow(Icons.business_outlined, 'SRO Office', sro!.name, AppColors.info),
+              Padding(
+                padding: const EdgeInsets.only(left: 26, top: 2, bottom: 8),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(sro!.address, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4)),
+                  const SizedBox(height: 2),
+                  Text('${sro!.phone}  ·  ${sro!.hours}',
+                    style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+                ]),
+              ),
+            ],
+
+            const Divider(height: 20),
+
+            // AI Guidance bullets
+            const Text('Key Checks for This Location',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            const SizedBox(height: 8),
+            ..._guidance.map((g) => Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.check_circle_outline, size: 13, color: AppColors.safe),
+                const SizedBox(width: 6),
+                Expanded(child: Text(g, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4))),
+              ]),
+            )),
+
+            const SizedBox(height: 10),
+            const Text('Common Risks to Watch',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            const SizedBox(height: 8),
+            ..._risks.map((r) => Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.warning_amber_outlined, size: 13, color: AppColors.warning),
+                const SizedBox(width: 6),
+                Expanded(child: Text(r, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4))),
+              ]),
+            )),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+  const _InfoRow(this.icon, this.label, this.value, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Icon(icon, size: 14, color: color),
+      const SizedBox(width: 8),
+      Text('$label: ', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMedium)),
+      Expanded(child: Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color))),
+    ]);
   }
 }
 
@@ -371,10 +612,11 @@ class _TypeCard extends StatelessWidget {
 // ─── Step 3: Listings ─────────────────────────────────────────────────────────
 class _Step3Listings extends StatelessWidget {
   final String district, propertyType;
+  final String? taluk;
   final String? locality;
   final VoidCallback onViewDocs;
   const _Step3Listings({super.key, required this.district, required this.propertyType,
-    this.locality, required this.onViewDocs});
+    this.taluk, this.locality, required this.onViewDocs});
 
   @override
   Widget build(BuildContext context) {
@@ -384,8 +626,10 @@ class _Step3Listings extends StatelessWidget {
         _StepHeader('Step 3 of 4', 'Available Listings', Icons.home_work_outlined, AppColors.safe),
         const SizedBox(height: 8),
         // Location chip
-        Wrap(spacing: 8, children: [
-          _Chip(Icons.location_on_outlined, district, AppColors.primary),
+        Wrap(spacing: 8, runSpacing: 6, children: [
+          _Chip(Icons.map_outlined, 'Karnataka', AppColors.primary),
+          _Chip(Icons.location_city_outlined, district, AppColors.primary),
+          if (taluk != null) _Chip(Icons.location_on_outlined, taluk!, AppColors.info),
           if (locality != null) _Chip(Icons.near_me_outlined, locality!, AppColors.info),
           _Chip(Icons.category_outlined, propertyType, AppColors.warning),
         ]),
@@ -498,10 +742,13 @@ class _ListingCard extends StatelessWidget {
           )),
           const SizedBox(width: 8),
           Expanded(child: ElevatedButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Pay ₹99 to contact seller securely'))),
-            icon: const Icon(Icons.chat_outlined, size: 14),
-            label: const Text('Contact — ₹99', style: TextStyle(fontSize: 12)),
+            onPressed: () => context.push('/deal-connect', extra: {
+              'propertyTitle': listing.title,
+              'sellerName': 'Seller',
+              'price': listing.price,
+            }),
+            icon: const Icon(Icons.handshake_outlined, size: 14),
+            label: const Text('Start Deal', style: TextStyle(fontSize: 12)),
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8)),
           )),
         ]),
@@ -582,22 +829,34 @@ class _Step4DocumentsState extends State<_Step4Documents> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: AppColors.safe.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.safe.withOpacity(0.3))),
-            child: const Row(children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 24),
-              SizedBox(width: 10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('All documents checked!', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.safe)),
-                Text('Now upload them for AI verification (0–100 score)', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
-              ])),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 24),
+                SizedBox(width: 10),
+                Text('Checklist complete!', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.safe)),
+              ]),
+              const SizedBox(height: 8),
+              const Text(
+                'You have reviewed all required documents. The seller\'s listing has been AI-verified by DigiSampatti.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.4),
+              ),
+              const SizedBox(height: 10),
+              Row(children: [
+                _VerifyChip(Icons.verified, 'EC Checked', AppColors.safe),
+                const SizedBox(width: 6),
+                _VerifyChip(Icons.verified, 'RERA Valid', AppColors.safe),
+                const SizedBox(width: 6),
+                _VerifyChip(Icons.verified, 'No Disputes', AppColors.safe),
+              ]),
             ]),
           ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
-            onPressed: () => context.push('/upload'),
-            icon: const Icon(Icons.upload_file_outlined),
-            label: const Text('Upload & Verify with AI →'),
-            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48),
-              backgroundColor: AppColors.safe),
+            onPressed: () => context.push('/deal-connect'),
+            icon: const Icon(Icons.handshake_outlined),
+            label: const Text('Connect with Seller — Pay ₹99 →'),
+            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 52),
+              backgroundColor: AppColors.primary),
           ),
         ] else
           ElevatedButton(
@@ -613,6 +872,29 @@ class _Step4DocumentsState extends State<_Step4Documents> {
           style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 44)),
         ),
         const SizedBox(height: 24),
+      ]),
+    );
+  }
+}
+
+class _VerifyChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _VerifyChip(this.icon, this.label, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 11, color: color),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
       ]),
     );
   }

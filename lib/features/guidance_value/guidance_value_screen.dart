@@ -2233,12 +2233,10 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
       Row(children: [
         const Icon(Icons.arrow_forward, size: 14, color: Colors.teal),
         const SizedBox(width: 6),
-        Text(
-          '5-year average increase: ${e.trendPct}%/year · '
-          'Projected 2025-26: ~₹${_fmt((e.currentGv * (1 + e.trendPct/100)).round())}/sqft',
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-              color: Colors.teal),
-        ),
+        Expanded(child: Text(
+          '5-yr avg: ${e.trendPct}%/yr · Projected 2025-26: ~₹${_fmt((e.currentGv * (1 + e.trendPct/100)).round())}/sqft',
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.teal),
+        )),
       ]),
     ]),
   );
@@ -2297,53 +2295,29 @@ class _GuidanceValueScreenState extends ConsumerState<GuidanceValueScreen>
     ]),
   );
 
-  // ── IGR PDF Section ─────────────────────────────────────────────────────────
-  Widget _igrPdfSection() => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.borderColor),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Row(children: [
-        Icon(Icons.picture_as_pdf, color: Colors.red, size: 18),
-        SizedBox(width: 8),
-        Text('Official IGR Karnataka PDFs',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+  // ── IGR Official Link (compact) ──────────────────────────────────────────────
+  Widget _igrPdfSection() => GestureDetector(
+    onTap: () async {
+      final uri = Uri.parse('https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en');
+      if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Row(children: [
+        const Icon(Icons.open_in_new, color: AppColors.teal, size: 16),
+        const SizedBox(width: 10),
+        const Expanded(child: Text(
+          'IGR Karnataka — Official Guidance Value Portal',
+          style: TextStyle(fontSize: 12, color: AppColors.teal, fontWeight: FontWeight.w600),
+        )),
+        const Icon(Icons.chevron_right, size: 16, color: AppColors.textLight),
       ]),
-      const SizedBox(height: 8),
-      const Text(
-        'Official guidance value PDFs for every district/taluk/village. '
-        'Download the PDF for your specific area. Updated April 1st each year.',
-        style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.4),
-      ),
-      const SizedBox(height: 12),
-      SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () async {
-            final uri = Uri.parse(
-                'https://igr.karnataka.gov.in/page/Revised+Guidelines+Value/en');
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          icon: const Icon(Icons.open_in_browser, size: 16),
-          label: const Text('Download IGR Guidance Value PDFs →'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.teal,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ),
-      const SizedBox(height: 6),
-      const Text(
-        'For stamp vendors, lawyers, and government officials: '
-        'these PDFs are the legally binding reference.',
-        style: TextStyle(fontSize: 10, color: AppColors.textLight),
-      ),
-    ]),
+    ),
   );
 
   // ── Helper widgets ───────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 name: digi_sampatti
 description: DigiSampatti — India's Private PropTech SaaS Platform. Instant property intelligence, AI-powered risk analysis, and complete due diligence reports for every property transaction.
 publish_to: 'none'
-version: 1.0.6+7
+version: 1.0.7+8
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -111,6 +111,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/lottie/
+    - assets/data/
     - .env
 
 dependency_overrides:
