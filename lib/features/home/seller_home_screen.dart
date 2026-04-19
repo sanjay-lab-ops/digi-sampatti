@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
 import 'package:digi_sampatti/core/services/payment_service.dart';
+import 'package:digi_sampatti/core/services/marketplace_service.dart';
 import 'package:uuid/uuid.dart';
 
 // Documents per property type — aligned with DigiSampatti verification framework
@@ -1096,7 +1097,56 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
     );
     if (launched == true && mounted) {
       setState(() => _chosenPlan = '$planLabel (₹$amount)');
+      _persistToFirestore(planLabel, txnRef);
     }
+  }
+
+  // Save listing + trust score to Firestore after payment initiated.
+  // Fire-and-forget — UI already shows success; don't block on network.
+  void _persistToFirestore(String planLabel, String txnRef) {
+    final ocr = widget.ocrResults;
+    final surveyNumber = ocr.values
+        .map((d) => d['survey_number'] ?? d['surveyNumber'] ?? '')
+        .firstWhere((s) => s.toString().isNotEmpty, orElse: () => '').toString();
+    final ownerName = ocr.values
+        .map((d) => d['owner_name'] ?? d['ownerName'] ?? '')
+        .firstWhere((s) => s.toString().isNotEmpty, orElse: () => '').toString();
+    final result = _computeScore();
+
+    MarketplaceService.createPropertyListing(
+      address: ownerName.isNotEmpty ? 'Survey $surveyNumber, ${widget.district}' : widget.district,
+      district: widget.district,
+      taluk: '',
+      surveyNumber: surveyNumber,
+      propertyType: widget.propertyType,
+      salePrice: 0, // seller sets price separately; 0 = TBD
+      area: 0,
+      areaUnit: 'sqft',
+      listingPlan: planLabel.toLowerCase().replaceAll(' ', '_'),
+      planTxnRef: txnRef,
+    ).then((propId) {
+      MarketplaceService.saveTrustScore(
+        propId: propId,
+        sellerId: '', // filled by service from FirebaseAuth
+        totalScore: result.score,
+        breakdown: {
+          'docReads': result.docsRead * 4,
+          'ownership': result.ownerNames.isNotEmpty ? 20 : 0,
+          'survey': result.surveyNumbers.isNotEmpty ? 15 : 0,
+          'noMortgage': result.mortgageFound ? 0 : 15,
+          'noCourt': result.injunctionFound ? 0 : 10,
+          'landType': result.agriculturalFound ? 0 : 10,
+        },
+        flags: result.flags,
+      );
+      MarketplaceService.updatePropertyVerification(
+        propId: propId,
+        docsVerified: result.docsRead > 0,
+      );
+      MarketplaceService.publishListing(propId);
+    }).catchError((_) {
+      // Network failure — listing data stays locally; retry logic can be added later
+    });
   }
 
   // ── Listing plans ──────────────────────────────────────────────────────────
