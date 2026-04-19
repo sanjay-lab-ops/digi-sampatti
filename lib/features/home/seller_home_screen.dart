@@ -638,9 +638,16 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
     final optional = docs.where((d) => !d.$3).toList();
     final reqUploaded = required.where((d) => _uploaded.containsKey(docs.indexOf(d))).length;
     final allRequiredDone = reqUploaded == required.length;
+    // Count required docs that were uploaded but OCR couldn't read property data
+    final reqWithOcrErrors = required.where((d) {
+      final idx = docs.indexOf(d);
+      return _uploaded.containsKey(idx) && _ocrError.containsKey(idx);
+    }).length;
+    // Generate is allowed only when all required uploaded AND no OCR failures
+    final canGenerate = allRequiredDone && reqWithOcrErrors == 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _SHeader('Step 3 of 4', 'Upload Documents', Icons.upload_file_outlined, AppColors.warning),
         const SizedBox(height: 4),
@@ -708,11 +715,11 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
           )
         else
           ElevatedButton.icon(
-            onPressed: allRequiredDone ? _generateAiScore : null,
+            onPressed: canGenerate ? _generateAiScore : null,
             icon: const Icon(Icons.psychology_outlined),
             label: const Text('Get AI Verification Score →', style: TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 52),
-              backgroundColor: allRequiredDone ? AppColors.safe : null),
+              backgroundColor: canGenerate ? AppColors.safe : null),
           ),
 
         if (!allRequiredDone && !_generatingScore)
@@ -721,7 +728,28 @@ class _SellerStep3DocsState extends State<_SellerStep3Docs> {
             child: Text('Upload ${required.length - reqUploaded} more required document(s) to continue',
               style: const TextStyle(fontSize: 11, color: AppColors.textLight), textAlign: TextAlign.center),
           ),
-        const SizedBox(height: 24),
+        if (allRequiredDone && reqWithOcrErrors > 0 && !_generatingScore)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(
+                  '$reqWithOcrErrors required document(s) could not be read. '
+                  'Tap "Re-upload" on flagged items and upload a clearer photo.',
+                  style: const TextStyle(fontSize: 11, color: Colors.red, height: 1.4),
+                )),
+              ]),
+            ),
+          ),
+        const SizedBox(height: 32),
       ]),
     );
   }
@@ -921,25 +949,29 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
       flags.add('Survey number mismatch: ${uniqueSurveys.join(' vs ')}');
     }
 
-    // Encumbrance
-    if (!mortgageFound) {
-      score += 15; positives.add('No mortgage or charge detected in documents ✓');
-    } else {
-      flags.add('Active mortgage or charge found — buyer inherits liability');
-    }
+    // Encumbrance / Injunction / Agricultural — only award "not found" points
+    // if at least one document was successfully read. Without any OCR data,
+    // "not found" means nothing — we simply have no information.
+    if (docsReadSuccessfully > 0) {
+      if (!mortgageFound) {
+        score += 15; positives.add('No mortgage or charge detected in documents ✓');
+      } else {
+        flags.add('Active mortgage or charge found — buyer inherits liability');
+      }
 
-    // Injunction
-    if (!injunctionFound) {
-      score += 10; positives.add('No court injunction or stay order found ✓');
-    } else {
-      score -= 30; flags.add('CRITICAL: Court injunction or stay order detected');
-    }
+      if (!injunctionFound) {
+        score += 10; positives.add('No court injunction or stay order found ✓');
+      } else {
+        score -= 30; flags.add('CRITICAL: Court injunction or stay order detected');
+      }
 
-    // Agricultural
-    if (!agriculturalFound) {
-      score += 10; positives.add('Land is non-agricultural (safe for construction) ✓');
+      if (!agriculturalFound) {
+        score += 10; positives.add('Land is non-agricultural (safe for construction) ✓');
+      } else {
+        score -= 20; flags.add('Agricultural land detected — construction illegal without DC Conversion');
+      }
     } else {
-      score -= 20; flags.add('Agricultural land detected — construction illegal without DC Conversion');
+      flags.add('No documents successfully read — upload clear, well-lit photos of property documents');
     }
 
     // Khata
@@ -972,7 +1004,7 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
     final bandBg = bandColor.withOpacity(0.15);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _SHeader('Step 4 of 4', 'AI Verification Report', Icons.analytics_outlined, AppColors.primary),
         const SizedBox(height: 16),

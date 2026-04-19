@@ -876,7 +876,7 @@ class _DocumentCompletenessScreenState
                 ],
                 const SizedBox(height: 24),
                 _buildProceedButton(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 48),
               ],
             ),
           ),

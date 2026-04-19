@@ -102,19 +102,14 @@ class _TransactionFlowScreenState extends State<TransactionFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) context.go('/home');
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D1B2A),
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
         ),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Property Transaction', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
@@ -148,7 +143,7 @@ class _TransactionFlowScreenState extends State<TransactionFlowScreen> {
           // Stages list
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
               itemCount: _stages.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
@@ -172,7 +167,7 @@ class _TransactionFlowScreenState extends State<TransactionFlowScreen> {
           ),
         ],
       ),
-    ));
+    );
   }
 }
 
