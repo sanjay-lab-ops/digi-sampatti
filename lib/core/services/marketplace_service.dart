@@ -411,4 +411,39 @@ class MarketplaceService {
     if (!doc.exists) return null;
     return {'id': doc.id, ...doc.data() as Map<String, dynamic>};
   }
+
+  /// Fetch seller profile by display name (for deal connect screen).
+  static Future<Map<String, dynamic>?> getSellerProfileByName(String name) async {
+    final snap = await _sellerProfiles
+        .where('name', isEqualTo: name)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return {'id': snap.docs.first.id, ...snap.docs.first.data() as Map<String, dynamic>};
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BUYER: Search History
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /// Save buyer's property search preferences to Firestore.
+  static Future<void> saveBuyerSearch({
+    required String district,
+    String? taluk,
+    String? village,
+    String? budget,
+    String? bhk,
+    String? propertyType,
+  }) async {
+    if (_uid.isEmpty) return;
+    await _db.collection('users').doc(_uid).collection('searches').add({
+      'district': district,
+      'taluk': taluk,
+      'village': village,
+      'budget': budget,
+      'bhk': bhk,
+      'propertyType': propertyType,
+      'searchedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

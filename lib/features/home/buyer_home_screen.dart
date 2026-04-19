@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/services/location_service.dart';
+import 'package:digi_sampatti/core/services/marketplace_service.dart';
 import 'package:digi_sampatti/core/widgets/searchable_picker.dart';
 
 // ─── Documents required per property type ─────────────────────────────────────
@@ -353,8 +354,16 @@ class _Step1SearchState extends State<_Step1Search> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: (_district == null || _taluk == null) ? null : () => widget.onNext(
-              _district!.name, _taluk!.name, _village),
+            onPressed: (_district == null || _taluk == null) ? null : () {
+              MarketplaceService.saveBuyerSearch(
+                district: _district!.name,
+                taluk: _taluk!.name,
+                village: _village,
+                budget: _budget,
+                bhk: _bhk,
+              ).catchError((_) {});
+              widget.onNext(_district!.name, _taluk!.name, _village);
+            },
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
             child: const Text('Next: Choose Property Type →', style: TextStyle(fontWeight: FontWeight.bold)),
           ),

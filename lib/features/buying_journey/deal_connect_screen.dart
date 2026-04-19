@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:digi_sampatti/core/constants/app_colors.dart';
+import 'package:digi_sampatti/core/services/marketplace_service.dart';
 
 /// Shown when buyer taps "Start Deal" — confirms the ₹99 connection fee
 /// and explains exactly what happens next before going to the transaction dashboard.
@@ -112,6 +113,11 @@ class _DealConnectScreenState extends State<DealConnectScreen>
               ],
             ]),
           ),
+
+          const SizedBox(height: 16),
+
+          // Verify Seller card
+          _VerifySellerCard(sellerName: widget.sellerName ?? 'Seller'),
 
           const SizedBox(height: 24),
 
@@ -277,6 +283,137 @@ class _DealConnectScreenState extends State<DealConnectScreen>
     );
   }
 }
+
+// ─── Verify Seller Card ───────────────────────────────────────────────────────
+
+class _VerifySellerCard extends StatelessWidget {
+  final String sellerName;
+  const _VerifySellerCard({required this.sellerName});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: MarketplaceService.getSellerProfileByName(sellerName),
+      builder: (context, snap) {
+        final profile = snap.data;
+        final loading = snap.connectionState == ConnectionState.waiting;
+
+        final bool aadhar = profile?['aadharVerified'] == true;
+        final bool pan    = profile?['panVerified'] == true;
+        final bool owner  = profile?['ownershipVerified'] == true;
+        final int verifiedCount = [aadhar, pan, owner].where((v) => v).length;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D1B2A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: loading
+                  ? Colors.white12
+                  : verifiedCount >= 2
+                      ? AppColors.safe.withOpacity(0.5)
+                      : Colors.orange.withOpacity(0.5),
+            ),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  color: loading
+                      ? Colors.white12
+                      : verifiedCount >= 2
+                          ? AppColors.safe.withOpacity(0.15)
+                          : Colors.orange.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: loading
+                    ? const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white38)))
+                    : Icon(
+                        verifiedCount >= 2 ? Icons.verified_user_outlined : Icons.person_search_outlined,
+                        size: 18,
+                        color: verifiedCount >= 2 ? AppColors.safe : Colors.orange,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Seller Verification',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(
+                  loading
+                      ? 'Checking seller profile...'
+                      : profile == null
+                          ? 'Profile pending — seller not yet verified'
+                          : '$sellerName · $verifiedCount/3 checks passed',
+                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                ),
+              ])),
+              if (!loading && profile != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: verifiedCount >= 2 ? AppColors.safe.withOpacity(0.15) : Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    verifiedCount >= 2 ? 'Verified' : 'Partial',
+                    style: TextStyle(
+                      color: verifiedCount >= 2 ? AppColors.safe : Colors.orange,
+                      fontSize: 10, fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ]),
+            if (!loading && profile != null) ...[
+              const SizedBox(height: 12),
+              const Divider(color: Colors.white12),
+              const SizedBox(height: 10),
+              Row(children: [
+                _VerifyBadge('Aadhaar', aadhar),
+                const SizedBox(width: 8),
+                _VerifyBadge('PAN', pan),
+                const SizedBox(width: 8),
+                _VerifyBadge('Ownership', owner),
+              ]),
+            ],
+            if (!loading && profile == null) ...[
+              const SizedBox(height: 10),
+              const Text(
+                'This seller has not completed DigiSampatti verification yet. You can still proceed — verification is checked at document stage.',
+                style: TextStyle(color: Colors.white38, fontSize: 10, height: 1.5),
+              ),
+            ],
+          ]),
+        );
+      },
+    );
+  }
+}
+
+class _VerifyBadge extends StatelessWidget {
+  final String label;
+  final bool verified;
+  const _VerifyBadge(this.label, this.verified);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Icon(
+        verified ? Icons.check_circle : Icons.radio_button_unchecked,
+        size: 13,
+        color: verified ? AppColors.safe : Colors.white30,
+      ),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(
+        fontSize: 11, fontWeight: FontWeight.w600,
+        color: verified ? AppColors.safe : Colors.white38,
+      )),
+    ]);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _WhatHappensItem extends StatelessWidget {
   final int step;
