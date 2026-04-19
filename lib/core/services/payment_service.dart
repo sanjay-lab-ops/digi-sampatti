@@ -98,8 +98,7 @@ class PaymentService {
   }
 
   // ─── UPI direct link — works immediately, no API key needed ──────────────
-  // Replace 'digisampatti@upi' with your real registered UPI ID.
-  static const String _upiId = 'digisampatti@upi';
+  static const String _upiId = '8904342255@axl';
 
   /// Opens any UPI app (PhonePe / GPay / BHIM) directly.
   /// Returns true if the intent launched, false if no UPI app found.
@@ -108,8 +107,8 @@ class PaymentService {
     required String reportId,
   }) async {
     final uri = Uri.parse(
-      'upi://pay?pa=$_upiId&pn=Arth ID&am=$amountInRupees'
-      '&cu=INR&tn=Arth ID+Report+%23$reportId&tr=$reportId',
+      'upi://pay?pa=$_upiId&pn=DigiSampatti&am=$amountInRupees'
+      '&cu=INR&tn=DigiSampatti+Report+%23$reportId&tr=$reportId',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -118,17 +117,46 @@ class PaymentService {
     return false;
   }
 
-  /// Opens WhatsApp to +91 number for manual payment confirmation.
+  /// Generic UPI payment — for seller listing plans, deal connect, etc.
+  static Future<bool> openUpiPaymentGeneric({
+    required int amountInRupees,
+    required String purpose,
+    required String txnRef,
+  }) async {
+    final tn = Uri.encodeComponent('DigiSampatti $purpose');
+    final uri = Uri.parse(
+      'upi://pay?pa=$_upiId&pn=DigiSampatti&am=$amountInRupees'
+      '&cu=INR&tn=$tn&tr=$txnRef',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return true;
+    }
+    return false;
+  }
+
+  /// Opens WhatsApp to DigiSampatti business number.
   static Future<void> openWhatsAppPayment({
     required String reportId,
     required int amountInRupees,
   }) async {
-    const phone = '917090654322'; // replace with your WhatsApp business number
+    const phone = '918904342255';
     final msg = Uri.encodeComponent(
-      'Hi Arth ID, I want to pay ₹$amountInRupees for Report #$reportId. '
+      'Hi DigiSampatti, I want to pay ₹$amountInRupees for Report #$reportId. '
       'Please share payment details.',
     );
     final uri = Uri.parse('https://wa.me/$phone?text=$msg');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Opens WhatsApp for any generic purpose (seller plans, deal connect, etc.)
+  static Future<void> openWhatsApp({
+    required String message,
+  }) async {
+    const phone = '918904342255';
+    final uri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }

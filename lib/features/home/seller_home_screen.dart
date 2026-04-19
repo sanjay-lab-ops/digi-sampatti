@@ -8,6 +8,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:digi_sampatti/core/constants/app_colors.dart';
 import 'package:digi_sampatti/core/constants/api_constants.dart';
+import 'package:digi_sampatti/core/services/payment_service.dart';
+import 'package:uuid/uuid.dart';
 
 // Documents per property type — aligned with DigiSampatti verification framework
 const _sellerDocsMap = {
@@ -728,6 +730,7 @@ class _SellerStep4List extends StatefulWidget {
 class _SellerStep4ListState extends State<_SellerStep4List> {
   String? _chosenPlan;
   bool _showScore = true;
+  bool _paying = false;
 
   @override
   Widget build(BuildContext context) {
@@ -981,6 +984,20 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
   }
 
 
+  Future<void> _payAndList(String planLabel, int amount) async {
+    final txnRef = const Uuid().v4().substring(0, 8).toUpperCase();
+    final launched = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => _PaymentSheet(planLabel: planLabel, amount: amount, txnRef: txnRef),
+    );
+    if (launched == true && mounted) {
+      setState(() => _chosenPlan = '$planLabel (₹$amount)');
+    }
+  }
+
   // ── Listing plans ──────────────────────────────────────────────────────────
   Widget _buildPlans() {
     return SingleChildScrollView(
@@ -1009,15 +1026,15 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
         const SizedBox(height: 10),
         _PlanCard('₹99', 'Basic Verified Listing',
           ['Verified badge on listing', 'Basic AI document score', 'Up to 3 buyer inquiries'],
-          AppColors.primary, false, onChoose: () => setState(() => _chosenPlan = '₹99 Basic')),
+          AppColors.primary, false, onChoose: () => _payAndList('Basic Verified Listing', 99)),
         const SizedBox(height: 8),
         _PlanCard('₹199', 'Standard — Recommended',
           ['Everything in Basic', 'Full AI verification report', 'Unlimited buyer inquiries', 'Priority in search results'],
-          AppColors.safe, true, onChoose: () => setState(() => _chosenPlan = '₹199 Standard')),
+          AppColors.safe, true, onChoose: () => _payAndList('Standard Listing', 199)),
         const SizedBox(height: 8),
         _PlanCard('₹499', 'Premium — Maximum Visibility',
           ['Everything in Standard', 'Featured listing placement', 'Expert help (lawyer/surveyor)', 'Digital escrow setup'],
-          const Color(0xFF6A1B9A), false, onChoose: () => setState(() => _chosenPlan = '₹499 Premium')),
+          const Color(0xFF6A1B9A), false, onChoose: () => _payAndList('Premium Listing', 499)),
         const SizedBox(height: 24),
       ]),
     );
@@ -1075,6 +1092,94 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
           ),
         ),
         const SizedBox(height: 24),
+      ]),
+    );
+  }
+}
+
+// ── Payment bottom sheet ──────────────────────────────────────────────────────
+class _PaymentSheet extends StatefulWidget {
+  final String planLabel;
+  final int amount;
+  final String txnRef;
+  const _PaymentSheet({required this.planLabel, required this.amount, required this.txnRef});
+  @override
+  State<_PaymentSheet> createState() => _PaymentSheetState();
+}
+
+class _PaymentSheetState extends State<_PaymentSheet> {
+  bool _launching = false;
+
+  Future<void> _payUpi() async {
+    setState(() => _launching = true);
+    final ok = await PaymentService.openUpiPaymentGeneric(
+      amountInRupees: widget.amount,
+      purpose: widget.planLabel,
+      txnRef: widget.txnRef,
+    );
+    if (!mounted) return;
+    setState(() => _launching = false);
+    if (ok) Navigator.of(context).pop(true);
+  }
+
+  Future<void> _payWhatsApp() async {
+    await PaymentService.openWhatsApp(
+      message: 'Hi DigiSampatti, I want to list my property under the '
+        '"${widget.planLabel}" plan (₹${widget.amount}). '
+        'Ref: ${widget.txnRef}. Please confirm payment.',
+    );
+    if (mounted) Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 40, height: 4, decoration: BoxDecoration(
+          color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+        const SizedBox(height: 20),
+        const Icon(Icons.sell_outlined, color: AppColors.primary, size: 32),
+        const SizedBox(height: 8),
+        Text(widget.planLabel,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 4),
+        Text('₹${widget.amount}',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.primary)),
+        const SizedBox(height: 4),
+        Text('Ref: ${widget.txnRef}',
+          style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _launching ? null : _payUpi,
+            icon: _launching
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.payment_outlined),
+            label: Text(_launching ? 'Opening UPI...' : 'Pay ₹${widget.amount} via UPI (GPay / PhonePe / BHIM)'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14)),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _payWhatsApp,
+            icon: const Icon(Icons.chat_outlined, size: 18),
+            label: Text('Pay via WhatsApp (+91 8904342255)'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14)),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('I\'ve already paid — Mark as listed',
+            style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+        ),
       ]),
     );
   }
