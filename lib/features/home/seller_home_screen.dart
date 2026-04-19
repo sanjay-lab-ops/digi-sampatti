@@ -160,6 +160,7 @@ class _SellerHomeScreenState extends ConsumerState<SellerHomeScreen> {
   int _step = 0;
   String? _propertyType;
   String? _district;
+  Map<String, dynamic> _propertyDetails = {};
   Map<int, Map<String, dynamic>> _ocrResults = {};
 
   static const _districts = [
@@ -216,8 +217,12 @@ class _SellerHomeScreenState extends ConsumerState<SellerHomeScreen> {
 
   Widget _buildStep() {
     switch (_step) {
-      case 0: return _SellerStep1(key: const ValueKey(0), districts: _districts, onNext: (d) {
-        setState(() { _district = d; _step = 1; });
+      case 0: return _SellerStep1(key: const ValueKey(0), districts: _districts, onNext: (details) {
+        setState(() {
+          _propertyDetails = details;
+          _district = details['district'] as String;
+          _step = 1;
+        });
       });
       case 1: return _SellerStep2(key: const ValueKey(1), types: _propertyTypes, onNext: (t) {
         setState(() { _propertyType = t; _step = 2; });
@@ -229,6 +234,7 @@ class _SellerHomeScreenState extends ConsumerState<SellerHomeScreen> {
       case 3: return _SellerStep4List(key: const ValueKey(3),
         propertyType: _propertyType!,
         district: _district!,
+        propertyDetails: _propertyDetails,
         ocrResults: _ocrResults,
       );
       default: return const SizedBox.shrink();
@@ -236,10 +242,10 @@ class _SellerHomeScreenState extends ConsumerState<SellerHomeScreen> {
   }
 }
 
-// ─── Seller Step 1: Location ──────────────────────────────────────────────────
+// ─── Seller Step 1: Property Details + Seller Name ───────────────────────────
 class _SellerStep1 extends StatefulWidget {
   final List<String> districts;
-  final void Function(String district) onNext;
+  final void Function(Map<String, dynamic> details) onNext;
   const _SellerStep1({super.key, required this.districts, required this.onNext});
   @override
   State<_SellerStep1> createState() => _SellerStep1State();
@@ -247,17 +253,22 @@ class _SellerStep1 extends StatefulWidget {
 
 class _SellerStep1State extends State<_SellerStep1> {
   String? _district;
+  final _nameCtrl  = TextEditingController(); // seller name
   final _titleCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _areaCtrl  = TextEditingController();
   final _descCtrl  = TextEditingController();
   final _localityCtrl = TextEditingController();
 
-  bool get _canProceed => _district != null && _titleCtrl.text.isNotEmpty && _priceCtrl.text.isNotEmpty;
+  bool get _canProceed =>
+      _district != null &&
+      _nameCtrl.text.isNotEmpty &&
+      _titleCtrl.text.isNotEmpty &&
+      _priceCtrl.text.isNotEmpty;
 
   @override
   void dispose() {
-    _titleCtrl.dispose(); _priceCtrl.dispose();
+    _nameCtrl.dispose(); _titleCtrl.dispose(); _priceCtrl.dispose();
     _areaCtrl.dispose(); _descCtrl.dispose(); _localityCtrl.dispose();
     super.dispose();
   }
@@ -269,6 +280,18 @@ class _SellerStep1State extends State<_SellerStep1> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _SHeader('Step 1 of 4', 'Property Details', Icons.home_outlined, AppColors.safe),
         const SizedBox(height: 20),
+
+        // Seller name
+        TextField(
+          controller: _nameCtrl,
+          onChanged: (_) => setState(() {}),
+          textCapitalization: TextCapitalization.words,
+          decoration: _deco('Your Full Name *').copyWith(
+            hintText: 'As per Aadhaar / property documents',
+            prefixIcon: const Icon(Icons.person_outline),
+          ),
+        ),
+        const SizedBox(height: 12),
 
         // Property title
         TextField(
@@ -349,7 +372,15 @@ class _SellerStep1State extends State<_SellerStep1> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _canProceed ? () => widget.onNext(_district!) : null,
+            onPressed: _canProceed ? () => widget.onNext({
+              'sellerName': _nameCtrl.text.trim(),
+              'district': _district!,
+              'title': _titleCtrl.text.trim(),
+              'price': int.tryParse(_priceCtrl.text.replaceAll(',', '').replaceAll(' ', '')) ?? 0,
+              'area': double.tryParse(_areaCtrl.text) ?? 0,
+              'locality': _localityCtrl.text.trim(),
+              'description': _descCtrl.text.trim(),
+            }) : null,
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15),
               backgroundColor: AppColors.safe),
             child: const Text('Next: Choose Property Type →', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
@@ -358,7 +389,7 @@ class _SellerStep1State extends State<_SellerStep1> {
         if (!_canProceed)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text('Fill property title, price and district to continue',
+            child: Text('Fill your name, property title, price and district to continue',
               style: TextStyle(fontSize: 11, color: AppColors.textLight), textAlign: TextAlign.center),
           ),
       ]),
@@ -846,8 +877,10 @@ class _UploadRow extends StatelessWidget {
 // ─── Seller Step 4: AI Score + List Property ─────────────────────────────────
 class _SellerStep4List extends StatefulWidget {
   final String propertyType, district;
+  final Map<String, dynamic> propertyDetails;
   final Map<int, Map<String, dynamic>> ocrResults;
-  const _SellerStep4List({super.key, required this.propertyType, required this.district, required this.ocrResults});
+  const _SellerStep4List({super.key, required this.propertyType, required this.district,
+      required this.propertyDetails, required this.ocrResults});
   @override
   State<_SellerStep4List> createState() => _SellerStep4ListState();
 }
@@ -1137,29 +1170,48 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
   // Fire-and-forget — UI already shows success; don't block on network.
   void _persistToFirestore(String planLabel, String txnRef) {
     final ocr = widget.ocrResults;
+    final details = widget.propertyDetails;
+    final sellerName = details['sellerName'] as String? ?? '';
+    final title      = details['title'] as String? ?? '';
+    final price      = details['price'] as int? ?? 0;
+    final area       = (details['area'] as double?) ?? 0.0;
+    final locality   = details['locality'] as String? ?? '';
+
+    // Supplement with OCR-extracted data where form fields were blank
     final surveyNumber = ocr.values
         .map((d) => d['survey_number'] ?? d['surveyNumber'] ?? '')
         .firstWhere((s) => s.toString().isNotEmpty, orElse: () => '').toString();
-    final ownerName = ocr.values
-        .map((d) => d['owner_name'] ?? d['ownerName'] ?? '')
-        .firstWhere((s) => s.toString().isNotEmpty, orElse: () => '').toString();
     final result = _computeScore();
 
+    final address = [
+      if (locality.isNotEmpty) locality,
+      widget.district,
+      'Karnataka',
+    ].join(', ');
+
+    // Save seller profile first (name + verification flags)
+    MarketplaceService.upsertSellerProfile(
+      name: sellerName,
+      phone: '',  // filled from FirebaseAuth in service
+      ocrData: ocr.isNotEmpty ? ocr.values.first : null,
+    );
+
     MarketplaceService.createPropertyListing(
-      address: ownerName.isNotEmpty ? 'Survey $surveyNumber, ${widget.district}' : widget.district,
+      address: address,
       district: widget.district,
-      taluk: '',
+      taluk: locality,
       surveyNumber: surveyNumber,
       propertyType: widget.propertyType,
-      salePrice: 0, // seller sets price separately; 0 = TBD
-      area: 0,
+      salePrice: price,
+      area: area,
       areaUnit: 'sqft',
+      title: title,
       listingPlan: planLabel.toLowerCase().replaceAll(' ', '_'),
       planTxnRef: txnRef,
     ).then((propId) {
       MarketplaceService.saveTrustScore(
         propId: propId,
-        sellerId: '', // filled by service from FirebaseAuth
+        sellerId: '',
         totalScore: result.score,
         breakdown: {
           'docReads': result.docsRead * 4,
@@ -1174,10 +1226,11 @@ class _SellerStep4ListState extends State<_SellerStep4List> {
       MarketplaceService.updatePropertyVerification(
         propId: propId,
         docsVerified: result.docsRead > 0,
+        sellerVerified: sellerName.isNotEmpty,
       );
       MarketplaceService.publishListing(propId);
     }).catchError((_) {
-      // Network failure — listing data stays locally; retry logic can be added later
+      // Network failure — listing stays locally; retry on next session
     });
   }
 

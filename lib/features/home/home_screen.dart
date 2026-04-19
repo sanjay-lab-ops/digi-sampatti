@@ -8,6 +8,7 @@ import 'package:digi_sampatti/core/models/legal_report_model.dart';
 import 'package:digi_sampatti/core/providers/property_provider.dart';
 import 'package:digi_sampatti/core/providers/language_provider.dart';
 import 'package:digi_sampatti/core/services/report_history_service.dart';
+import 'package:digi_sampatti/core/services/marketplace_service.dart';
 import 'package:digi_sampatti/features/gov_webview/gov_webview_screen.dart';
 import 'package:digi_sampatti/features/profile/property_profile_sheet.dart';
 import 'package:digi_sampatti/features/marketplace/property_listing_screen.dart';
@@ -568,36 +569,7 @@ class _TrustStatsSection extends StatelessWidget {
         Expanded(child: _StatCard('₹0', 'Broker Commission', Icons.handshake_outlined, Colors.orange)),
       ]),
       const SizedBox(height: 10),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0D1B2A), Color(0xFF1565C0)],
-            begin: Alignment.topLeft, end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(children: [
-          const Icon(Icons.shield_outlined, color: Colors.white70, size: 28),
-          const SizedBox(width: 12),
-          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('DigiSampatti Trust Score', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-            SizedBox(height: 2),
-            Text('AI-verified document check · EC · Khata · RERA · CERSAI · Court records',
-              style: TextStyle(color: Colors.white60, fontSize: 11), maxLines: 2),
-          ])),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.safe.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.safe.withOpacity(0.5)),
-            ),
-            child: const Text('0–100', style: TextStyle(color: AppColors.safe, fontWeight: FontWeight.bold, fontSize: 12)),
-          ),
-        ]),
-      ),
+      const _LiveTrustScoreBanner(),
     ]);
   }
 }
@@ -623,6 +595,72 @@ class _StatCard extends StatelessWidget {
         Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
         Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textLight), maxLines: 2),
       ]),
+    );
+  }
+}
+
+// ─── Live Trust Score Banner — fetches seller's latest score from Firestore ───
+class _LiveTrustScoreBanner extends StatelessWidget {
+  const _LiveTrustScoreBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: MarketplaceService.getMyListings(),
+      builder: (context, snap) {
+        int? score;
+        String subtitle = 'AI-verified document check · EC · Khata · RERA · CERSAI · Court records';
+
+        if (snap.hasData && snap.data!.isNotEmpty) {
+          final latest = snap.data!.first;
+          final ts = latest['trustScore'];
+          if (ts != null && ts['total'] != null) {
+            score = (ts['total'] as num).toInt();
+            final title = latest['title'] as String? ?? '';
+            subtitle = title.isNotEmpty ? 'Your listing: $title' : 'Your latest listed property';
+          }
+        }
+
+        final scoreColor = score == null
+            ? AppColors.safe
+            : score >= 80 ? AppColors.safe : score >= 60 ? Colors.orange : Colors.red;
+        final scoreLabel = score == null
+            ? '0–100'
+            : '$score/100';
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0D1B2A), Color(0xFF1565C0)],
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(children: [
+            const Icon(Icons.shield_outlined, color: Colors.white70, size: 28),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('DigiSampatti Trust Score',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 2),
+              Text(subtitle,
+                  style: const TextStyle(color: Colors.white60, fontSize: 11), maxLines: 2),
+            ])),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: scoreColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: scoreColor.withOpacity(0.5)),
+              ),
+              child: Text(scoreLabel,
+                  style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
+          ]),
+        );
+      },
     );
   }
 }
