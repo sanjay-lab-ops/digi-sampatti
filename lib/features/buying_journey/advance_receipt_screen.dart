@@ -372,10 +372,11 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/transaction')),
         title: Text(isKn ? 'ಮುಂಗಡ ರಸೀದಿ' : 'Advance Receipt')),
-      body: Form(
+      body: SafeArea(
+        child: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -579,6 +580,7 @@ class _AdvanceReceiptScreenState extends ConsumerState<AdvanceReceiptScreen> {
           ),
         ),
       ),
+      ), // SafeArea
     ));
   }
 

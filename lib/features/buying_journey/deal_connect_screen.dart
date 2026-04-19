@@ -262,7 +262,7 @@ class _DealConnectScreenState extends State<DealConnectScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => context.go('/transaction'),
+                onPressed: () => context.push('/transaction'),
                 icon: const Icon(Icons.dashboard_outlined),
                 label: const Text('Open Transaction Dashboard', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(

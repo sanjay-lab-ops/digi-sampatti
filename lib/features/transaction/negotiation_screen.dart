@@ -42,8 +42,11 @@ class _NegotiationScreenState extends State<NegotiationScreen>
     _priceCtrl.dispose();
     _noteCtrl.dispose();
     _chatCtrl.dispose();
+    _priceFocus.dispose();
     super.dispose();
   }
+
+  final _priceFocus = FocusNode();
 
   void _submitOffer() {
     final val = double.tryParse(_priceCtrl.text.replaceAll(',', ''));
@@ -58,6 +61,16 @@ class _NegotiationScreenState extends State<NegotiationScreen>
       _priceCtrl.clear();
       _noteCtrl.clear();
     });
+    FocusScope.of(context).unfocus();
+  }
+
+  void _counterOffer(_Offer offer) {
+    // Pre-fill with previous offer amount and focus the field
+    _priceCtrl.text = offer.amount.toStringAsFixed(0);
+    _priceFocus.requestFocus();
+    // Select all text so user can type over it
+    _priceCtrl.selection = TextSelection(
+      baseOffset: 0, extentOffset: _priceCtrl.text.length);
   }
 
   void _sendChat() {
@@ -280,7 +293,7 @@ class _NegotiationScreenState extends State<NegotiationScreen>
                           )),
                           const SizedBox(width: 8),
                           Expanded(child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _counterOffer(offer),
                             icon: const Icon(Icons.reply, size: 14),
                             label: const Text('Counter', style: TextStyle(fontSize: 12)),
                             style: OutlinedButton.styleFrom(
@@ -297,56 +310,62 @@ class _NegotiationScreenState extends State<NegotiationScreen>
             },
           ),
 
-      // Pinned input bar at bottom
+      // Pinned input bar — sits above system nav bar, rises with keyboard
       if (!_agreed)
         Positioned(
           bottom: 0, left: 0, right: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: const Border(top: BorderSide(color: Color(0xFFEEEEEE))),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))],
-            ),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  _role == 'buyer' ? '🏠 Buyer — Make a counter-offer:' : '🏷️ Seller — Update your asking price:',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600),
-                ),
+          child: SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: const Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))],
               ),
-              const SizedBox(height: 8),
-              Row(children: [
-                const Text('₹', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(
-                  controller: _priceCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: 'Amount (e.g. 72,00,000)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2)),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _role == 'buyer' ? '🏠 Buyer — Make a counter-offer:' : '🏷️ Seller — Update your asking price:',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600),
                   ),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                )),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _submitOffer,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1565C0),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('Send', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
+                const SizedBox(height: 8),
+                Row(children: [
+                  const Text('₹', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(
+                    controller: _priceCtrl,
+                    focusNode: _priceFocus,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _submitOffer(),
+                    decoration: InputDecoration(
+                      hintText: 'Amount (e.g. 72,00,000)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2)),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  )),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _submitOffer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1565C0),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Send', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ]),
               ]),
-            ]),
+            ),
           ),
         ),
     ]);
@@ -409,11 +428,13 @@ class _NegotiationScreenState extends State<NegotiationScreen>
         ),
       ]),
 
-      // Pinned chat input
+      // Pinned chat input — SafeArea handles gesture nav bar
       Positioned(
         bottom: 0, left: 0, right: 0,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+        child: SafeArea(
+          top: false,
+          child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
           decoration: BoxDecoration(
             color: Colors.white,
             border: const Border(top: BorderSide(color: Color(0xFFEEEEEE))),
@@ -444,6 +465,7 @@ class _NegotiationScreenState extends State<NegotiationScreen>
             ),
           ]),
         ),
+        ), // SafeArea
       ),
     ]);
   }
